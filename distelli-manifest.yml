@@ -1,0 +1,26 @@
+slv/ref_arch_setup:
+  PreBuild:
+    # Check to see if rvm is already installed
+    - if [ -a ~/.rvm/scripts/rvm ]; then
+    -   echo "rvm exists"
+    - else
+    -   echo "rvm does not exist. Installing..."
+    -   gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+    -   curl -sSL https://get.rvm.io | bash -s stable --ruby
+    - fi
+    - source ~/.rvm/scripts/rvm
+    - rvm install ruby-2.4.0
+    - rvm use 2.4.0
+    - gem install bundler
+    - git clone https://github.com/puppetlabs/gem_of.git
+    - cd gem_of
+    - gem build gem_of.gemspec
+    - gem install --local gem_of-*
+#    - bundle install
+#    - bundle exec rake gem:install:local
+
+  Build:
+    - source ~/.rvm/scripts/rvm
+    - rvm use 2.4.0
+    - bundle install
+    - bundle exec rake test:spec
