@@ -73,6 +73,10 @@ namespace :docs do
   end
 end
 
+task :test do
+  Rake::Task["test:spec"].invoke
+end
+
 namespace :test do
   desc "check number of lines of code changed. To protect against long PRs"
   task "diff_length" do

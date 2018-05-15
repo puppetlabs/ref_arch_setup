@@ -21,3 +21,5 @@ import
 .ruby-version
 *.lock
 *.pyc
+
+ref_arch_setup-*.gem
