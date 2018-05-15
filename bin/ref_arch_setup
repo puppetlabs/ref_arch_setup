@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 STDOUT.sync
-load File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "ref_arch_setup.rb"))
+
 require "rubygems" unless defined?(Gem)
 require "ref_arch_setup"
 require "optparse"
