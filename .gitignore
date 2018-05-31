@@ -1,3 +1,4 @@
+doc/
 pkg/
 Gemfile.lock
 Gemfile.local
@@ -5,6 +6,8 @@ vendor/
 spec/fixtures/
 log/
 junit/
+yardstick/
+.yardoc/
 .vagrant/
 .bundle/
 coverage/
