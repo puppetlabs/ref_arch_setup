@@ -6,19 +6,19 @@ require "ref_arch_setup"
 require "optparse"
 
 available_commands = [
-  "doit"
+  "install"
 ]
 
 options = {}
-# options["some_option"] = "some value"
+# options["some_option"] = "some value"  #to set a default value
 
-opt_parser = OptionParser.new do |opt|
+global = OptionParser.new do |opt|
   opt.banner = <<-BANNER
-  Usage: <command> [options]
+  Usage: ref_arch_setup [options] <subcommand> [options]
 
   Available Commands:
 
-  doit               - do it
+    install               - Install a bootstrapped mono PE on target_host
 
   Available Options:
 
@@ -27,32 +27,43 @@ BANNER
     puts opt
     exit
   end
-  opt.on("--some-option value", "A thing that make cool stuff happen") do |value|
-    options["some_option"] = value
-  end
   opt.on("--version", "Show currently running version of Ref_arch_setup") do
     puts RefArchSetup::Version::STRING
     exit 0
   end
 end
-opt_parser.parse!(ARGV)
+
+subcommands = {
+  "install" => OptionParser.new do |opt|
+    opt.banner = "Usage: ref_arch_setup install [options]"
+    opt.on("--target-host value", "Host to install PE on") do |value|
+      options["target_host"] = value
+    end
+    opt.on("--pe-tarball-path value", "Path to PE tarball") do |value|
+      options["pe_tarball_path"] = value
+    end
+    opt.on("--pe-conf-path value", "Path to pe.conf file") do |value|
+      options["pe_conf_path"] = value
+    end
+  end
+}
+
+global.order!(ARGV)
 command_string = ARGV[0]
 
 if command_string.nil?
-  puts opt_parser.help
+  puts global.help
   exit 0
 end
 
-commands = command_string.split(",")
-commands.each do |cmd|
-  next if available_commands.include?(cmd)
+unless available_commands.include?(command_string)
   puts "# ERROR, #{cmd} is not an available command"
   puts
-  puts opt_parser.help
+  puts global.help
   exit 1
 end
 
+subcommands[command_string].parse!
+
 cli = RefArchSetup::CLI.new(options)
-commands.each do |cmd|
-  cli.send(cmd)
-end
+cli.send(command_string)
