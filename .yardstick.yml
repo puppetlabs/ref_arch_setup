@@ -1,0 +1,14 @@
+---
+threshold: 100
+rules:
+  ApiTag::Presence:
+    enabled: false
+  ApiTag::Inclusion:
+    enabled: false
+  ApiTag::ProtectedMethod:
+    enabled: false
+  ApiTag::PrivateMethod:
+    enabled: false
+  ExampleTag:
+    enabled: false
+    exclude: []

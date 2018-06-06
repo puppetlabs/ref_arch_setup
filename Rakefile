@@ -41,7 +41,8 @@ namespace :docs do
 
   desc "Measure YARD coverage"
   require "yardstick/rake/measurement"
-  Yardstick::Rake::Measurement.new(:measure) do |measurement|
+  options = YAML.load_file(".yardstick.yml")
+  Yardstick::Rake::Measurement.new(:measure, options) do |measurement|
     measurement.output = "yardstick/report.txt"
   end
 
@@ -124,7 +125,7 @@ namespace :test do
 
   desc "" # empty description so it doesn't show up in rake -T
   rototiller_task :check_spec do |t|
-    t.add_env(name: "SPEC_PATTERN", default: "spec/",
+    t.add_env(name: "SPEC_PATTERN", default: "**{,/*/**}/*_spec.rb",
               message: "The pattern RSpec will use to find tests")
   end
 end

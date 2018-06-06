@@ -21,5 +21,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Run time dependencies
-  spec.add_runtime_dependency 'bolt', '~> 0.17'
+  spec.add_runtime_dependency "bolt", "~> 0.17"
 end
