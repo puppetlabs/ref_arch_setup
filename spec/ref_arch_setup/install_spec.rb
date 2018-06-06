@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe RefArchSetup::Version do
+describe RefArchSetup::Install do
   let(:target_master)   { "local://localhost" }
   let(:pe_conf_path)    { "/tmp/pe.conf" }
   let(:pe_tarball_path) { "/tmp/pe.tarball" }
