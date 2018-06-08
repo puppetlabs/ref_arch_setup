@@ -13,3 +13,13 @@ Bundler/OrderedGems:
 #80 is just too small
 Metrics/LineLength:
   Max: 100
+
+Style/RedundantReturn:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+Metrics/MethodLength:
+  Max: 15
