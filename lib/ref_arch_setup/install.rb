@@ -5,14 +5,12 @@ module RefArchSetup
   # @author Randell Pelak
   #
   # @attr [string] target_master Host to install on
-  # @attr [string] pe_tarball_path Path to PE Tarball
   class Install
     # Initialize class
     #
     # @author Randell Pelak
     #
     # @param [string] target_master Host to install on
-    # @param [string] pe_tarball_path Path to pe tarball
     #
     # @return [void]
     def initialize(target_master)
