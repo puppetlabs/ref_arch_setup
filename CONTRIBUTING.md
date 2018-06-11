@@ -1,4 +1,4 @@
-# How To Contribute To ref_arch_setup
+# How To Contribute To RefArchSetup
 
 ## Getting Started
 
@@ -11,8 +11,9 @@
 
 ## Making Changes
 
+### GitHub
 * Create a topic branch from your local copy of the repository. 
-  * Please title the branch after the beaker ticket you intend to address, ie `SLV-111`.
+  * Please title the branch after the ticket you intend to address, ie `SLV-111`.
 * Make commits of logical units.
 * Check for unnecessary whitespace with `git diff --check` before committing.
 * Make sure your commit messages are in the proper format.
@@ -41,7 +42,6 @@ A successful rebase ensures that your PR will cleanly merge.
 
 ### Documentation
 
-* Add an entry in the [CHANGELOG.md](CHANGELOG.md). Refer to the CHANGELOG itself for message style/form details.
 * Make sure that you have added documentation using [Yard](http://yardoc.org/) as necessary for any new code introduced.
 * More user friendly documentation will be required for PRs unless exempted. Documentation lives in the [docs/ folder](docs).
 
@@ -56,28 +56,51 @@ For changes of a trivial nature, it is not always necessary to create a new tick
 
     - remove additional spaces that appear at EOL
 ````
-### Version Bump For Gem Release
 
-To prepare for a new gem release of the `version.rb` file is updated with the upcoming gem version number.  This is submitted with `(GEM)` instead of a ticket/issue number.
-
-````
-     (GEM) Update version for ref_arch_setup 1.11.1
-````
-### History File Update
-
-To prepare for a new gem release (after the version has been bumped) the `HISTORY.md` file is updated with the latest GitHub log.  This is submitted with `(HISTORY)` instead of a ticket/issue number.
-
-````
-    (HISTORY) Update history for ref_arch_setup 1.11.1
-````
 ## Submitting Changes
 
 * Push your changes to a topic branch of the repository.
 * Submit a pull request to [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup)
-* Update your ticket
-  * Update your [Jira](https://tickets.puppetlabs.com) ticket to mark that you have submitted code and are ready for it to be considered for merge (Status: Ready for Merge).
-    * Include a link to the pull request in the ticket.
-* PRs are reviewed as time permits.  
+* Update your [Jira](https://tickets.puppetlabs.com) ticket
+  * Update the status to "Ready for Merge".
+  * Include a link to the pull request in the ticket.
+
+## Building And Publishing The Gem
+
+### RubyGems.org
+* Create a [rubygems.org](rubygems.org) account if you don't already have one.
+* Use your email and password when pushing the gem. The credentials will be stored in ~/.gem/credentials.
+
+### Bundler Release Tasks
+
+RefArchSetup includes the [Bundler release rake tasks](https://bundler.io/v1.12/guides/creating_gem.html#releasing-the-gem) via [gem_of](https://github.com/puppetlabs/gem_of) which simplifies the build and release process.
+The following tasks are included:
+````
+rake gem:build                  # Build ref_arch_setup-0.0.1.gem into the pkg directory
+rake gem:clean                  # Remove any temporary products
+rake gem:clobber                # Remove any generated files
+rake gem:install                # Build and install ref_arch_setup-0.0.1.gem into system gems
+rake gem:install:local          # Build and install ref_arch_setup-0.0.1.gem into system gems without networ...
+rake gem:release[remote]        # Create tag v0.0.1 and build and push ref_arch_setup-0.0.1.gem to rubygems.org
+````
+
+To publish the gem to RubyGems.org, use the `release` task:
+
+````
+    $ bundle exec rake gem:release
+````
+
+This will create a new tag for the release, push it to GitHub, build the gem, and push it to RubyGems.org.
+
+### Version Bump For Gem Release
+
+* Update the `version.rb` file with the upcoming gem version number to prepare for the next gem release.  
+* Commit the update with `(GEM)` instead of a ticket/issue number.
+
+````
+     (GEM) Update version for ref_arch_setup 1.11.1
+````
+* Submit a pull request for the version update to [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup)
 
 # Additional Resources
 
