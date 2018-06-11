@@ -5,4 +5,6 @@ module RefArchSetup
   end
   # location of modules shipped with RAS (Ref Arch Setup)
   RAS_MODULE_PATH = File.dirname(__FILE__) + "/../modules"
+  # location of fixtures shipped with RAS (Ref Arch Setup)
+  RAS_FIXTURES_PATH = File.dirname(__FILE__) + "/../fixtures"
 end

@@ -47,4 +47,76 @@ describe RefArchSetup::Install do
       expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
     end
   end
+
+  describe "make_tmp_work_dir" do
+    it "with defaults and got a pass from bolt_helper" do
+      expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
+        .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(true)
+      expect(install.make_tmp_work_dir).to eq(true)
+    end
+
+    it "got a pass from bolt_helper" do
+      expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
+        .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(true)
+      expect(install.make_tmp_work_dir(target_master)).to eq(true)
+    end
+
+    it "got a fail from bolt_helper" do
+      expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
+        .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(false)
+      expect(install.make_tmp_work_dir(target_master)).to eq(false)
+    end
+  end
+
+  describe "upload_pe_conf" do
+    it "with defaults and got a pass from bolt_helper" do
+      src = "#{RefArchSetup::RAS_FIXTURES_PATH}/pe.conf"
+      dest = "#{RefArchSetup::TMP_WORK_DIR}/pe.conf"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(true)
+      expect(install.upload_pe_conf).to eq(true)
+    end
+
+    it "got a pass from bolt_helper" do
+      src = pe_conf_path
+      dest = "/tmp/foo"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(true)
+      expect(install.upload_pe_conf(src, dest, target_master)).to eq(true)
+    end
+
+    it "got a fail from bolt_helper" do
+      src = pe_conf_path
+      dest = "/tmp/foo"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(false)
+      expect(install.upload_pe_conf(src, dest, target_master)).to eq(false)
+    end
+  end
+
+  describe "upload_pe_tarball" do
+    it "with defaults and got a pass from bolt_helper" do
+      src = "/tmp/foo.tar"
+      dest = "#{RefArchSetup::TMP_WORK_DIR}/foo.tar"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(true)
+      expect(install.upload_pe_tarball(src)).to eq(true)
+    end
+
+    it "got a pass from bolt_helper" do
+      src = "/tmp/foo.tar"
+      dest = "/tmp/foo"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(true)
+      expect(install.upload_pe_tarball(src, dest, target_master)).to eq(true)
+    end
+
+    it "got a fail from bolt_helper" do
+      src = "/tmp/foo.tar"
+      dest = "/tmp/foo"
+      expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
+        .with(src, dest, target_master).and_return(false)
+      expect(install.upload_pe_tarball(src, dest, target_master)).to eq(false)
+    end
+  end
 end
