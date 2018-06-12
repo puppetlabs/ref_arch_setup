@@ -80,7 +80,7 @@ rake gem:build                  # Build ref_arch_setup-0.0.1.gem into the pkg di
 rake gem:clean                  # Remove any temporary products
 rake gem:clobber                # Remove any generated files
 rake gem:install                # Build and install ref_arch_setup-0.0.1.gem into system gems
-rake gem:install:local          # Build and install ref_arch_setup-0.0.1.gem into system gems without networ...
+rake gem:install:local          # Build and install ref_arch_setup-0.0.1.gem into system gems without network access
 rake gem:release[remote]        # Create tag v0.0.1 and build and push ref_arch_setup-0.0.1.gem to rubygems.org
 ````
 
