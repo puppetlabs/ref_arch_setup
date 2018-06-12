@@ -1,0 +1,14 @@
+{
+  "description": "Installs PE master on a node",
+
+  "parameters": {
+    "pe_tarball_path": {
+      "description": "The file path to the PE tarball that was downloaded and copied to the master",
+      "type": "String[1]"
+    },
+    "pe_conf_path": {
+      "description": "The file path to the pe.conf file that was copied to the master",
+      "type": "String[1]"
+    }
+  }
+}
