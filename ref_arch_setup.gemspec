@@ -7,12 +7,12 @@ Gem::Specification.new do |spec|
   spec.name             = "ref_arch_setup"
   spec.version          = RefArchSetup::Version::STRING
   spec.authors          = ["Puppet, Inc."]
-  spec.email            = ["qa@puppet.com"]
+  spec.email            = ["team-system-level-validation@puppet.com"]
   spec.summary          = "Tool for setting up reference architectures"
   spec.description      = "This gem provides methods for for setting up /
                                 Puppet Enterprise reference architectures"
   spec.homepage         = "https://github.com/puppetlabs/ref_arch_setup"
-  spec.license          = "Puppet Enterprise License"
+  spec.license          = "Apache2"
 
   # Ensure the gem is build out of the versioned files
   spec.files            = Dir["CONTRIBUTING.md", "LICENSE.md", "MAINTAINERS",
