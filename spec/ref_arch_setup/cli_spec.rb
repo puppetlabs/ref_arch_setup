@@ -18,45 +18,59 @@ describe RefArchSetup::CLI do
   end
 
   describe "check_for_missing_value" do
-    it "nothing missing" do
-      cli.instance_variable_set(:@options, good_options)
-      expect { cli.check_for_missing_value }.not_to raise_error
+    context "when no values are missing" do
+      it "does not raise an error" do
+        cli.instance_variable_set(:@options, good_options)
+        expect { cli.check_for_missing_value }.not_to raise_error
+      end
     end
-    it "something missing" do
-      cli.instance_variable_set(:@options, missing_arg_options)
-      expect { cli.check_for_missing_value }.to \
-        raise_error(OptionParser::MissingArgument, /target_host/)
+
+    context "when values are missing" do
+      it "raises an OptionParser::MissingArgument error" do
+        cli.instance_variable_set(:@options, missing_arg_options)
+        expect { cli.check_for_missing_value }.to \
+          raise_error(OptionParser::MissingArgument, /target_host/)
+      end
     end
   end
 
   describe "check_option" do
-    it "option was given" do
-      cli.instance_variable_set(:@options, good_options)
-      expect { cli.check_option("target_host", "install") }.not_to raise_error
+    context "when no options are missing" do
+      it "does not raise an error" do
+        cli.instance_variable_set(:@options, good_options)
+        expect { cli.check_option("target_host", "install") }.not_to raise_error
+      end
     end
-    it "option was not given" do
-      cli.instance_variable_set(:@options, good_options)
-      expect { cli.check_option("fake_fake", "install") }.to \
-        raise_error(OptionParser::MissingOption, /--fake-fake.*install/)
+
+    context "when options are missing" do
+      it "raises an OptionParser::MissingOption error" do
+        cli.instance_variable_set(:@options, good_options)
+        expect { cli.check_option("fake_fake", "install") }.to \
+          raise_error(OptionParser::MissingOption, /--fake-fake.*install/)
+      end
     end
   end
 
   describe "install" do
-    it "install worked" do
-      cli.instance_variable_set(:@options, good_options)
-      expect(cli).to receive(:check_for_missing_value).and_return(true)
-      expect(cli).to receive(:check_option).and_return(true).at_least(:once)
-      expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
-      expect(install_obj).to receive(:bootstrap_mono).and_return(true)
-      expect(cli.install).to eq(true)
+    context "when the install works and returns true" do
+      it "returns true" do
+        cli.instance_variable_set(:@options, good_options)
+        expect(cli).to receive(:check_for_missing_value).and_return(true)
+        expect(cli).to receive(:check_option).and_return(true).at_least(:once)
+        expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
+        expect(install_obj).to receive(:bootstrap_mono).and_return(true)
+        expect(cli.install).to eq(true)
+      end
     end
-    it "install failed" do
-      cli.instance_variable_set(:@options, good_options)
-      expect(cli).to receive(:check_for_missing_value).and_return(true)
-      expect(cli).to receive(:check_option).and_return(true).at_least(:once)
-      expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
-      expect(install_obj).to receive(:bootstrap_mono).and_return(false)
-      expect(cli.install).to eq(false)
+    context "when the install fails and returns false" do
+      it "returns false" do
+        cli.instance_variable_set(:@options, good_options)
+        expect(cli).to receive(:check_for_missing_value).and_return(true)
+        expect(cli).to receive(:check_option).and_return(true).at_least(:once)
+        expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
+        expect(install_obj).to receive(:bootstrap_mono).and_return(false)
+        expect(cli.install).to eq(false)
+      end
     end
   end
 end

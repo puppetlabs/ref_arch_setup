@@ -27,7 +27,7 @@ BANNER
     puts opt
     exit
   end
-  opt.on("--version", "Show currently running version of Ref_arch_setup") do
+  opt.on("-v", "--version", "Show currently running version of ref_arch_setup") do
     puts RefArchSetup::Version::STRING
     exit 0
   end

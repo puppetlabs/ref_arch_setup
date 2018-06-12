@@ -18,8 +18,6 @@ slv/ref_arch_setup:
     - gem install --local gem_of-*
     - cd ..
     - rm -rf gem_of
-#    - bundle install
-#    - bundle exec rake gem:install:local
 
   Build:
     - source ~/.rvm/scripts/rvm

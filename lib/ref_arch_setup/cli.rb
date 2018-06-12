@@ -68,7 +68,7 @@ module RefArchSetup
       check_option("pe_tarball_path", "install")
       check_option("pe_conf_path", "install")
       install_obj = RefArchSetup::Install.new(@options["target_host"])
-      success = install_obj.bootstrap_mono(@options["pe_tarball_path"], @options["pe_conf_path"])
+      success = install_obj.bootstrap_mono(@options["pe_conf_path"], @options["pe_tarball_path"])
       return success
     end
   end
