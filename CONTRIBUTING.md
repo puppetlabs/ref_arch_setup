@@ -87,7 +87,7 @@ rake gem:release[remote]        # Create tag v0.0.1 and build and push ref_arch_
 To publish the gem to RubyGems.org, use the `release` task:
 
 ````
-    $ bundle exec rake gem:release
+    $ rake gem:release
 ````
 
 This will create a new tag for the release, push it to GitHub, build the gem, and push it to RubyGems.org.
