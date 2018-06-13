@@ -4,7 +4,7 @@ module RefArchSetup
   module BoltHelper
     # Creates a dir on the target_host
     # Doesn't fail if dir is already there
-    # uses -p to create parent dirs is needed
+    # Uses -p to create parent dirs if needed
     #
     # @author Randell Pelak
     #
