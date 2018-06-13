@@ -16,11 +16,13 @@ slv/ref_arch_setup:
     - cd gem_of
     - gem build gem_of.gemspec
     - gem install --local gem_of-*
-#    - bundle install
-#    - bundle exec rake gem:install:local
+    - cd ..
+    - rm -rf gem_of
 
   Build:
     - source ~/.rvm/scripts/rvm
     - rvm use 2.4.0
     - bundle install
     - bundle exec rake test:spec
+    - bundle exec rake test:rubocop
+    - bundle exec rake docs:undoc
