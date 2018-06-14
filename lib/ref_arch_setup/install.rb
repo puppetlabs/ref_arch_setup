@@ -70,6 +70,7 @@ module RefArchSetup
                        dest_pe_conf_path = "#{TMP_WORK_DIR}/pe.conf", \
                        target_master = @target_master)
       success = BoltHelper.upload_file(src_pe_conf_path, dest_pe_conf_path, target_master)
+      puts "ERROR: Failed to upload pe.conf to target_master" unless success
       return success
     end
 
@@ -89,6 +90,7 @@ module RefArchSetup
         dest_pe_tarball_path += "/#{file_name}"
       end
       success = BoltHelper.upload_file(src_pe_tarball_path, dest_pe_tarball_path, target_master)
+      puts "ERROR: Failed to upload pe tarball to target_master" unless success
       return success
     end
   end
