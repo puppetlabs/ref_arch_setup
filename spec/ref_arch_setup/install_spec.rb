@@ -22,8 +22,8 @@ describe RefArchSetup::Install do
       @expected_command << " --nodes #{target_master}"
     end
 
-    context "called using default value" do
-      context "bolt returned 0 and \"All Good\"" do
+    context "when called using default value" do
+      context "when bolt returned 0 and \"All Good\"" do
         it "returns true and outputs information about the bolt run" do
           expected_output = "All Good"
           expected_status = 0
@@ -40,8 +40,8 @@ describe RefArchSetup::Install do
       end
     end
 
-    context "called passing in all values" do
-      context "bolt returned 0 and \"All Good\"" do
+    context "when called passing in all values" do
+      context "when bolt returned 0 and \"All Good\"" do
         it "returns true and outputs information about the bolt run" do
           expected_output = "All Good"
           expected_status = 0
@@ -57,7 +57,7 @@ describe RefArchSetup::Install do
         end
       end
 
-      context "bolt returned 1 and \"No Good\"" do
+      context "when bolt returned 1 and \"No Good\"" do
         it "returns false and outputs information about the bolt run as well as an error" do
           expected_output = "No Good"
           expected_status = 1
