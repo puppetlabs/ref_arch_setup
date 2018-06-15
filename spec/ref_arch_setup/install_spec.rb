@@ -22,29 +22,57 @@ describe RefArchSetup::Install do
       @expected_command << " --nodes #{target_master}"
     end
 
-    it "got a pass from bolt" do
-      expected_output = "All Good"
-      expected_status = 0
-      expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
-      `(exit #{expected_status})`
-      expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-      expect(install).to receive(:puts).with("Running: #{@expected_command}")
-      expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
-      expect(install).to receive(:puts).with("Output was: #{expected_output}")
-      expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
+    context "called using default value" do
+      context "bolt returned 0 and \"All Good\"" do
+        it "returns true and outputs information about the bolt run" do
+          expected_output = "All Good"
+          expected_status = 0
+          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
+          `(exit #{expected_status})`
+          # rubocop:disable Style/SpecialGlobalVars
+          expect($?).to receive(:success?).and_return(true)
+          # rubocop:enable Style/SpecialGlobalVars
+          expect(install).to receive(:puts).with("Running: #{@expected_command}")
+          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
+          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path)).to eq(true)
+        end
+      end
     end
 
-    it "got a fail from bolt" do
-      expected_output = "No Good"
-      expected_status = 1
-      expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
-      `(exit #{expected_status})`
-      expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
-      expect(install).to receive(:puts).with("Running: #{@expected_command}")
-      expect(install).to receive(:puts).with("ERROR: bolt command failed!")
-      expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
-      expect(install).to receive(:puts).with("Output was: #{expected_output}")
-      expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
+    context "called passing in all values" do
+      context "bolt returned 0 and \"All Good\"" do
+        it "returns true and outputs information about the bolt run" do
+          expected_output = "All Good"
+          expected_status = 0
+          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
+          `(exit #{expected_status})`
+          # rubocop:disable Style/SpecialGlobalVars
+          expect($?).to receive(:success?).and_return(true)
+          # rubocop:enable Style/SpecialGlobalVars
+          expect(install).to receive(:puts).with("Running: #{@expected_command}")
+          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
+          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
+        end
+      end
+
+      context "bolt returned 1 and \"No Good\"" do
+        it "returns false and outputs information about the bolt run as well as an error" do
+          expected_output = "No Good"
+          expected_status = 1
+          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
+          `(exit #{expected_status})`
+          # rubocop:disable Style/SpecialGlobalVars
+          expect($?).to receive(:success?).and_return(false)
+          # rubocop:enable Style/SpecialGlobalVars
+          expect(install).to receive(:puts).with("Running: #{@expected_command}")
+          expect(install).to receive(:puts).with("ERROR: bolt command failed!")
+          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
+          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
+        end
+      end
     end
   end
 
