@@ -1,0 +1,15 @@
+{
+  "description": "A task to download the specified PE tarball",
+  "input_method": "stdin",
+
+  "parameters": {
+    "url": {
+      "description": "The URL for the specified tarball",
+      "type": "String"
+    },
+    "destination": {
+      "description": "The folder where the tarball should be saved",
+      "type": "Optional[String[1]]"
+    }
+  }
+}
