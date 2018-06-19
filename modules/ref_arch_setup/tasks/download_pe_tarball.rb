@@ -1,20 +1,20 @@
-#!/usr/bin/env ruby
-require 'json'
-require 'uri'
-require 'open-uri'
-require 'fileutils'
+#!/usr/bin/env ruby # rubocop:disable Lint/ScriptPermission
+require "json"
+require "uri"
+require "open-uri"
+require "fileutils"
 
 # Initialize the instance variables with the specified parameters or default values
 #
 # @author Bill Claytor
 #
 # @return [true,false] Based on success parsing JSON input
-def init()
+def init
   success = true
   begin
     params = JSON.parse(STDIN.read)
-    @url = params['url']
-    @destination = params['destination'] || "/tmp/ref_arch_setup"
+    @url = params["url"]
+    @destination = params["destination"] || "/tmp/ref_arch_setup"
   rescue JSON::ParserError
     success = false
     puts "Error parsing JSON input!"
@@ -30,9 +30,9 @@ end
 # @param [string] url The URL to verify
 #
 # @return [true,false] Based on the verification outcome
-def is_valid_url?(url)
+def valid_url?(url)
   valid = false
-  if url =~ /\A#{URI::regexp(['http', 'https'])}\z/
+  if url =~ /\A#{URI.regexp(%w[http https])}\z/
     valid = true
   else
     puts "Invalid URL: #{url}"
@@ -47,13 +47,15 @@ end
 # @param [string] url The URL to verify
 #
 # @return [true,false] Based on the verification outcome
-def is_valid_extension?(url)
+def valid_extension?(url)
   valid = false
   extension = File.extname(url)
   if extension == ".gz"
     valid = true
   else
-    puts "Invalid extension: #{extension} for URL: #{url}. Extension must be .gz"
+    puts "Invalid extension: #{extension} for URL: #{url}."
+    puts "Extension must be .gz"
+    puts
   end
   valid
 end
@@ -66,13 +68,12 @@ end
 #
 # @return [true,false] Based on the existence of the specified directory
 def ensure_destination(destination)
-
   # don't do anything unless the destination doesn't exist
-  if !File.directory?(destination)
+  unless File.directory?(destination)
     puts "Destination directory '#{destination}' does not exist; attempting to create it"
 
     # TODO: handle exception
-    FileUtils::mkdir_p destination
+    FileUtils.mkdir_p(destination)
 
     puts "Destination #{destination} could not be created" unless File.directory?(destination)
 
@@ -121,8 +122,8 @@ end
 # @author Bill Claytor
 #
 # @return [true,false] Based on the success of validation
-def is_valid_input?()
-  is_valid_url?(@url) && is_valid_extension?(@url) && ensure_destination(@destination)
+def valid_input?
+  valid_url?(@url) && valid_extension?(@url) && ensure_destination(@destination)
 end
 
 # Encapsulate the high-level task functionality
@@ -131,7 +132,7 @@ end
 #
 
 # @return [0,1] Based on the exit status for the bolt task
-def execute_task()
+def execute_task
   exit_code = 0
   filename = File.basename(@url)
   destination_path = "#{@destination}/#{filename}"
@@ -145,7 +146,7 @@ def execute_task()
 
   success = download(@url, destination_path)
 
-  if (!success)
+  unless success
     exit_code = 1
     puts "Error downloading #{@url} to #{destination_path}"
   end
@@ -158,29 +159,28 @@ end
 # The task can be run on either localhost or a remote host
 #
 # From the ref_arch_setup directory:
-# bolt task run ref_arch_setup::download_pe_tarball url=https://example.com/example.tar.gz directory=/tmp/ras --modulepath ./modules --nodes remote_or_localhost --user user_to_run_as
+# bolt task run ref_arch_setup::download_pe_tarball url=https://example.com/example.tar.gz \
+# directory=/tmp/ras --modulepath ./modules --nodes remote_or_localhost --user user_to_run_as
 #
 # @return [0,1] Based on the exit status for the bolt task
-if $0 == __FILE__
+if $PROGRAM_NAME == __FILE__
   exit_code = 0
 
   begin
-    if init && is_valid_input?
+    if init && valid_input?
       exit_code = execute_task
     else
       exit_code = 1
       puts "Invalid input; exiting!"
       puts
     end
-
-  rescue Exception => e
+  rescue StandardError => e
     exit_code = 1
     puts "Exception encountered: #{e.message}"
     puts
     result[:_error] = { msg: e.message,
                         kind: "ref_arch_setup::download_pe_tarball/task-error",
-                        details: { class: e.class.to_s },
-    }
+                        details: { class: e.class.to_s } }
   end
 
   exit exit_code
