@@ -21,6 +21,7 @@ echo Destination: $DESTINATION
 echo Filename: $FILENAME
 echo
 
+# validate the url; exit if invalid
 if [[ $URL =~ https?://.*gz ]] ; then
   echo "URL is valid; proceeding"
 else
@@ -28,10 +29,19 @@ else
   exit 1
 fi
 
+# check for the directory; attempt to create if it doesn't exist
 if [ -d "$DESTINATION" ]; then
-  echo "Destination exists; proceeding"
+  echo "Destination directory exists; proceeding"
+else
+  echo "Destination directory does not exist; attempting to create"
+  mkdir -p $DESTINATION
+fi
+
+# check for the directory again; proceed if it exists, otherwise exit
+if [ -d "$DESTINATION" ]; then
   echo Downloading $URL to $DESTINATION_PATH
 
+  # download and check for failure
   if curl -f -L -o $DESTINATION_PATH $URL ; then
     echo "Download complete"
     exit 0
@@ -41,8 +51,6 @@ if [ -d "$DESTINATION" ]; then
   fi
 
 else
-  echo "Destination directory does not exist; exiting"
+  echo "Destination directory does not exist and could not be created; exiting"
   exit 1
-
 fi
-
