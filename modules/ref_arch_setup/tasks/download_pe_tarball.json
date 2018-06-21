@@ -1,11 +1,9 @@
 {
   "description": "A task to download the specified PE tarball",
-  "input_method": "environment",
-
   "parameters": {
     "url": {
       "description": "The URL for the specified tarball",
-      "type": "String"
+      "type": "Pattern['https?://.*tar.gz']"
     },
     "destination": {
       "description": "The folder where the tarball should be saved",

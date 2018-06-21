@@ -21,14 +21,6 @@ echo Destination: $DESTINATION
 echo Filename: $FILENAME
 echo
 
-# validate the url; exit if invalid
-if [[ $URL =~ https?://.*gz ]] ; then
-  echo "URL is valid; proceeding"
-else
-  echo "Invalid URL (must be http or https with a .gz extension); exiting"
-  exit 1
-fi
-
 # check for the directory; attempt to create if it doesn't exist
 if [ -d "$DESTINATION" ]; then
   echo "Destination directory exists; proceeding"
