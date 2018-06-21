@@ -1,0 +1,10 @@
+{
+  "description": "Generates a PE.conf file at ./tmp/pe.conf",
+
+  "parameters": {
+    "console_password": {
+      "description": "The initial console password for the puppet admin user",
+      "type": "String[1]"
+    }
+  }
+}
