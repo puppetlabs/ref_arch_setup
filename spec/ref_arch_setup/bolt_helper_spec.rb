@@ -162,8 +162,7 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("ERROR: bolt upload failed!")
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: failed to upload file #{source} to #{destination} on #{nodes.to_s}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")

@@ -109,8 +109,6 @@ describe RefArchSetup::Install do
         dest = "/tmp/foo"
         expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
           .with(src, dest, target_master).and_return(false)
-        expect(install).to receive(:puts)\
-          .with("ERROR: Failed to upload pe.conf to target_master")
         expect(install.upload_pe_conf(src, dest, target_master)).to eq(false)
       end
     end
@@ -143,8 +141,6 @@ describe RefArchSetup::Install do
         dest = "/tmp/foo"
         expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
           .with(src, dest, target_master).and_return(false)
-        expect(install).to receive(:puts)\
-          .with("ERROR: Failed to upload pe tarball to target_master")
         expect(install.upload_pe_tarball(src, dest, target_master)).to eq(false)
       end
     end
