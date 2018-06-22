@@ -39,6 +39,27 @@ module RefArchSetup
       return success
     end
 
+    # Run a task with bolt on given nodes
+    #
+    # @author Sam Woods
+    #
+    # @param task [string] Task to run on nodes
+    # @param env_vars [array] env_vars to set (sent on cmd line)
+    # @param nodes [string] Host or space delimited hosts to run task on
+    #
+    # @return [true,false] Based on exit status of the bolt task
+    def self.run_task_with_bolt(params)
+      command = "bolt task run #{params[:task]} #{params[:env_vars]}"
+      command << " --modulepath #{RAS_MODULE_PATH} --nodes #{params[:nodes]}"
+      puts "Running: #{command}"
+      output = `#{command}`
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "ERROR: bolt task failed!" unless success
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      puts "Output was: #{output}"
+      return success
+    end
+
     # Upload a file to given nodes
     #
     # @author Randell Pelak

@@ -30,18 +30,11 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def bootstrap_mono(pe_conf_path, pe_tarball_path, target_master = @target_master)
-      env_vars = "PE_CONF_PATH=#{pe_conf_path};"
-      env_vars << "PE_TARBALL_PATH=#{pe_tarball_path};"
-      env_vars << "PE_TARGET_MASTER=#{target_master};"
-      command = env_vars.to_s + "bolt task run bogus::foo "
-      command << "--modulepath #{RAS_MODULE_PATH} --nodes #{target_master}"
-      puts "Running: #{command}"
-      output = `#{command}`
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: bolt command failed!" unless success
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      puts "Output was: #{output}"
-      return success
+      env_vars = "PE_CONF_PATH=#{pe_conf_path} "
+      env_vars << "PE_TARBALL_PATH=#{pe_tarball_path} "
+      env_vars << "PE_TARGET_MASTER=#{target_master}"
+      task_params = { :task => "ref_arch_setup::install_pe", :env_vars => env_vars, :nodes => @target_master }
+      BoltHelper.run_task_with_bolt task_params
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host

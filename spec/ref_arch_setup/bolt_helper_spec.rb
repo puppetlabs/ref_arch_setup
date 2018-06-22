@@ -4,6 +4,7 @@ describe RefArchSetup::BoltHelper do
   let(:nodes)        { "local://localhost" }
   let(:dir)          { "/tmp/ref_arch_setup" }
   let(:cmd)          { "echo foo" }
+  let(:task)         { "ref_arch_setup::foo" }
   let(:source)       { "/tmp/foo" }
   let(:destination)  { "/tmp/bar" }
 
@@ -71,6 +72,66 @@ describe RefArchSetup::BoltHelper do
     end
   end
 
+  describe "run_task_with_bolt" do
+    before do
+      @env_vars = "VAR1=1 "
+      @env_vars << "VAR2=2"
+      @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
+      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
+      @task_params = { task: task, env_vars: @env_vars, nodes: nodes }
+    end
+
+    context "when bolt works and returns true" do
+      expected_output = "All Good"
+      expected_status = 0
+      it "returns true" do
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)).to eq(true)
+      end
+
+      it "outputs informative messages" do
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(true)
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
+        expect(RefArchSetup::BoltHelper).to receive(:puts)\
+          .with("Exit status was: #{expected_status}")
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
+        RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)
+      end
+    end
+
+    context "when bolt fails and returns false" do
+      expected_output = "No Good"
+      expected_status = 1
+
+      it "returns false" do
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)).to eq(false)
+      end
+
+      it "outputs informative messages and errors" do
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
+        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt task failed!")
+        expect(RefArchSetup::BoltHelper).to receive(:puts)\
+          .with("Exit status was: #{expected_status}")
+        RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)
+      end
+    end
+  end
+
   describe "upload_file" do
     before do
       @expected_command = "bolt file upload #{source} #{destination} --nodes #{nodes}"
@@ -101,7 +162,8 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt upload failed!")
+        expect(RefArchSetup::BoltHelper).to receive(:puts)
+          .with("ERROR: bolt upload failed!")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")

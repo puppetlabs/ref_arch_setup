@@ -15,61 +15,41 @@ describe RefArchSetup::Install do
 
   describe "bootstrap_mono" do
     before do
-      @expected_command = "PE_CONF_PATH=#{pe_conf_path};"
-      @expected_command << "PE_TARBALL_PATH=#{pe_tarball_path};"
-      @expected_command << "PE_TARGET_MASTER=#{target_master};"
-      @expected_command << "bolt task run bogus::foo --modulepath #{RefArchSetup::RAS_MODULE_PATH}"
+      @env_vars = "PE_CONF_PATH=#{pe_conf_path} "
+      @env_vars << "PE_TARBALL_PATH=#{pe_tarball_path} "
+      @env_vars << "PE_TARGET_MASTER=#{target_master}"
+      @expected_command = "bolt task run ref_arch_setup::install_pe "
+      @expected_command << @env_vars
+      @expected_command << " --modulepath #{RefArchSetup::RAS_MODULE_PATH}"
       @expected_command << " --nodes #{target_master}"
     end
 
     context "when called using default value" do
-      context "when bolt returned 0 and \"All Good\"" do
-        it "returns true and outputs information about the bolt run" do
-          expected_output = "All Good"
-          expected_status = 0
-          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
-          `(exit #{expected_status})`
-          # rubocop:disable Style/SpecialGlobalVars
-          expect($?).to receive(:success?).and_return(true)
-          # rubocop:enable Style/SpecialGlobalVars
-          expect(install).to receive(:puts).with("Running: #{@expected_command}")
-          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
-          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+      context "when run_task_with_bolt returned true" do
+        it "returns true" do
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .and_return(true)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path)).to eq(true)
         end
       end
     end
 
     context "when called passing in all values" do
-      context "when bolt returned 0 and \"All Good\"" do
-        it "returns true and outputs information about the bolt run" do
-          expected_output = "All Good"
-          expected_status = 0
-          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
-          `(exit #{expected_status})`
-          # rubocop:disable Style/SpecialGlobalVars
-          expect($?).to receive(:success?).and_return(true)
-          # rubocop:enable Style/SpecialGlobalVars
-          expect(install).to receive(:puts).with("Running: #{@expected_command}")
-          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
-          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+      context "when run_task_with_bolt returned true" do
+        it "returns true" do
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .and_return(true)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
         end
       end
 
-      context "when bolt returned 1 and \"No Good\"" do
-        it "returns false and outputs information about the bolt run as well as an error" do
-          expected_output = "No Good"
-          expected_status = 1
-          expect(install).to receive(:`).with(@expected_command).and_return(expected_output)
-          `(exit #{expected_status})`
-          # rubocop:disable Style/SpecialGlobalVars
-          expect($?).to receive(:success?).and_return(false)
-          # rubocop:enable Style/SpecialGlobalVars
-          expect(install).to receive(:puts).with("Running: #{@expected_command}")
-          expect(install).to receive(:puts).with("ERROR: bolt command failed!")
-          expect(install).to receive(:puts).with("Exit status was: #{expected_status}")
-          expect(install).to receive(:puts).with("Output was: #{expected_output}")
+      context "when run_task_with_bolt returned false" do
+        it "returns false" do
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .and_return(false)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
         end
       end
