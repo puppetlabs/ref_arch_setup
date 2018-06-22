@@ -75,7 +75,7 @@ module RefArchSetup
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: failed to upload file #{source} to #{destination} on #{nodes.to_s}" unless success
+      puts "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
       return success

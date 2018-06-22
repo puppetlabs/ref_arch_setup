@@ -28,7 +28,7 @@ describe RefArchSetup::Install do
       context "when run_task_with_bolt returned true" do
         it "returns true" do
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .with(task: "ref_arch_setup::install_pe", env_vars: @env_vars, nodes: target_master)
             .and_return(true)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path)).to eq(true)
         end
@@ -39,7 +39,7 @@ describe RefArchSetup::Install do
       context "when run_task_with_bolt returned true" do
         it "returns true" do
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .with(task: "ref_arch_setup::install_pe", env_vars: @env_vars, nodes: target_master)
             .and_return(true)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
         end
@@ -48,7 +48,7 @@ describe RefArchSetup::Install do
       context "when run_task_with_bolt returned false" do
         it "returns false" do
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with({:task => "ref_arch_setup::install_pe", :env_vars => @env_vars, :nodes => target_master})
+            .with(task: "ref_arch_setup::install_pe", env_vars: @env_vars, nodes: target_master)
             .and_return(false)
           expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
         end

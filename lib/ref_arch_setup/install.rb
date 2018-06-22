@@ -33,7 +33,8 @@ module RefArchSetup
       env_vars = "PE_CONF_PATH=#{pe_conf_path} "
       env_vars << "PE_TARBALL_PATH=#{pe_tarball_path} "
       env_vars << "PE_TARGET_MASTER=#{target_master}"
-      task_params = { :task => "ref_arch_setup::install_pe", :env_vars => env_vars, :nodes => @target_master }
+      task_params = { task: "ref_arch_setup::install_pe", env_vars: env_vars, \
+                      nodes: @target_master }
       BoltHelper.run_task_with_bolt task_params
     end
 
@@ -59,8 +60,8 @@ module RefArchSetup
     # @param [string] target_master Host to upload to
     #
     # @return [true,false] Based on exit status of the bolt task
-    def upload_pe_conf(src_pe_conf_path = "#{RAS_FIXTURES_PATH}/pe.conf", \
-                       dest_pe_conf_path = "#{TMP_WORK_DIR}/pe.conf", \
+    def upload_pe_conf(src_pe_conf_path = "#{RAS_FIXTURES_PATH}/pe.conf",
+                       dest_pe_conf_path = "#{TMP_WORK_DIR}/pe.conf",
                        target_master = @target_master)
       return BoltHelper.upload_file(src_pe_conf_path, dest_pe_conf_path, target_master)
     end

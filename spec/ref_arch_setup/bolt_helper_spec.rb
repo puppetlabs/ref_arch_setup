@@ -96,7 +96,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:`)\
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true)
+        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
@@ -162,7 +162,8 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: failed to upload file #{source} to #{destination} on #{nodes.to_s}")
+        expect(RefArchSetup::BoltHelper).to receive(:puts)
+          .with("ERROR: failed to upload file #{source} to #{destination} on #{nodes}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
