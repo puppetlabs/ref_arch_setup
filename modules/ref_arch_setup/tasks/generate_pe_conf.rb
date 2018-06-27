@@ -124,5 +124,5 @@ pe_conf = <<~pe_conf
 pe_conf
 # rubocop:enable Style/FormatStringToken
 
-FileUtils.mkdir_p "/tmp" unless Dir.exist? "/tmp"
-File.open("/tmp/pe.conf", "w") { |f| f.write(pe_conf) }
+FileUtils.mkdir_p "/tmp/ref_arch_setup" unless Dir.exist? "/tmp/ref_arch_setup"
+File.open("/tmp/ref_arch_setup/pe.conf", "w") { |f| f.write(pe_conf) }
