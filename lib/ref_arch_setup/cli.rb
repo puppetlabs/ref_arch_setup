@@ -57,19 +57,82 @@ module RefArchSetup
             "option --#{option} is required for the #{subcommand} subcommand"
     end
 
+    # Wrapper around commands
+    #
+    # @author Randell Pelak
+    #
+    # @param [string] command the name of the command to run
+    # @param [string] subcommand the name of the subcommand to run
+    #
+    # @return [boolean] success of install
+    def run(command, subcommand = nil)
+      check_for_missing_value
+      comm = command
+      comm += "_" + subcommand unless subcommand.nil?
+      success = send(comm)
+      return success
+    end
+
     # Installs a bootstrap version of mono on the target host using the provided tarball and pe.conf
     #
     # @author Randell Pelak
     #
     # @return [boolean] success of install
     def install
-      check_for_missing_value
-      check_option("target_host", "install")
-      check_option("pe_tarball_path", "install")
-      check_option("pe_conf_path", "install")
-      install_obj = RefArchSetup::Install.new(@options["target_host"])
-      success = install_obj.bootstrap_mono(@options["pe_conf_path"], @options["pe_tarball_path"])
+      puts "Running install command"
+      success = true
+      success = install_generate_pe_conf unless @options.key?("pe_conf")
+      success = install_bootstrap if success
+      success = install_infra_agent_install if success
+      success = install_configure if success
       return success
+    end
+
+    # Generates a pe.conf for use doing the install
+    #
+    # @author Randell Pelak
+    #
+    # @return [boolean] success of generating the pe.conf file
+    def install_generate_pe_conf
+      puts "Running generate-pe-conf subcommand of install command"
+      # check_option("console_password", "install") # password hardcoded in base file for now
+      return true
+    end
+
+    # Installs a bootstrap version of PE on the target host using the provided tarball and pe.conf
+    #
+    # @author Randell Pelak
+    #
+    # @return [boolean] success of install
+    def install_bootstrap
+      puts "Running bootstrap subcommand of install command"
+      # none of these will be required in the future...  but are for now
+      check_option("primary_master", "install")
+      check_option("pe_tarball", "install")
+      check_option("pe_conf", "install")
+      install_obj = RefArchSetup::Install.new(@options["primary_master"])
+      success = install_obj.bootstrap_mono(@options["pe_conf"], @options["pe_tarball"])
+      return success
+    end
+
+    # Installs an agent on infrastructure nodes
+    #
+    # @author Randell Pelak
+    #
+    # @return [boolean] success of agent install
+    def install_infra_agent_install
+      puts "Running infra-agent-install subcommand of install command"
+      return true
+    end
+
+    # Configures infrastructure nodes and do initial perf tuning
+    #
+    # @author Randell Pelak
+    #
+    # @return [boolean] success of all the things
+    def install_configure
+      puts "Running configure subcommand of install command"
+      return true
     end
   end
 end

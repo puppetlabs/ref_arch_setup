@@ -5,20 +5,24 @@ require "rubygems" unless defined?(Gem)
 require "ref_arch_setup"
 require "optparse"
 
-available_commands = [
-  "install"
-]
+available_commands = %w[install]
 
-options = {}
+available_subcommands = %w[generate-pe-conf bootstrap infra-agent-install configure]
+
+@options = {}
 # options["some_option"] = "some value"  #to set a default value
 
 global = OptionParser.new do |opt|
   opt.banner = <<-BANNER
-  Usage: ref_arch_setup [options] <subcommand> [options]
+  Usage: ref_arch_setup <command> [subcommand] [options]
 
   Available Commands:
 
-    install               - Install a bootstrapped mono PE on target_host
+    install                      - Install a bootstrapped PE on target_host
+    install generate-pe-conf     - Generates a pe.conf for the install
+    install bootstrap            - Installs a bare bones PE on the target_host
+    install infra-agent-install  - Installs agents on all PE infrastructure nodes
+    install configure            - Configures PE infrastructure nodes to ref arch settings
 
   Available Options:
 
@@ -33,23 +37,150 @@ BANNER
   end
 end
 
-subcommands = {
+def install_global_opts(opt)
+  opt.on("--user <username>", "Username for bolt ssh to target host") do |value|
+    @options["user"] = value
+  end
+  opt.on("--password <password>", "Password for bolt ssh to target host") do |value|
+    @options["password"] = value
+  end
+  opt.on("--private-key <path>", "Path to private key file for bolt ssh to target host") do |value|
+    @options["private_key"] = value
+  end
+end
+
+def install_generate_opts(opt)
+  opt.on("--primary-master <hostname>", "Hostname of primary master") do |value|
+    @options["primary_master"] = value
+  end
+  opt.on("--pe-version <version>", "PE version for base pe.conf file") do |value|
+    @options["pe_version"] = value
+  end
+end
+
+def install_bootstrap(opt)
+  # TODO: remove primary master once we implement getting the host from the pe.conf
+  opt.on("--primary-master <hostname>", "Hostname of primary master") do |value|
+    @options["primary_master"] = value
+  end
+  opt.on("--pe-tarball <path>", "Path to PE tarball") do |value|
+    @options["pe_tarball"] = value
+  end
+  opt.on("--pe-version <version>", "PE version to be installed") do |value|
+    @options["pe_version"] = value
+  end
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
+    @options["pe_conf"] = value
+  end
+end
+
+def install_infra_agent_install(opt)
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
+    @options["pe_conf"] = value
+  end
+end
+
+def install_configure(opt)
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
+    @options["pe_conf"] = value
+  end
+end
+
+def install_opts(opt)
+  install_global_opts(opt)
+  # This one is here because it is required for generate-pe-conf but not necessarily install
+  opt.on("--console-password <password>", "Password for the PE console") do |value|
+    @options["console_password"] = value
+  end
+  install_generate_opts(opt)
+  install_bootstrap(opt)
+  install_infra_agent_install(opt)
+  install_configure(opt)
+end
+
+commands = {
   "install" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install [options]"
-    opt.on("--target-host value", "Host to install PE on") do |value|
-      options["target_host"] = value
+    opt.set_summary_width(35)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install [options]
+
+    Runs the install subcommands in the following order:
+      generate-pe-conf (unless --pe-conf is provided)
+      bootstrap
+      infra_agent_install (noop for "Standard" ref arch)
+      configure
+
+    Available Options:
+      Either --console-password or --pe-conf required
+    BANNER
+    install_opts(opt)
+  end
+}
+
+subcommands = {
+  "generate-pe-conf" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install generate-pe-conf [options]
+
+    Generates a pe.conf file for the install.
+    Uses localhost for primary master by default.
+    Uses latest production release for version by default.
+    Places the file in /tmp/ref_arch_setup/pe.conf
+
+    Available Options:
+    BANNER
+    # This one is here because it is required for generate-pe-conf but not necessarily install
+    opt.on("--console-password <password>", "REQUIRED: Password for the PE console") do |value|
+      @options["console_password"] = value
     end
-    opt.on("--pe-tarball-path value", "Path to PE tarball") do |value|
-      options["pe_tarball_path"] = value
-    end
-    opt.on("--pe-conf-path value", "Path to pe.conf file") do |value|
-      options["pe_conf_path"] = value
-    end
+    install_generate_opts(opt)
+    install_global_opts(opt)
+  end,
+  "bootstrap" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install bootstrap [options]
+
+    Does a bootstrap install of PE on the primary master
+    Uses pe.conf from /tmp/ref_arch_setup/pe.conf by default.
+
+    Available Options:
+    BANNER
+    install_bootstrap(opt)
+    install_global_opts(opt)
+  end,
+  "infra-agent-install" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install infra-agent-install [options]
+
+    Installs puppet agents on all PE infrastructure nodes other than primary master
+    Uses pe.conf from the primary master by default.
+
+    Available Options:
+    BANNER
+    install_infra_agent_install(opt)
+    install_global_opts(opt)
+  end,
+  "configure" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install configure [options]
+
+    Configures all PE infrastructure nodes, including initial performance tuning
+    Uses pe.conf from from the primary master by default.
+
+    Available Options:
+    BANNER
+    install_configure(opt)
+    install_global_opts(opt)
   end
 }
 
 global.order!(ARGV)
 command_string = ARGV[0]
+subcommand_string = ARGV[1]
 
 if command_string.nil?
   puts global.help
@@ -57,13 +188,24 @@ if command_string.nil?
 end
 
 unless available_commands.include?(command_string)
-  puts "# ERROR, #{cmd} is not an available command"
+  puts "# ERROR, #{command_string} is not an available command"
   puts
   puts global.help
   exit 1
 end
 
-subcommands[command_string].parse!
-
-cli = RefArchSetup::CLI.new(options)
-cli.send(command_string)
+if subcommand_string !~ /^[a-zA-Z]/
+  commands[command_string].parse!
+  cli = RefArchSetup::CLI.new(@options)
+  cli.send(command_string)
+else
+  unless available_subcommands.include?(subcommand_string)
+    puts "# ERROR, #{subcommand_string} is not an available subcommand of #{command_string}"
+    puts
+    puts global.help
+    exit 1
+  end
+  subcommands[subcommand_string].parse!
+  cli = RefArchSetup::CLI.new(@options)
+  cli.run(command_string, subcommand_string)
+end
