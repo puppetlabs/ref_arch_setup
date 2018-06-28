@@ -20,9 +20,9 @@ global = OptionParser.new do |opt|
 
     install                      - Install a bootstrapped PE on target_host
     install generate-pe-conf     - Generates a pe.conf for the install
-    install bootstap             - Installs a bare bones PE on the target_host
-    install infra-agent-install  - Installs agents on all infrastructure nodes
-    install configure            - Configures infrastructure nodes to ref arch settings
+    install bootstrap            - Installs a bare bones PE on the target_host
+    install infra-agent-install  - Installs agents on all PE infrastructure nodes
+    install configure            - Configures PE infrastructure nodes to ref arch settings
 
   Available Options:
 
@@ -38,59 +38,60 @@ BANNER
 end
 
 def install_global_opts(opt)
-  opt.on("--user value", "username for bolt to use to connect to target hosts") do |value|
+  opt.on("--user <username>", "Username for bolt ssh to target host") do |value|
     @options["user"] = value
   end
-  opt.on("--password value", "passworf for bolt to use to connect to target hosts") do |value|
+  opt.on("--password <password>", "Password for bolt ssh to target host") do |value|
     @options["password"] = value
   end
-  opt.on("--private-key value", "private key for bolt to use to connect to target hosts") do |value|
+  opt.on("--private-key <path>", "Path to private key file for bolt ssh to target host") do |value|
     @options["private_key"] = value
   end
 end
 
 def install_generate_opts(opt)
-  opt.on("--primary-master value", "hostname of primary master") do |value|
+  opt.on("--primary-master <hostname>", "Hostname of primary master") do |value|
     @options["primary_master"] = value
   end
-  opt.on("--pe-version value", "PE version to choose base pe.conf for") do |value|
+  opt.on("--pe-version <version>", "PE version for base pe.conf file") do |value|
     @options["pe_version"] = value
-  end
-  opt.on("--console-password value", "password for the PE console") do |value|
-    @options["console_password"] = value
   end
 end
 
 def install_bootstrap(opt)
-  # TODO: remove primary master once we get implement getting the host from the pe.conf
-  opt.on("--primary-master value", "hostname of primary master") do |value|
+  # TODO: remove primary master once we implement getting the host from the pe.conf
+  opt.on("--primary-master <hostname>", "Hostname of primary master") do |value|
     @options["primary_master"] = value
   end
-  opt.on("--pe-tarball value", "Path to PE tarball") do |value|
+  opt.on("--pe-tarball <path>", "Path to PE tarball") do |value|
     @options["pe_tarball"] = value
   end
-  opt.on("--pe-version value", "PE version to configure to be installed") do |value|
+  opt.on("--pe-version <version>", "PE version to be installed") do |value|
     @options["pe_version"] = value
   end
-  opt.on("--pe-conf value", "Path to pe.conf file") do |value|
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
     @options["pe_conf"] = value
   end
 end
 
 def install_infra_agent_install(opt)
-  opt.on("--pe-conf value", "Path to pe.conf file") do |value|
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
     @options["pe_conf"] = value
   end
 end
 
 def install_configure(opt)
-  opt.on("--pe-conf value", "Path to pe.conf file") do |value|
+  opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
     @options["pe_conf"] = value
   end
 end
 
 def install_opts(opt)
   install_global_opts(opt)
+  # This one is here because it is required for generate-pe-conf but not necessarily install
+  opt.on("--console-password <password>", "Password for the PE console") do |value|
+    @options["console_password"] = value
+  end
   install_generate_opts(opt)
   install_bootstrap(opt)
   install_infra_agent_install(opt)
@@ -99,31 +100,76 @@ end
 
 commands = {
   "install" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install [options]"
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install [options]
+
+    Runs the install subcommands in the following order:
+      generate-pe-conf (unless --pe-conf is provided)
+      bootstrap
+      infra_agent_install (noop for "Standard" ref arch)
+      configure
+
+    Available Options:
+      Either --console-password or --pe-conf required
+    BANNER
     install_opts(opt)
   end
 }
 
 subcommands = {
   "generate-pe-conf" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install generate-pe-conf [options]"
-    install_global_opts(opt)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install generate-pe-conf [options]
+
+    Generates a pe.conf file for the install.
+    Uses localhost for primary master by default.
+    Uses latest production release for version by default.
+    Places the file in /tmp/ref_arch_setup/pe.conf
+
+    Available Options:
+    BANNER
+    # This one is here because it is required for generate-pe-conf but not necessarily install
+    opt.on("--console-password <password>", "REQUIRED: Password for the PE console") do |value|
+      @options["console_password"] = value
+    end
     install_generate_opts(opt)
+    install_global_opts(opt)
   end,
   "bootstrap" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install bootstrap [options]"
-    install_global_opts(opt)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install bootstrap [options]
+
+    Does a bootstrap install of PE on the primary master
+    Uses pe.conf from /tmp/ref_arch_setup/pe.conf by default.
+
+    Available Options:
+    BANNER
     install_bootstrap(opt)
+    install_global_opts(opt)
   end,
   "infra-agent-install" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install infra-agent-install [options]"
-    install_global_opts(opt)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install infra-agent-install [options]
+
+    Installs puppet agents on all PE infrastructure nodes other than primary master
+    Uses pe.conf from the primary master by default.
+
+    Available Options:
+    BANNER
     install_infra_agent_install(opt)
+    install_global_opts(opt)
   end,
   "configure" => OptionParser.new do |opt|
-    opt.banner = "Usage: ref_arch_setup install configure [options]"
-    install_global_opts(opt)
+    opt.banner = <<-BANNER
+    Usage: ref_arch_setup install configure [options]
+
+    Configures all PE infrastructure nodes, including initial performance tuning
+    Uses pe.conf from from the primary master by default.
+
+    Available Options:
+    BANNER
     install_configure(opt)
+    install_global_opts(opt)
   end
 }
 
