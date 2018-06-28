@@ -63,7 +63,7 @@ def install_bootstrap(opt)
   opt.on("--primary-master <hostname>", "Hostname of primary master") do |value|
     @options["primary_master"] = value
   end
-  opt.on("--pe-tarball <path>", "Path to PE tarball") do |value|
+  opt.on("--pe-tarball <path|URL>", "Path or URL to PE tarball") do |value|
     @options["pe_tarball"] = value
   end
   opt.on("--pe-version <version>", "PE version to be installed") do |value|
