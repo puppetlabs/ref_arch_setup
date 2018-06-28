@@ -1,6 +1,6 @@
 # General namespace for RAS
 module RefArchSetup
-  %w[cli bolt_helper version install url_helper].each do |lib|
+  %w[cli bolt_helper version install].each do |lib|
     require "ref_arch_setup/#{lib}"
   end
   # location of modules shipped with RAS (Ref Arch Setup)
