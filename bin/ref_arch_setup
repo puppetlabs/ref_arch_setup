@@ -100,6 +100,7 @@ end
 
 commands = {
   "install" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
     opt.banner = <<-BANNER
     Usage: ref_arch_setup install [options]
 
@@ -118,6 +119,7 @@ commands = {
 
 subcommands = {
   "generate-pe-conf" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
     opt.banner = <<-BANNER
     Usage: ref_arch_setup install generate-pe-conf [options]
 
@@ -136,6 +138,7 @@ subcommands = {
     install_global_opts(opt)
   end,
   "bootstrap" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
     opt.banner = <<-BANNER
     Usage: ref_arch_setup install bootstrap [options]
 
@@ -148,6 +151,7 @@ subcommands = {
     install_global_opts(opt)
   end,
   "infra-agent-install" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
     opt.banner = <<-BANNER
     Usage: ref_arch_setup install infra-agent-install [options]
 
@@ -160,6 +164,7 @@ subcommands = {
     install_global_opts(opt)
   end,
   "configure" => OptionParser.new do |opt|
+    opt.set_summary_width(35)
     opt.banner = <<-BANNER
     Usage: ref_arch_setup install configure [options]
 
