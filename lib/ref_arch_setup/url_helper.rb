@@ -11,12 +11,12 @@ module RefArchSetup
     # Determine if a given URL is accessible
     # *** added as a stub for the version in Beaker WebHelpers ***
     #
-    # @param [String] link The URL to examine
+    # @param [String] _link The URL to examine
     # @return [Boolean] true
     # @example
     #  link_exists?(url)
     #
-    def link_exists?(link)
+    def link_exists?(_link)
       true
     end
 
@@ -31,7 +31,7 @@ module RefArchSetup
     #
     def prepare_ras_host(host)
       # host['dist'] is used for the filename
-      host["dist"] = "puppet-enterprise-#{host["pe_ver"]}-#{host["platform"]}"
+      host["dist"] = "puppet-enterprise-#{host['pe_ver']}-#{host['platform']}"
     end
 
     # Builds a PE tarball URL for the specified host using prepare_ras_host
@@ -93,6 +93,5 @@ module RefArchSetup
 
       return url
     end
-
   end
 end
