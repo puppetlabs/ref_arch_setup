@@ -42,7 +42,7 @@ module RefArchSetup
     # Handles user inputted pe.conf or if nil assumes it is in the CWD
     # Validates file exists (allows just a dir to be given if pe.conf is in it)
     # Also ensures the file is names pe.conf
-    # TODO Ensure it is valid once we have a reader/validator
+    # TODO Ensure it is valid once we have a reader/validator class
     # Move it to the target_master
     #
     # @author Randell Pelak

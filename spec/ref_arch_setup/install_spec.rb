@@ -54,6 +54,7 @@ describe RefArchSetup::Install do
             expect(install.bootstrap(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
           end
         end
+
         context "when run_task_with_bolt returned false" do
           it "returns false" do
             expect(install).to receive(:make_tmp_work_dir).and_return(true)
