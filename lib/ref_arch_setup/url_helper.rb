@@ -1,32 +1,28 @@
 # General namespace for RAS
 module RefArchSetup
   # Code to illustrate a Beaker-based method of deriving a tarball URL
+  #
+  # This will be implemented as an update to Beaker; it can either be
+  # added with some duplication of existing code or as part of a refactor
+  # to isolate the URL building functionality from the fetch and extraction
+  # process.
+  #
   class UrlHelper
-    # Determine is a given URL is accessible
-    # *** copied from Beaker to illustrate the example ***
+    # Determine if a given URL is accessible
+    # *** added as a stub for the version in Beaker WebHelpers ***
     #
     # @param [String] link The URL to examine
-    # @return [Boolean] true if the URL has a '200' HTTP response code, false otherwise
+    # @return [Boolean] true
     # @example
-    #  extension = link_exists?("#{URL}.tar.gz") ? ".tar.gz" : ".tar"
+    #  link_exists?(url)
     #
     def link_exists?(link)
-      require "net/http"
-      require "net/https"
-      require "open-uri"
-      url = URI.parse(link)
-      http = Net::HTTP.new(url.host, url.port)
-      http.use_ssl = (url.scheme == 'https')
-      http.verify_mode = (OpenSSL::SSL::VERIFY_NONE)
-      http.start do |http|
-        return http.head(url.request_uri).code == "200"
-      end
+      true
     end
 
     # Prepares the host by setting the host["dist"]
     #
-    # Extracted from pe_utils.prepare_hosts
-    #   this version leaves filename = "#{host['dist']}" to show how it was originally used
+    # Extracted from pe_utils.prepare_hosts to show how it is used there
     #
     # @param [Host] host The unix style host where PE will be installed
     # @return [String] the host["dist"] aka PE filename
@@ -38,6 +34,10 @@ module RefArchSetup
       host["dist"] = "puppet-enterprise-#{host["pe_ver"]}-#{host["platform"]}"
     end
 
+    # Builds a PE tarball URL for the specified host using prepare_ras_host
+    #
+    # The host must include a pe_dir, pe_ver, and platform
+    #
     # Extracted from pe_utils.fetch_pe_on_unix
     #   assumes being called by beaker with a host (master)
     #   this version calls prepare_ras_host which sets host["dist"];
@@ -48,7 +48,7 @@ module RefArchSetup
     # @example
     #   url = get_ras_pe_tarball_url(host)
     #
-    def get_ras_pe_tarball_url(host)
+    def get_ras_pe_tarball_url_with_prepare(host)
       prepare_ras_host(host)
       path = host["pe_dir"]
       filename = host["dist"]
@@ -62,6 +62,10 @@ module RefArchSetup
       return url
     end
 
+    # Builds a PE tarball URL for the specified host
+    #
+    # The host must include a pe_dir, pe_ver, and platform
+    #
     # Extracted from pe_utils.fetch_pe_on_unix
     #   assumes being called by beaker with a host (master)
     #   this version is simplified by removing the call to prepare_ras_host
@@ -71,9 +75,15 @@ module RefArchSetup
     # @example
     #   url = get_ras_pe_tarball_url(host)
     #
-    def get_ras_pe_tarball_url_simple(host)
+    def get_ras_pe_tarball_url(host)
+      raise "host must include a pe_dir value" unless host["pe_dir"]
+      raise "host must include a pe_ver value" unless host["pe_ver"]
+      raise "host must include a platform value" unless host["platform"]
+
       path = host["pe_dir"]
-      filename = "puppet-enterprise-#{host["pe_ver"]}-#{host["platform"]}"
+      version = host["pe_ver"]
+      platform = host["platform"]
+      filename = "puppet-enterprise-#{version}-#{platform}"
       extension = ".tar.gz"
       url = "#{path}/#{filename}#{extension}"
 
