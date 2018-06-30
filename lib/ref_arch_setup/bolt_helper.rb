@@ -44,13 +44,15 @@ module RefArchSetup
     # @author Sam Woods
     #
     # @param task [string] Task to run on nodes
-    # @param env_vars [array] env_vars to set (sent on cmd line)
+    # @param params [hash] task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
     #
     # @return [true,false] Based on exit status of the bolt task
-    def self.run_task_with_bolt(params)
-      command = "bolt task run #{params[:task]} #{params[:env_vars]}"
-      command << " --modulepath #{RAS_MODULE_PATH} --nodes #{params[:nodes]}"
+    def self.run_task_with_bolt(task, params, nodes)
+      params_str = ""
+      params_str = params_to_string(params) unless params.nil?
+      command = "bolt task run #{task} #{params_str}"
+      command << " --modulepath #{RAS_MODULE_PATH} --nodes #{nodes}"
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
@@ -58,6 +60,21 @@ module RefArchSetup
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
       return success
+    end
+
+    # Convert params to string for bolt
+    # format is space separated list of name=value
+    #
+    # @author Randell Pelak
+    #
+    # @param params [Array] params to convert
+    #
+    # @return [String] stringified params
+    def self.params_to_string(params)
+      str = ""
+      params.each { |k, v| str << k << "=" << v << " " }
+      str.strip!
+      return str
     end
 
     # Upload a file to given nodes

@@ -5,6 +5,8 @@ describe RefArchSetup::BoltHelper do
   let(:dir)          { "/tmp/ref_arch_setup" }
   let(:cmd)          { "echo foo" }
   let(:task)         { "ref_arch_setup::foo" }
+  let(:params)       { { "VAR1" => "1", "VAR2" => "2" } }
+  let(:params_str)   { "VAR1=1 VAR2=2" }
   let(:source)       { "/tmp/foo" }
   let(:destination)  { "/tmp/bar" }
 
@@ -74,25 +76,16 @@ describe RefArchSetup::BoltHelper do
 
   describe "run_task_with_bolt" do
     before do
-      @env_vars = "VAR1=1 "
-      @env_vars << "VAR2=2"
       @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
       "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
-      @task_params = { task: task, env_vars: @env_vars, nodes: nodes }
     end
 
     context "when bolt works and returns true" do
       expected_output = "All Good"
       expected_status = 0
-      it "returns true" do
-        expect(RefArchSetup::BoltHelper).to receive(:`)\
-          .with(@expected_command).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)).to eq(true)
-      end
-
-      it "outputs informative messages" do
+      it "returns true and outputs informative messages" do
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
@@ -101,7 +94,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
       end
     end
 
@@ -109,15 +102,9 @@ describe RefArchSetup::BoltHelper do
       expected_output = "No Good"
       expected_status = 1
 
-      it "returns false" do
-        expect(RefArchSetup::BoltHelper).to receive(:`)\
-          .with(@expected_command).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)).to eq(false)
-      end
-
-      it "outputs informative messages and errors" do
+      it "returns false and outputs informative messages" do
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
@@ -127,7 +114,24 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt task failed!")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
-        RefArchSetup::BoltHelper.run_task_with_bolt(@task_params)
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(false)
+      end
+    end
+  end
+
+  describe "params_to_string" do
+    context "params has 2 values" do
+      it "stringifies them correctly" do
+        params = { "one" => "1", "two" => "2" }
+        expected_str = "one=1 two=2"
+        expect(RefArchSetup::BoltHelper.params_to_string(params)).to eq(expected_str)
+      end
+    end
+    context "params has 1 values" do
+      it "stringifies them correctly" do
+        params = { "one" => "1" }
+        expected_str = "one=1"
+        expect(RefArchSetup::BoltHelper.params_to_string(params)).to eq(expected_str)
       end
     end
   end

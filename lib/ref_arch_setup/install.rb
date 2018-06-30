@@ -30,12 +30,11 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def bootstrap_mono(pe_conf_path, pe_tarball_path, target_master = @target_master)
-      env_vars = "PE_CONF_PATH=#{pe_conf_path} "
-      env_vars << "PE_TARBALL_PATH=#{pe_tarball_path} "
-      env_vars << "PE_TARGET_MASTER=#{target_master}"
-      task_params = { task: "ref_arch_setup::install_pe", env_vars: env_vars, \
-                      nodes: @target_master }
-      BoltHelper.run_task_with_bolt task_params
+      params = {}
+      params["pe_conf_path"] = pe_conf_path
+      params["pe_tarball_path"] = pe_tarball_path
+      params["pe_target_master"] = target_master
+      BoltHelper.run_task_with_bolt("ref_arch_setup::install_pe", params, target_master)
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host
