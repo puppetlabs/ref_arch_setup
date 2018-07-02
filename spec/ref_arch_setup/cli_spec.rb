@@ -156,7 +156,7 @@ describe RefArchSetup::CLI do
         cli.instance_variable_set(:@options, good_options)
         expect(cli).to receive(:check_option).and_return(true).at_least(:once)
         expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
-        expect(install_obj).to receive(:bootstrap_mono).and_return(true)
+        expect(install_obj).to receive(:bootstrap).and_return(true)
         expect(cli).to receive(:puts).with("Running bootstrap subcommand of install command")
         expect(cli.install_bootstrap).to eq(true)
       end
@@ -166,7 +166,7 @@ describe RefArchSetup::CLI do
         cli.instance_variable_set(:@options, good_options)
         expect(cli).to receive(:check_option).and_return(true).at_least(:once)
         expect(RefArchSetup::Install).to receive(:new).and_return(install_obj)
-        expect(install_obj).to receive(:bootstrap_mono).and_return(false)
+        expect(install_obj).to receive(:bootstrap).and_return(false)
         expect(cli).to receive(:puts).with("Running bootstrap subcommand of install command")
         expect(cli.install_bootstrap).to eq(false)
       end
