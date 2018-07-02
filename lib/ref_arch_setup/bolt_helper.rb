@@ -39,6 +39,43 @@ module RefArchSetup
       return success
     end
 
+    # Run a task with bolt on given nodes
+    #
+    # @author Sam Woods
+    #
+    # @param task [string] Task to run on nodes
+    # @param params [hash] task parameters to send to bolt
+    # @param nodes [string] Host or space delimited hosts to run task on
+    #
+    # @return [true,false] Based on exit status of the bolt task
+    def self.run_task_with_bolt(task, params, nodes)
+      params_str = ""
+      params_str = params_to_string(params) unless params.nil?
+      command = "bolt task run #{task} #{params_str}"
+      command << " --modulepath #{RAS_MODULE_PATH} --nodes #{nodes}"
+      puts "Running: #{command}"
+      output = `#{command}`
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "ERROR: bolt task failed!" unless success
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      puts "Output was: #{output}"
+      return success
+    end
+
+    # Convert params to string for bolt
+    # format is space separated list of name=value
+    #
+    # @author Randell Pelak
+    #
+    # @param params [Array] params to convert
+    #
+    # @return [String] stringified params
+    def self.params_to_string(params)
+      # str = ""
+      str = params.map { |k, v| "#{k}=#{v}" }.join(" ")
+      return str
+    end
+
     # Upload a file to given nodes
     #
     # @author Randell Pelak
@@ -54,7 +91,7 @@ module RefArchSetup
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: bolt upload failed!" unless success
+      puts "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
       return success

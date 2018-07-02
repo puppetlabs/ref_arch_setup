@@ -2,7 +2,7 @@
 require "fileutils"
 
 # rubocop:disable Style/FormatStringToken
-pe_conf = <<~pe_conf
+pe_conf = <<~PE_CONF
   #----------------------------------------------------------------------------
   # Puppet Enterprise installer configuration file
   # https://docs.puppet.com/pe/latest/install_pe_conf_param.html
@@ -121,7 +121,7 @@ pe_conf = <<~pe_conf
   #test key that does nothing
   "ref_arch::name": "basic"
   }
-pe_conf
+PE_CONF
 # rubocop:enable Style/FormatStringToken
 
 FileUtils.mkdir_p "/tmp/ref_arch_setup" unless Dir.exist? "/tmp/ref_arch_setup"

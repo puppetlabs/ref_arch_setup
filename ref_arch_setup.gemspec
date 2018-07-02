@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # place ONLY runtime deps in here (and metadata)
 require File.expand_path("../lib/ref_arch_setup/version", __FILE__)
 

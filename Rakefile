@@ -29,7 +29,7 @@ namespace :docs do
   desc "Clean/remove the generated YARD Documentation cache"
   task :clean do
     original_dir = Dir.pwd
-    Dir.chdir(File.expand_path(File.dirname(__FILE__)))
+    Dir.chdir(File.expand_path(__dir__))
     sh "rm -rf #{YARD_DIR}"
     Dir.chdir(original_dir)
   end
@@ -59,7 +59,7 @@ namespace :docs do
   #   But we still have to send the output to the graphviz processor, etc.
   task arch: [:yard] do
     original_dir = Dir.pwd
-    Dir.chdir(File.expand_path(File.dirname(__FILE__)))
+    Dir.chdir(File.expand_path(__dir__))
     graph_processor = "dot"
     if exe_exists?(graph_processor)
       FileUtils.mkdir_p(DOCS_DIR)

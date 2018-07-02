@@ -30,18 +30,11 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def bootstrap_mono(pe_conf_path, pe_tarball_path, target_master = @target_master)
-      env_vars = "PE_CONF_PATH=#{pe_conf_path};"
-      env_vars << "PE_TARBALL_PATH=#{pe_tarball_path};"
-      env_vars << "PE_TARGET_MASTER=#{target_master};"
-      command = env_vars.to_s + "bolt task run bogus::foo "
-      command << "--modulepath #{RAS_MODULE_PATH} --nodes #{target_master}"
-      puts "Running: #{command}"
-      output = `#{command}`
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: bolt command failed!" unless success
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      puts "Output was: #{output}"
-      return success
+      params = {}
+      params["pe_conf_path"] = pe_conf_path
+      params["pe_tarball_path"] = pe_tarball_path
+      params["pe_target_master"] = target_master
+      BoltHelper.run_task_with_bolt("ref_arch_setup::install_pe", params, target_master)
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host
@@ -66,12 +59,10 @@ module RefArchSetup
     # @param [string] target_master Host to upload to
     #
     # @return [true,false] Based on exit status of the bolt task
-    def upload_pe_conf(src_pe_conf_path = "#{RAS_FIXTURES_PATH}/pe.conf", \
-                       dest_pe_conf_path = "#{TMP_WORK_DIR}/pe.conf", \
+    def upload_pe_conf(src_pe_conf_path = "#{RAS_FIXTURES_PATH}/pe.conf",
+                       dest_pe_conf_path = "#{TMP_WORK_DIR}/pe.conf",
                        target_master = @target_master)
-      success = BoltHelper.upload_file(src_pe_conf_path, dest_pe_conf_path, target_master)
-      puts "ERROR: Failed to upload pe.conf to target_master" unless success
-      return success
+      return BoltHelper.upload_file(src_pe_conf_path, dest_pe_conf_path, target_master)
     end
 
     # Upload the pe tarball to the target_host
@@ -89,9 +80,7 @@ module RefArchSetup
         file_name = File.basename(src_pe_tarball_path)
         dest_pe_tarball_path += "/#{file_name}"
       end
-      success = BoltHelper.upload_file(src_pe_tarball_path, dest_pe_tarball_path, target_master)
-      puts "ERROR: Failed to upload pe tarball to target_master" unless success
-      return success
+      return BoltHelper.upload_file(src_pe_tarball_path, dest_pe_tarball_path, target_master)
     end
   end
 end
