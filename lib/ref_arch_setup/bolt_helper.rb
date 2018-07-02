@@ -71,9 +71,8 @@ module RefArchSetup
     #
     # @return [String] stringified params
     def self.params_to_string(params)
-      str = ""
-      params.each { |k, v| str << k << "=" << v << " " }
-      str.strip!
+      # str = ""
+      str = params.map { |k, v| "#{k}=#{v}" }.join(" ")
       return str
     end
 

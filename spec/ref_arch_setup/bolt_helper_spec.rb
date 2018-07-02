@@ -83,7 +83,16 @@ describe RefArchSetup::BoltHelper do
     context "when bolt works and returns true" do
       expected_output = "All Good"
       expected_status = 0
-      it "returns true and outputs informative messages" do
+      it "returns true" do
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
+      end
+      it "outputs informative messages" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -94,7 +103,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
+        RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)
       end
     end
 
@@ -102,6 +111,15 @@ describe RefArchSetup::BoltHelper do
       expected_output = "No Good"
       expected_status = 1
 
+      it "returns false" do
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(@expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(false)
+      end
       it "returns false and outputs informative messages" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
@@ -114,7 +132,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt task failed!")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(false)
+        RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)
       end
     end
   end
