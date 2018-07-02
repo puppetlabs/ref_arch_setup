@@ -7,7 +7,7 @@ require "optparse"
 
 available_commands = %w[install]
 
-available_subcommands = %w[generate-pe-conf bootstrap infra-agent-install configure]
+available_subcommands = %w[generate-pe-conf bootstrap pe-infra-agent-install configure]
 
 @options = {}
 # options["some_option"] = "some value"  #to set a default value
@@ -18,11 +18,13 @@ global = OptionParser.new do |opt|
 
   Available Commands:
 
-    install                      - Install a bootstrapped PE on target_host
-    install generate-pe-conf     - Generates a pe.conf for the install
-    install bootstrap            - Installs a bare bones PE on the target_host
-    install infra-agent-install  - Installs agents on all PE infrastructure nodes
-    install configure            - Configures PE infrastructure nodes to ref arch settings
+    install                         - Install a bootstrapped PE on target host
+    install generate-pe-conf        - Generates a pe.conf for the install
+    install bootstrap               - Installs a bare PE on the target host
+    install pe-infra-agent-install  - Installs agents on all PE
+                                      infrastructure nodes
+    install configure               - Configures PE infrastructure nodes to
+                                      reference architecture settings
 
   Available Options:
 
@@ -31,21 +33,22 @@ BANNER
     puts opt
     exit
   end
-  opt.on("-v", "--version", "Show currently running version of ref_arch_setup") do
+  opt.on("-v", "--version", "Show current version of ref_arch_setup") do
     puts RefArchSetup::Version::STRING
     exit 0
   end
 end
 
 def install_global_opts(opt)
-  opt.on("--user <username>", "Username for bolt ssh to target host") do |value|
-    @options["user"] = value
+  opt.on("--ssh_user <username>", "SSH username for bolt ssh to target host") do |value|
+    @options["ssh_user"] = value
   end
-  opt.on("--password <password>", "Password for bolt ssh to target host") do |value|
-    @options["password"] = value
+  opt.on("--ssh_password <password>", "SSH password for bolt ssh to target host") do |value|
+    @options["ssh_password"] = value
   end
-  opt.on("--private-key <path>", "Path to private key file for bolt ssh to target host") do |value|
-    @options["private_key"] = value
+  opt.on("--ssh-private-key <path>", "Path to SSH private key file for bolt", \
+         "ssh to target host") do |value|
+    @options["ssh_private_key"] = value
   end
 end
 
@@ -74,7 +77,7 @@ def install_bootstrap(opt)
   end
 end
 
-def install_infra_agent_install(opt)
+def install_pe_infra_agent_install(opt)
   opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|
     @options["pe_conf"] = value
   end
@@ -94,7 +97,7 @@ def install_opts(opt)
   end
   install_generate_opts(opt)
   install_bootstrap(opt)
-  install_infra_agent_install(opt)
+  install_pe_infra_agent_install(opt)
   install_configure(opt)
 end
 
@@ -107,7 +110,7 @@ commands = {
     Runs the install subcommands in the following order:
       generate-pe-conf (unless --pe-conf is provided)
       bootstrap
-      infra_agent_install (noop for "Standard" ref arch)
+      pe-infra-agent-install (noop for "Standard" ref arch)
       configure
 
     Available Options:
@@ -150,17 +153,18 @@ subcommands = {
     install_bootstrap(opt)
     install_global_opts(opt)
   end,
-  "infra-agent-install" => OptionParser.new do |opt|
+  "pe-infra-agent-install" => OptionParser.new do |opt|
     opt.set_summary_width(35)
     opt.banner = <<-BANNER
-    Usage: ref_arch_setup install infra-agent-install [options]
+    Usage: ref_arch_setup install pe-infra-agent-install [options]
 
-    Installs puppet agents on all PE infrastructure nodes other than primary master
+    Installs puppet agents on all PE infrastructure nodes other than
+    the primary master
     Uses pe.conf from the primary master by default.
 
     Available Options:
     BANNER
-    install_infra_agent_install(opt)
+    install_pe_infra_agent_install(opt)
     install_global_opts(opt)
   end,
   "configure" => OptionParser.new do |opt|

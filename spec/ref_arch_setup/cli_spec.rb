@@ -96,11 +96,11 @@ describe RefArchSetup::CLI do
           expect(cli.install).to eq(false)
         end
       end
-      context "when install_infra_agent_install fails" do
-        it "calls only subcommands up to install_infra_agent_install and returns false" do
+      context "when install_pe_infra_agent_install fails" do
+        it "calls only subcommands up to install_pe_infra_agent_install and returns false" do
           expect(cli).to receive(:install_generate_pe_conf).and_return(true)
           expect(cli).to receive(:install_bootstrap).and_return(true)
-          expect(cli).to receive(:install_infra_agent_install).and_return(false)
+          expect(cli).to receive(:install_pe_infra_agent_install).and_return(false)
           expect(cli).not_to receive(:install_configure)
           expect(cli).to receive(:puts).with("Running install command")
           expect(cli.install).to eq(false)
@@ -110,7 +110,7 @@ describe RefArchSetup::CLI do
         it "calls only subcommands up to install_configure and returns false" do
           expect(cli).to receive(:install_generate_pe_conf).and_return(true)
           expect(cli).to receive(:install_bootstrap).and_return(true)
-          expect(cli).to receive(:install_infra_agent_install).and_return(true)
+          expect(cli).to receive(:install_pe_infra_agent_install).and_return(true)
           expect(cli).to receive(:install_configure).and_return(false)
           expect(cli).to receive(:puts).with("Running install command")
           expect(cli.install).to eq(false)
@@ -120,7 +120,7 @@ describe RefArchSetup::CLI do
         it "calls all subcommands and returns true" do
           expect(cli).to receive(:install_generate_pe_conf).and_return(true)
           expect(cli).to receive(:install_bootstrap).and_return(true)
-          expect(cli).to receive(:install_infra_agent_install).and_return(true)
+          expect(cli).to receive(:install_pe_infra_agent_install).and_return(true)
           expect(cli).to receive(:install_configure).and_return(true)
           expect(cli).to receive(:puts).with("Running install command")
           expect(cli.install).to eq(true)
@@ -132,7 +132,7 @@ describe RefArchSetup::CLI do
         cli.instance_variable_set(:@options, good_options)
         expect(cli).not_to receive(:install_generate_pe_conf)
         expect(cli).to receive(:install_bootstrap).and_return(true)
-        expect(cli).to receive(:install_infra_agent_install).and_return(true)
+        expect(cli).to receive(:install_pe_infra_agent_install).and_return(true)
         expect(cli).to receive(:install_configure).and_return(true)
         expect(cli).to receive(:puts).with("Running install command")
         expect(cli.install).to eq(true)
@@ -173,13 +173,13 @@ describe RefArchSetup::CLI do
     end
   end
 
-  describe "install_infra_agent_install" do
+  describe "install_pe_infra_agent_install" do
     context "placeholder" do
       it "returns true" do
         cli.instance_variable_set(:@options, good_options)
         expect(cli).to receive(:puts)\
-          .with("Running infra-agent-install subcommand of install command")
-        expect(cli.install_infra_agent_install).to eq(true)
+          .with("Running pe-infra-agent-install subcommand of install command")
+        expect(cli.install_pe_infra_agent_install).to eq(true)
       end
     end
   end

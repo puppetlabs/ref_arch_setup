@@ -83,7 +83,7 @@ module RefArchSetup
       success = true
       success = install_generate_pe_conf unless @options.key?("pe_conf")
       success = install_bootstrap if success
-      success = install_infra_agent_install if success
+      success = install_pe_infra_agent_install if success
       success = install_configure if success
       return success
     end
@@ -120,8 +120,8 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of agent install
-    def install_infra_agent_install
-      puts "Running infra-agent-install subcommand of install command"
+    def install_pe_infra_agent_install
+      puts "Running pe-infra-agent-install subcommand of install command"
       return true
     end
 
