@@ -22,7 +22,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "bootstrap_mono" do
+  describe "bootstrap" do
     before do
       @expected_command = "bolt task run #{task} "
       @expected_command << params_str
@@ -30,31 +30,129 @@ describe RefArchSetup::Install do
       @expected_command << " --nodes #{target_master}"
     end
 
-    context "when called using default value" do
-      context "when run_task_with_bolt returned true" do
-        it "returns true" do
-          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with(task, params, target_master)
-            .and_return(true)
-          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path)).to eq(true)
+    context "when make_temp_dir and handle_pe_conf do not raise errors" do
+      context "when called using default value" do
+        context "when run_task_with_bolt returned true" do
+          it "returns true" do
+            expect(install).to receive(:make_tmp_work_dir).and_return(true)
+            expect(install).to receive(:handle_pe_conf).and_return(true)
+            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+              .with(task, params, target_master)
+              .and_return(true)
+            expect(install.bootstrap(pe_conf_path, pe_tarball_path)).to eq(true)
+          end
+        end
+      end
+
+      context "when called passing in all values" do
+        context "when run_task_with_bolt returned true" do
+          it "returns true" do
+            expect(install).to receive(:make_tmp_work_dir).and_return(true)
+            expect(install).to receive(:handle_pe_conf).and_return(true)
+            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+              .with(task, params, target_master).and_return(true)
+            expect(install.bootstrap(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
+          end
+        end
+
+        context "when run_task_with_bolt returned false" do
+          it "returns false" do
+            expect(install).to receive(:make_tmp_work_dir).and_return(true)
+            expect(install).to receive(:handle_pe_conf).and_return(true)
+            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+              .with(task, params, target_master).and_return(false)
+            expect(install.bootstrap(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
+          end
         end
       end
     end
 
-    context "when called passing in all values" do
-      context "when run_task_with_bolt returned true" do
-        it "returns true" do
-          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with(task, params, target_master).and_return(true)
-          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(true)
+    context "When make_tmp_dir raises an error" do
+      it "should not be trapped" do
+        expect(install).to receive(:make_tmp_work_dir).and_raise(RuntimeError)
+        expect { install.bootstrap(pe_conf_path, pe_tarball_path, target_master) }.to \
+          raise_error(RuntimeError)
+      end
+    end
+
+    context "When handle_pe_conf raises an error" do
+      it "should not be trapped" do
+        expect(install).to receive(:make_tmp_work_dir).and_return(true)
+        expect(install).to receive(:handle_pe_conf).and_raise(RuntimeError)
+        expect { install.bootstrap(pe_conf_path, pe_tarball_path, target_master) }.to \
+          raise_error(RuntimeError)
+      end
+    end
+  end
+
+  describe "handle_pe_conf" do
+    context "When user did not give a pe.conf argument" do
+      context "When pe.conf exists in the CWD" do
+        it "it calls upload on it and returns true" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(Dir).to receive(:pwd).and_return(tmpdir)
+          expect(File).to receive(:exist?).with(file_path).and_return(true)
+          expect(install).to receive(:upload_pe_conf).with(file_path).and_return(true)
+          expect(install.handle_pe_conf(nil)).to eq(true)
         end
       end
-
-      context "when run_task_with_bolt returned false" do
-        it "returns false" do
-          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-            .with(task, params, target_master).and_return(false)
-          expect(install.bootstrap_mono(pe_conf_path, pe_tarball_path, target_master)).to eq(false)
+      context "When pe.conf does not exist in the CWD" do
+        it "raises an error" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(Dir).to receive(:pwd).and_return(tmpdir)
+          expect(File).to receive(:exist?).with(file_path).and_return(false)
+          expect { install.handle_pe_conf(nil) }.to \
+            raise_error(RuntimeError, /No pe.conf file found in current working directory/)
+        end
+      end
+    end
+    context "When user gave a value for pe.conf that is a directory" do
+      context "When a pe.conf is found in the dir" do
+        it "calls upload on it and returns true" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(File).to receive(:expand_path).with(tmpdir).and_return(tmpdir)
+          expect(File).to receive(:directory?).with(tmpdir).and_return(true)
+          expect(File).to receive(:exist?).with(file_path).and_return(true)
+          expect(install).to receive(:upload_pe_conf).with(file_path).and_return(true)
+          expect(install.handle_pe_conf(tmpdir)).to eq(true)
+        end
+      end
+      context "When a pe.conf is NOT found in the dir" do
+        it "raises an error" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(File).to receive(:expand_path).with(tmpdir).and_return(tmpdir)
+          expect(File).to receive(:directory?).with(tmpdir).and_return(true)
+          expect(File).to receive(:exist?).with(file_path).and_return(false)
+          expect { install.handle_pe_conf(tmpdir) }.to \
+            raise_error(RuntimeError, /No pe.conf file found in directory: #{tmpdir}/)
+        end
+      end
+    end
+    context "When user gave a value that is not a directory" do
+      context "When the file is found" do
+        it "calls upload on it and returns true" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(File).to receive(:expand_path).with(file_path).and_return(file_path)
+          expect(File).to receive(:directory?).with(file_path).and_return(false)
+          expect(File).to receive(:exist?).with(file_path).and_return(true)
+          expect(install).to receive(:upload_pe_conf).with(file_path).and_return(true)
+          expect(install.handle_pe_conf(file_path)).to eq(true)
+        end
+      end
+      context "When the file is NOT found" do
+        it "raises an error" do
+          tmpdir = "/tmp/foo"
+          file_path = "#{tmpdir}/pe.conf"
+          expect(File).to receive(:expand_path).with(file_path).and_return(file_path)
+          expect(File).to receive(:directory?).with(file_path).and_return(false)
+          expect(File).to receive(:exist?).with(file_path).and_return(false)
+          expect { install.handle_pe_conf(file_path) }.to \
+            raise_error(RuntimeError, /pe.conf file not found #{file_path}/)
         end
       end
     end

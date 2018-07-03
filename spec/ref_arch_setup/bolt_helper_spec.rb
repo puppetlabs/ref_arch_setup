@@ -90,6 +90,7 @@ describe RefArchSetup::BoltHelper do
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        allow(RefArchSetup::BoltHelper).to receive(:puts)
         expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
       end
       it "outputs informative messages" do
@@ -118,6 +119,7 @@ describe RefArchSetup::BoltHelper do
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
+        allow(RefArchSetup::BoltHelper).to receive(:puts)
         expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(false)
       end
       it "returns false and outputs informative messages" do

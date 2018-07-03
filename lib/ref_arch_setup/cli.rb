@@ -82,6 +82,7 @@ module RefArchSetup
       puts "Running install command"
       success = true
       success = install_generate_pe_conf unless @options.key?("pe_conf")
+      # TODO: Pass pe.conf object along so we don't have to read/validate it in each subcommand
       success = install_bootstrap if success
       success = install_pe_infra_agent_install if success
       success = install_configure if success
@@ -109,9 +110,8 @@ module RefArchSetup
       # none of these will be required in the future...  but are for now
       check_option("primary_master", "install")
       check_option("pe_tarball", "install")
-      check_option("pe_conf", "install")
       install_obj = RefArchSetup::Install.new(@options["primary_master"])
-      success = install_obj.bootstrap_mono(@options["pe_conf"], @options["pe_tarball"])
+      success = install_obj.bootstrap(@options["pe_conf"], @options["pe_tarball"])
       return success
     end
 
