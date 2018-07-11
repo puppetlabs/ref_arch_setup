@@ -8,6 +8,7 @@ module RefArchSetup
   # @author Randell Pelak
   #
   # @attr [string] target_master Host to install on
+  # rubocop:disable Metrics/ClassLength
   class Install
     # Initialize class
     #
@@ -100,13 +101,12 @@ module RefArchSetup
     #
     # @return [true,false] Based on the validity of the extension
     def valid_extension?(pe_tarball_path)
-      valid = false
-      extension = File.extname(pe_tarball_path)
-      if extension == ".gz"
+      if pe_tarball_path.end_with?(".tar.gz")
         valid = true
       else
-        puts "Invalid extension: #{extension} for URL: #{pe_tarball_path}."
-        puts "Extension must be .gz"
+        valid = false
+        puts "Invalid extension for tarball: #{pe_tarball_path}."
+        puts "Extension must be .tar.gz"
         puts
       end
       valid
@@ -138,6 +138,7 @@ module RefArchSetup
       puts "Attempting to download #{url} to #{nodes}"
       puts
 
+      params = {}
       params["url"] = url
       params["destination"] = TMP_WORK_DIR
 
@@ -159,7 +160,7 @@ module RefArchSetup
       puts
 
       success = download_pe_tarball(url, "localhost")
-      success = upload_pe_tarball("#{TMP_WORK_DIR}/#{filename}") if success
+      success = upload_pe_tarball("#{TMP_WORK_DIR}/#{filename}", target_master) if success
       return success
     end
 
@@ -173,7 +174,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def handle_tarball_url(url, target_master)
-      uri = URI.parse(pe_tarball_path)
+      uri = URI.parse(url)
       filename = File.basename(uri.path)
 
       # TODO: improve check for localhost
