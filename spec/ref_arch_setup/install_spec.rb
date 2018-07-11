@@ -478,8 +478,11 @@ describe RefArchSetup::Install do
             .with(pe_tarball_path, remote_target_master).and_return(false)
 
           expect(install).not_to receive(:copy_pe_tarball)
+
+          # TODO: rubocop Metrics/LineLength?
           expect(install.handle_tarball_with_remote_target_master(@remote_tarball_path, \
-                                                                  remote_target_master)).to eq(false)
+                                                                  remote_target_master))
+            .to eq(false)
         end
       end
     end
@@ -514,8 +517,10 @@ describe RefArchSetup::Install do
           expect(install).to receive(:upload_pe_tarball)
             .with(pe_tarball_path).and_return(false)
 
+          # TODO: rubocop Metrics/LineLength?
           expect(install.handle_tarball_with_remote_target_master(pe_tarball_path, \
-                                                                  remote_target_master)).to eq(false)
+                                                                  remote_target_master))
+            .to eq(false)
         end
       end
     end
@@ -573,7 +578,8 @@ describe RefArchSetup::Install do
           expect(install).to receive(:handle_tarball_with_remote_target_master)
             .with(pe_tarball_path, remote_target_master).and_return(true)
 
-          expect(install.handle_tarball_path(pe_tarball_path, remote_target_master)).to eq(pe_tarball_filename)
+          expect(install.handle_tarball_path(pe_tarball_path, remote_target_master))
+            .to eq(pe_tarball_filename)
         end
       end
 
@@ -602,7 +608,8 @@ describe RefArchSetup::Install do
             expect(install).to receive(:handle_tarball_url).with(pe_tarball_url, target_master)
                                                            .and_return(pe_tarball_filename)
 
-            expect(install.handle_pe_tarball(pe_tarball_url, target_master)).to eq(master_tarball_path)
+            expect(install.handle_pe_tarball(pe_tarball_url, target_master))
+              .to eq(master_tarball_path)
           end
         end
 
@@ -627,7 +634,8 @@ describe RefArchSetup::Install do
             expect(install).to receive(:handle_tarball_path).with(pe_tarball_path, target_master)
                                                             .and_return(pe_tarball_filename)
 
-            expect(install.handle_pe_tarball(pe_tarball_path, target_master)).to eq(master_tarball_path)
+            expect(install.handle_pe_tarball(pe_tarball_path, target_master))
+              .to eq(master_tarball_path)
           end
         end
 
