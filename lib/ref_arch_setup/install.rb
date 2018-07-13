@@ -1,3 +1,6 @@
+require "uri"
+require "open-uri"
+
 # General namespace for RAS
 module RefArchSetup
   # A space to use as a default location to put files on target_host
@@ -8,6 +11,8 @@ module RefArchSetup
   # @author Randell Pelak
   #
   # @attr [string] target_master Host to install on
+  #
+  # TODO: review the value for ClassLength
   # rubocop:disable Metrics/ClassLength
   class Install
     # Initialize class
@@ -26,103 +31,142 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @param [string] pe_conf_path Path to pe.conf
-    # @param [string] pe_tarball_path Path to pe tarball
-    # @param [string] target_master Host to install on
+    # @param [string] pe_tarball Path to pe tarball
     #
     # @return [true,false] Based on exit status of the bolt task
-    def bootstrap(pe_conf_path, pe_tarball_path, target_master = @target_master)
-      make_tmp_work_dir(target_master)
-      handle_pe_conf(pe_conf_path)
-
-      master_tarball_path = handle_pe_tarball(pe_tarball_path, target_master)
+    def bootstrap(pe_conf_path, pe_tarball)
+      raise "Unable to create RAS working directory" unless make_tmp_work_dir
+      conf_path_on_master = handle_pe_conf(pe_conf_path)
+      tarball_path_on_master = handle_pe_tarball(pe_tarball)
 
       params = {}
+      params["pe_conf_path"] = conf_path_on_master
+      params["pe_tarball"] = tarball_path_on_master
 
-      # TODO: master_conf_path?
-      params["pe_conf_path"] = pe_conf_path
+      BoltHelper.run_task_with_bolt("ref_arch_setup::install_pe", params, @target_master)
+    end
 
-      # params["pe_tarball_path"] = pe_tarball_path
-      params["pe_tarball_path"] = master_tarball_path
+    # Handles user inputted pe.conf
+    # Validates file exists (allows just a dir to be given if pe.conf is in it)
+    # Also ensures the file is named pe.conf
+    # TODO Ensure it is valid once we have a reader/validator class
+    #
+    # @author Randell Pelak
+    #
+    # @param [string] pe_conf_path Path to pe.conf file or dir
+    #
+    # @return [string] The path to the pe.conf file
+    def handle_pe_conf_path(pe_conf_path)
+      file_path = File.expand_path(pe_conf_path)
+      if File.directory?(file_path)
+        full_path = file_path + "/pe.conf"
+        raise("No pe.conf file found in directory: #{file_path}") unless File.exist?(full_path)
+        file_path = full_path
+      else
+        filename = File.basename(file_path)
+        raise("Specified file is not named pe.conf #{file_path}") unless filename.eql?("pe.conf")
+        raise("pe.conf file not found #{file_path}") unless File.exist?(file_path)
+      end
 
-      BoltHelper.run_task_with_bolt("ref_arch_setup::install_pe", params, target_master)
+      return file_path
     end
 
     # Handles user inputted pe.conf or if nil assumes it is in the CWD
     # Validates file exists (allows just a dir to be given if pe.conf is in it)
-    # Also ensures the file is names pe.conf
+    # Also ensures the file is named pe.conf
     # TODO Ensure it is valid once we have a reader/validator class
     # Move it to the target_master
     #
     # @author Randell Pelak
     #
-    # @param [string] pe_conf_path Path to pe.conf file
+    # @param [string] pe_conf_path Path to pe.conf file or dir
     #
-    # @return [true,false] Based on exit status of the bolt task
-    # rubocop:disable Metrics/PerceivedComplexity
+    # @return [string] The path to the pe.conf file on the target master
     def handle_pe_conf(pe_conf_path)
+      conf_path_on_master = "#{TMP_WORK_DIR}/pe.conf"
       if pe_conf_path.nil?
         file_path = Dir.pwd + "/pe.conf"
         raise("No pe.conf file found in current working directory") unless File.exist?(file_path)
       else
-        file_path = File.expand_path(pe_conf_path)
-        if File.directory?(file_path)
-          full_path = file_path + "/pe.conf"
-          raise("No pe.conf file found in directory: #{file_path}") unless File.exist?(full_path)
-          file_path = full_path
-        else
-          raise("pe.conf file not found #{file_path}") unless File.exist?(file_path)
-        end
+        file_path = handle_pe_conf_path(pe_conf_path)
       end
       success = upload_pe_conf(file_path)
-      return success
+      raise "Unable to upload pe.conf file to #{@target_master}" unless success
+
+      return conf_path_on_master
     end
-    # rubocop:enable Metrics/PerceivedComplexity
 
     # Determines whether the specified path is a valid URL
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path Path to PE tarball file
+    # @param [string] pe_tarball Path to PE tarball file
     #
     # @return [true,false] Based on whether the path is a valid URL
-    def valid_tarball_url?(pe_tarball_path)
-      require "uri"
-      require "open-uri"
+    def valid_url?(pe_tarball)
       valid = false
-      valid = true if pe_tarball_path =~ /\A#{URI.regexp(%w[http https])}\z/
+      valid = true if pe_tarball =~ /\A#{URI.regexp(%w[http https])}\z/
       return valid
     end
 
-    # Determines whether the specified path has a valid extension (.gz)
+    # Parses the specified URL
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path Path to PE tarball file
+    # @param [string] url Path to PE tarball file
     #
-    # @return [true,false] Based on the validity of the extension
-    def valid_extension?(pe_tarball_path)
-      if pe_tarball_path.end_with?(".tar.gz")
-        valid = true
-      else
-        valid = false
-        puts "Invalid extension for tarball: #{pe_tarball_path}."
-        puts "Extension must be .tar.gz"
-        puts
+    # @raise [RuntimeError] Based on the validity of the url
+    #
+    # @return [true] Based on the validity of the extension
+    def parse_url(url)
+      begin
+        @pe_tarball_uri = URI.parse(url)
+        @pe_tarball_filename = File.basename(@pe_tarball_uri.path)
+      rescue
+        raise "Unable to parse the specified URL: #{url}"
       end
-      valid
+      return true
     end
 
-    # Determines whether the specified path exists on the target master
+    # Determines whether the specified path / url has a valid extension (.gz)
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path Path to PE tarball file
-    # @param [string] target_master Host to install on
+    # @param [string] pe_tarball Path to PE tarball file
     #
-    # @return [true,false] Based on whether the path is a valid URL
-    def file_exist_on_target_master?(pe_tarball_path, target_master)
-      command = "[ -f #{pe_tarball_path} ]"
-      exists = BoltHelper.run_cmd_with_bolt(command, target_master)
+    # @raise [RuntimeError] Based on the validity of the extension
+    #
+    # @return [true] Based on the validity of the extension
+    def validate_extension(pe_tarball)
+      message = "Invalid extension for tarball: #{pe_tarball}; extension must be .tar.gz"
+      raise(message) unless pe_tarball.end_with?(".tar.gz")
+      return true
+    end
+
+    # Determines whether the target master is localhost
+    #
+    # @author Bill Claytor
+    #
+    # @return [true,false] Based on whether the target master is localhost
+    #
+    # TODO: (SLV-185) Improve check for localhost
+    #
+    def target_master_is_localhost?
+      is_localhost = false
+      is_localhost = true if @target_master.include?("localhost")
+      return is_localhost
+    end
+
+    # Determines whether the specified file exists on the target master
+    #
+    # @author Bill Claytor
+    #
+    # @param [string] path Path to PE tarball file
+    #
+    # @return [true,false] Based on whether the file exists on the target master
+    def file_exist_on_target_master?(path)
+      command = "[ -f #{path} ]"
+      exists = BoltHelper.run_cmd_with_bolt(command, @target_master)
       return exists
     end
 
@@ -134,6 +178,9 @@ module RefArchSetup
     # @param [string] nodes Nodes where the task should be run
     #
     # @return [true,false] Based on exit status of the bolt task
+    #
+    # TODO: update to return the download path (SLV-186)
+    #
     def download_pe_tarball(url, nodes)
       puts "Attempting to download #{url} to #{nodes}"
       puts
@@ -151,55 +198,40 @@ module RefArchSetup
     # @author Bill Claytor
     #
     # @param [string] url The pe tarball URL
-    # @param [string] filename The pe tarball filename
-    # @param [string] target_master Host to install on
     #
     # @return [true,false] Based on exit status of the bolt task
-    def download_and_move_pe_tarball(url, filename, target_master)
-      puts "Attempting to download #{url} to localhost and move to #{target_master}"
-      puts
-
+    def download_and_move_pe_tarball(url)
+      download_path = "#{TMP_WORK_DIR}/#{@pe_tarball_filename}"
       success = download_pe_tarball(url, "localhost")
-      success = upload_pe_tarball("#{TMP_WORK_DIR}/#{filename}", target_master) if success
+      success = upload_pe_tarball(download_path) if success
       return success
     end
 
-    # Downloads the specified PE tarball URL by either downloading directly to the
+    # Handles the specified PE tarball URL by either downloading directly to the
     # target master or downloading locally and copying to the target master
     #
     # @author Bill Claytor
     #
-    # @param [string] url The pe tarball URL
-    # @param [string] target_master Host to install on
+    # @param [string] url The PE tarball URL
     #
-    # @return [true,false] Based on exit status of the bolt task
-    def handle_tarball_url(url, target_master)
-      uri = URI.parse(url)
-      filename = File.basename(uri.path)
+    # @return [string] The tarball path on the target master
+    def handle_tarball_url(url)
+      parse_url(url)
+      tarball_path_on_master = "#{TMP_WORK_DIR}/#{@pe_tarball_filename}"
+      remote_error = "Failed downloading #{url} to localhost and moving to #{@target_master}"
 
-      # TODO: improve check for localhost
-      if target_master.equal?("localhost")
-
-        # destination = default
-        success = download_pe_tarball(url, target_master)
-        raise "Failed downloading #{url} to #{target_master}" unless success
-
+      if target_master_is_localhost?
+        success = download_pe_tarball(url, "localhost")
+        raise "Failed downloading #{url} to localhost" unless success
       else
-
-        puts "Specified target master #{target_master} is not localhost"
-        puts
-
-        success = download_pe_tarball(url, target_master)
-
-        # if at first you don't succeed...
-        puts "Failed download attempt to #{target_master}." unless success
-        success = download_and_move_pe_tarball(url, filename, target_master) unless success
-
-        raise "Failed downloading #{url} to localhost and moving to #{target_master}" unless success
-
+        # if downloading to the target master fails try to download locally and then upload
+        success = download_pe_tarball(url, @target_master)
+        puts "Unable to download the tarball directly to localhost" unless success
+        success = download_and_move_pe_tarball(url) unless success
+        raise remote_error unless success
       end
 
-      return filename
+      return tarball_path_on_master
     end
 
     # Copies the PE tarball from the specified location to the temp working directory
@@ -207,14 +239,12 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path The pe tarball path
-    # @param [string] target_master Host to install on
+    # @param [string] path The pe tarball path
     #
     # @return [true,false] Based on exit status of the bolt task
-    def copy_pe_tarball(pe_tarball_path, target_master)
-      filename = File.basename(pe_tarball_path)
-      command = "cp #{pe_tarball_path} #{TMP_WORK_DIR}/#{filename}"
-      success = BoltHelper.run_cmd_with_bolt(command, target_master)
+    def copy_pe_tarball_on_target_master(path)
+      command = "cp #{path} #{TMP_WORK_DIR}"
+      success = BoltHelper.run_cmd_with_bolt(command, @target_master)
       return success
     end
 
@@ -222,20 +252,19 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path The pe tarball path
-    # @param [string] target_master Host to install on
+    # @param [string] path The pe tarball path
     #
     # @return [true,false] Based on exit status of the bolt task
-    def handle_tarball_with_remote_target_master(pe_tarball_path, target_master)
-      remote_flag = "#{target_master}:"
+    def handle_tarball_path_with_remote_target_master(path)
+      remote_flag = "#{@target_master}:"
 
-      if pe_tarball_path.start_with?(remote_flag)
-        tarball_path = pe_tarball_path.sub!(remote_flag, "")
-        success = file_exist_on_target_master?(tarball_path, target_master)
-        success = copy_pe_tarball(tarball_path, target_master) if success
+      if path.start_with?(remote_flag)
+        actual_path = path.sub!(remote_flag, "")
+        success = file_exist_on_target_master?(actual_path)
+        success = copy_pe_tarball_on_target_master(actual_path) if success
       else
-        success = File.exist?(pe_tarball_path)
-        success = upload_pe_tarball(pe_tarball_path) if success
+        success = File.exist?(path)
+        success = upload_pe_tarball(path) if success
       end
 
       return success
@@ -245,27 +274,30 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path The pe tarball path
-    # @param [string] target_master Host to install on
+    # @param [string] path The PE tarball path
     #
-    # @return [true,false] Based on exit status of the bolt task
-    def handle_tarball_path(pe_tarball_path, target_master)
-      filename = File.basename(pe_tarball_path)
-      error = "File not found: #{pe_tarball_path}"
+    # TODO: improve "host to install on"? ("host where PE will be installed?")
+    #
+    # @return [string] The tarball path on the target master
+    def handle_tarball_path(path)
+      filename = File.basename(path)
+      tarball_path_on_master = "#{TMP_WORK_DIR}/#{filename}"
+      file_not_found_error = "File not found: #{path}"
+      upload_error = "Unable to upload tarball to the RAS working directory on #{@target_master}"
+      copy_error = "Unable to copy tarball to the RAS working directory on #{@target_master}"
 
-      # TODO: improve check for localhost
-      if target_master.equal?("localhost")
-        raise(error) unless File.exist?(pe_tarball_path)
-        success = upload_pe_tarball(pe_tarball_path)
+      if target_master_is_localhost?
+        raise file_not_found_error unless File.exist?(path)
+        error = copy_error
+        success = upload_pe_tarball(path)
       else
-
-        success = handle_tarball_with_remote_target_master(pe_tarball_path, target_master)
-
+        error = upload_error
+        success = handle_tarball_path_with_remote_target_master(path)
       end
 
-      raise("Unable to copy tarball to working directory") unless success
+      raise error unless success
 
-      return filename
+      return tarball_path_on_master
     end
 
     # Handles the PE tarball based on the the path (URL / file)
@@ -275,24 +307,21 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] pe_tarball_path Path to PE tarball file
-    # @param [string] target_master Host to install on
+    # @param [string] pe_tarball Path to PE tarball file
     #
     # @return [string] The tarball path on the master after copying if successful
-    def handle_pe_tarball(pe_tarball_path, target_master)
-      raise "Invalid tarball path: #{pe_tarball_path}" unless valid_extension?(pe_tarball_path)
+    def handle_pe_tarball(pe_tarball)
+      error = "Unable to handle the specified PE tarball path: #{pe_tarball}"
+      validate_extension(pe_tarball)
+      tarball_path_on_master = if valid_url?(pe_tarball)
+                                 handle_tarball_url(pe_tarball)
+                               else
+                                 handle_tarball_path(pe_tarball)
+                               end
 
-      filename = if valid_tarball_url?(pe_tarball_path)
-                   handle_tarball_url(pe_tarball_path, target_master)
-                 else
-                   handle_tarball_path(pe_tarball_path, target_master)
-                 end
+      raise error unless tarball_path_on_master
 
-      raise "Unable to handle the specified PE tarball path: #{pe_tarball_path}" unless filename
-
-      master_tarball_path = "#{TMP_WORK_DIR}/#{filename}"
-
-      return master_tarball_path
+      return tarball_path_on_master
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host
@@ -300,11 +329,9 @@ module RefArchSetup
     #
     # @author Randell Pelak
     #
-    # @param [string] target_master Host to make the dir on
-    #
     # @return [true,false] Based on exit status of the bolt task
-    def make_tmp_work_dir(target_master = @target_master)
-      success = BoltHelper.make_dir(TMP_WORK_DIR, target_master)
+    def make_tmp_work_dir
+      success = BoltHelper.make_dir(TMP_WORK_DIR, @target_master)
       return success
     end
 
@@ -329,16 +356,17 @@ module RefArchSetup
     #
     # @param [string] src_pe_tarball_path Path to the source copy of the tarball file
     # @param [string] dest_pe_tarball_path Path to put the tarball at on the target host
-    # @param [string] target_master Host to upload to
     #
     # @return [true,false] Based on exit status of the bolt task
-    def upload_pe_tarball(src_pe_tarball_path, dest_pe_tarball_path = TMP_WORK_DIR, \
-                          target_master = @target_master)
+    def upload_pe_tarball(src_pe_tarball_path, dest_pe_tarball_path = TMP_WORK_DIR)
       if dest_pe_tarball_path == TMP_WORK_DIR
         file_name = File.basename(src_pe_tarball_path)
         dest_pe_tarball_path += "/#{file_name}"
       end
-      return BoltHelper.upload_file(src_pe_tarball_path, dest_pe_tarball_path, target_master)
+      puts "Attempting upload from #{src_pe_tarball_path} " \
+           "to #{dest_pe_tarball_path} on #{@target_master}"
+
+      return BoltHelper.upload_file(src_pe_tarball_path, dest_pe_tarball_path, @target_master)
     end
   end
 end
