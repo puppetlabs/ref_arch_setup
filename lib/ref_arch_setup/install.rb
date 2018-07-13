@@ -5,6 +5,8 @@ require "open-uri"
 module RefArchSetup
   # A space to use as a default location to put files on target_host
   TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
+  DOWNLOAD_PE_TARBALL_TASK = "ref_arch_setup::download_pe_tarball".freeze
+  INSTALL_PE_TASK = "ref_arch_setup::install_pe".freeze
 
   # Installation helper
   #
@@ -31,7 +33,7 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @param [string] pe_conf_path Path to pe.conf
-    # @param [string] pe_tarball Path to pe tarball
+    # @param [string] pe_tarball Path or URL for the pe tarball
     #
     # @return [true,false] Based on exit status of the bolt task
     def bootstrap(pe_conf_path, pe_tarball)
@@ -43,37 +45,11 @@ module RefArchSetup
       params["pe_conf_path"] = conf_path_on_master
       params["pe_tarball"] = tarball_path_on_master
 
-      BoltHelper.run_task_with_bolt("ref_arch_setup::install_pe", params, @target_master)
-    end
-
-    # Handles user inputted pe.conf
-    # Validates file exists (allows just a dir to be given if pe.conf is in it)
-    # Also ensures the file is named pe.conf
-    # TODO Ensure it is valid once we have a reader/validator class
-    #
-    # @author Randell Pelak
-    #
-    # @param [string] pe_conf_path Path to pe.conf file or dir
-    #
-    # @return [string] The path to the pe.conf file
-    def handle_pe_conf_path(pe_conf_path)
-      file_path = File.expand_path(pe_conf_path)
-      if File.directory?(file_path)
-        full_path = file_path + "/pe.conf"
-        raise("No pe.conf file found in directory: #{file_path}") unless File.exist?(full_path)
-        file_path = full_path
-      else
-        filename = File.basename(file_path)
-        raise("Specified file is not named pe.conf #{file_path}") unless filename.eql?("pe.conf")
-        raise("pe.conf file not found #{file_path}") unless File.exist?(file_path)
-      end
-
-      return file_path
+      BoltHelper.run_task_with_bolt(INSTALL_PE_TASK, params, @target_master)
     end
 
     # Handles user inputted pe.conf or if nil assumes it is in the CWD
     # Validates file exists (allows just a dir to be given if pe.conf is in it)
-    # Also ensures the file is named pe.conf
     # TODO Ensure it is valid once we have a reader/validator class
     # Move it to the target_master
     #
@@ -94,6 +70,30 @@ module RefArchSetup
       raise "Unable to upload pe.conf file to #{@target_master}" unless success
 
       return conf_path_on_master
+    end
+
+    # Handles user inputted pe.conf
+    # Validates file exists (allows just a dir to be given if pe.conf is in it)
+    # Also ensures the file is named pe.conf
+    #
+    # @author Randell Pelak
+    #
+    # @param [string] pe_conf_path Path to pe.conf file or dir
+    #
+    # @return [string] The path to the pe.conf file
+    def handle_pe_conf_path(pe_conf_path)
+      file_path = File.expand_path(pe_conf_path)
+      if File.directory?(file_path)
+        full_path = file_path + "/pe.conf"
+        raise("No pe.conf file found in directory: #{file_path}") unless File.exist?(full_path)
+        file_path = full_path
+      else
+        filename = File.basename(file_path)
+        raise("Specified file is not named pe.conf #{file_path}") unless filename.eql?("pe.conf")
+        raise("pe.conf file not found #{file_path}") unless File.exist?(file_path)
+      end
+
+      return file_path
     end
 
     # Determines whether the specified path is a valid URL
@@ -164,6 +164,9 @@ module RefArchSetup
     # @param [string] path Path to PE tarball file
     #
     # @return [true,false] Based on whether the file exists on the target master
+    #
+    # TODO: SLV-187 - combine with copy_pe_tarball_on_target_master
+    #
     def file_exist_on_target_master?(path)
       command = "[ -f #{path} ]"
       exists = BoltHelper.run_cmd_with_bolt(command, @target_master)
@@ -189,7 +192,7 @@ module RefArchSetup
       params["url"] = url
       params["destination"] = TMP_WORK_DIR
 
-      success = BoltHelper.run_task_with_bolt("ref_arch_setup::download_pe_tarball", params, nodes)
+      success = BoltHelper.run_task_with_bolt(DOWNLOAD_PE_TARBALL_TASK, params, nodes)
       return success
     end
 
@@ -288,11 +291,11 @@ module RefArchSetup
 
       if target_master_is_localhost?
         raise file_not_found_error unless File.exist?(path)
-        error = copy_error
         success = upload_pe_tarball(path)
+        error = copy_error unless success
       else
-        error = upload_error
         success = handle_tarball_path_with_remote_target_master(path)
+        error = upload_error unless success
       end
 
       raise error unless success
@@ -302,8 +305,6 @@ module RefArchSetup
 
     # Handles the PE tarball based on the the path (URL / file)
     # and target master (local / remote)
-    #
-    # TODO: Ensure it is valid once we have a reader/validator class
     #
     # @author Bill Claytor
     #
@@ -355,14 +356,12 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @param [string] src_pe_tarball_path Path to the source copy of the tarball file
-    # @param [string] dest_pe_tarball_path Path to put the tarball at on the target host
     #
     # @return [true,false] Based on exit status of the bolt task
-    def upload_pe_tarball(src_pe_tarball_path, dest_pe_tarball_path = TMP_WORK_DIR)
-      if dest_pe_tarball_path == TMP_WORK_DIR
-        file_name = File.basename(src_pe_tarball_path)
-        dest_pe_tarball_path += "/#{file_name}"
-      end
+    def upload_pe_tarball(src_pe_tarball_path)
+      file_name = File.basename(src_pe_tarball_path)
+      dest_pe_tarball_path = "#{TMP_WORK_DIR}/#{file_name}"
+
       puts "Attempting upload from #{src_pe_tarball_path} " \
            "to #{dest_pe_tarball_path} on #{@target_master}"
 

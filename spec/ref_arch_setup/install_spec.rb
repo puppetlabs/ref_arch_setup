@@ -8,32 +8,27 @@ describe RefArchSetup::Install do
   let(:pe_tarball_filename) { "pe.tarball.tar.gz" }
   let(:pe_tarball) { "/tmp/#{pe_tarball_filename}" }
   let(:tmp_work_dir) { "/tmp/ref_arch_setup" }
-  # TODO: tarball_path_on_master vs. target_master_pe_tarball?
   let(:tarball_path_on_master) { "#{tmp_work_dir}/#{pe_tarball_filename}" }
   let(:install) { RefArchSetup::Install.new(target_master) }
-  let(:install_task) { "ref_arch_setup::install_pe" }
   let(:install_task_params) do
     { "pe_conf_path" => conf_path_on_master, "pe_tarball" => tarball_path_on_master }
   end
-
   let(:pe_tarball_url) { "https://test.net/2018.1/#{pe_tarball_filename}" }
   let(:pe_tarball_http_url) { "http://test.net/2018.1/#{pe_tarball_filename}" }
-
-  let(:download_task) { "ref_arch_setup::download_pe_tarball" }
   let(:download_task_params) do
     { "url" => pe_tarball_url, "destination" => tmp_work_dir }
   end
 
   let(:test_uri) { Class.new }
 
-  describe "initialize" do
+  describe "#initialize" do
     it "checks that the passed in parameters get used" do
       temp_install = RefArchSetup::Install.new(target_master)
       expect(temp_install.instance_variable_get("@target_master")).to eq(target_master)
     end
   end
 
-  describe "bootstrap" do
+  describe "#bootstrap" do
     context "when make_temp_dir and handle_pe_conf do not raise errors" do
       context "when called using default value" do
         context "when run_task_with_bolt returned true" do
@@ -42,7 +37,7 @@ describe RefArchSetup::Install do
             expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
             expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
             expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(install_task, install_task_params, target_master)
+              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
               .and_return(true)
             expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(true)
           end
@@ -56,7 +51,8 @@ describe RefArchSetup::Install do
             expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
             expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
             expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(install_task, install_task_params, target_master).and_return(true)
+              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+              .and_return(true)
             expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(true)
           end
         end
@@ -67,7 +63,8 @@ describe RefArchSetup::Install do
             expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
             expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
             expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(install_task, install_task_params, target_master).and_return(false)
+              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+              .and_return(false)
             expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(false)
           end
         end
@@ -90,7 +87,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "handle_pe_conf_path" do
+  describe "#handle_pe_conf_path" do
     context "When user gave a value for pe.conf that is a directory" do
       context "When a pe.conf is found in the dir" do
         it "returns the file path" do
@@ -109,8 +106,8 @@ describe RefArchSetup::Install do
           expect(File).to receive(:expand_path).with(tmpdir).and_return(tmpdir)
           expect(File).to receive(:directory?).with(tmpdir).and_return(true)
           expect(File).to receive(:exist?).with(file_path).and_return(false)
-          expect { install.handle_pe_conf_path(tmpdir) }.to \
-            raise_error(RuntimeError, /No pe.conf file found in directory: #{tmpdir}/)
+          expect { install.handle_pe_conf_path(tmpdir) }
+            .to raise_error(RuntimeError, /No pe.conf file found in directory: #{tmpdir}/)
         end
       end
     end
@@ -134,8 +131,8 @@ describe RefArchSetup::Install do
           expect(File).to receive(:directory?).with(file_path).and_return(false)
           expect(File).to receive(:basename).with(file_path).and_return("pe.conf")
           expect(File).to receive(:exist?).with(file_path).and_return(false)
-          expect { install.handle_pe_conf_path(file_path) }.to \
-            raise_error(RuntimeError, /pe.conf file not found #{file_path}/)
+          expect { install.handle_pe_conf_path(file_path) }
+            .to raise_error(RuntimeError, /pe.conf file not found #{file_path}/)
         end
       end
     end
@@ -149,13 +146,13 @@ describe RefArchSetup::Install do
         expect(File).to receive(:basename).with(file_path).and_return("not_pe.conf")
         expect(File).not_to receive(:exist?)
         expect(install).not_to receive(:upload_pe_conf)
-        expect { install.handle_pe_conf_path(file_path) }.to \
-          raise_error(RuntimeError, /Specified file is not named pe.conf/)
+        expect { install.handle_pe_conf_path(file_path) }
+          .to raise_error(RuntimeError, /Specified file is not named pe.conf/)
       end
     end
   end
 
-  describe "handle_pe_conf" do
+  describe "#handle_pe_conf" do
     context "When user did not give a pe.conf argument" do
       context "When pe.conf exists in the CWD" do
         it "it calls upload on it and returns true" do
@@ -173,8 +170,8 @@ describe RefArchSetup::Install do
           file_path = "#{tmpdir}/pe.conf"
           expect(Dir).to receive(:pwd).and_return(tmpdir)
           expect(File).to receive(:exist?).with(file_path).and_return(false)
-          expect { install.handle_pe_conf(nil) }.to \
-            raise_error(RuntimeError, /No pe.conf file found in current working directory/)
+          expect { install.handle_pe_conf(nil) }
+            .to raise_error(RuntimeError, /No pe.conf file found in current working directory/)
         end
       end
     end
@@ -191,8 +188,7 @@ describe RefArchSetup::Install do
       context "When a pe.conf is NOT found in the dir" do
         it "raises an error" do
           tmpdir = "/tmp/foo"
-          expect(install).to receive(:handle_pe_conf_path)
-            .with(tmpdir).and_raise(RuntimeError, /No pe.conf file found in directory: #{tmpdir}/)
+          expect(install).to receive(:handle_pe_conf_path).with(tmpdir).and_raise(RuntimeError)
 
           expect(install).not_to receive(:upload_pe_conf)
           expect { install.handle_pe_conf(tmpdir) }.to raise_error(RuntimeError)
@@ -215,7 +211,7 @@ describe RefArchSetup::Install do
           file_path = "#{tmpdir}/pe.conf"
 
           expect(install).to receive(:handle_pe_conf_path)
-            .with(file_path).and_raise(RuntimeError, /pe.conf file not found #{file_path}/)
+            .with(file_path).and_raise(RuntimeError)
 
           expect(install).not_to receive(:upload_pe_conf)
           expect { install.handle_pe_conf(file_path) }.to raise_error(RuntimeError)
@@ -228,8 +224,8 @@ describe RefArchSetup::Install do
         file_path = "#{tmpdir}/pe.conf"
         expect(install).to receive(:handle_pe_conf_path).with(file_path).and_return(file_path)
         expect(install).to receive(:upload_pe_conf).with(file_path).and_return(false)
-        expect { install.handle_pe_conf(file_path) }.to \
-          raise_error(RuntimeError, /Unable to upload pe.conf file to #{target_master}/)
+        expect { install.handle_pe_conf(file_path) }
+          .to raise_error(RuntimeError, /Unable to upload pe.conf file to #{target_master}/)
       end
     end
     context "When the file is not named pe.conf" do
@@ -237,8 +233,7 @@ describe RefArchSetup::Install do
         tmpdir = "/tmp/foo"
         file_path = "#{tmpdir}/not_pe.conf"
 
-        expect(install).to receive(:handle_pe_conf_path)
-          .with(file_path).and_raise(RuntimeError, /Specified file is not named pe.conf/)
+        expect(install).to receive(:handle_pe_conf_path).with(file_path).and_raise(RuntimeError)
 
         expect(install).not_to receive(:upload_pe_conf)
         expect { install.handle_pe_conf(file_path) }.to raise_error(RuntimeError)
@@ -246,13 +241,9 @@ describe RefArchSetup::Install do
     end
   end
 
-  # TODO: mock URI?
   describe "#valid_url?" do
     context "when given a url starting with http" do
       it "returns true" do
-        # expect(install).to receive(:validate_extension)
-        #   .with(pe_tarball_http_url)
-        #   .and_return(true)
         expect(install.valid_url?(pe_tarball_http_url)).to eq(true)
       end
     end
@@ -272,7 +263,7 @@ describe RefArchSetup::Install do
 
   describe "#validate_extension" do
     context "when given a path ending with .tar.gz" do
-      it "returns nothing" do
+      it "returns true" do
         expect(install.validate_extension(pe_tarball)).to eq(true)
       end
     end
@@ -349,7 +340,8 @@ describe RefArchSetup::Install do
       it "returns true" do
         allow(install).to receive(:puts)
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-          .with(download_task, download_task_params, target_master).and_return(true)
+          .with(RefArchSetup::DOWNLOAD_PE_TARBALL_TASK, download_task_params, target_master)
+          .and_return(true)
         expect(install.download_pe_tarball(pe_tarball_url, target_master)).to eq(true)
       end
     end
@@ -358,7 +350,8 @@ describe RefArchSetup::Install do
       it "returns false" do
         allow(install).to receive(:puts)
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-          .with(download_task, download_task_params, target_master).and_return(false)
+          .with(RefArchSetup::DOWNLOAD_PE_TARBALL_TASK, download_task_params, target_master)
+          .and_return(false)
         expect(install.download_pe_tarball(pe_tarball_url, target_master)).to eq(false)
       end
     end
@@ -609,9 +602,8 @@ describe RefArchSetup::Install do
           expect(install).not_to receive(:file_exist_on_target_master?)
           expect(install).not_to receive(:copy_pe_tarball_on_target_master)
 
-          expect(File).to receive(:exist?).with(pe_tarball).and_return(true)
-          expect(install).to receive(:upload_pe_tarball)
-            .with(pe_tarball).and_return(false)
+          expect(File).to receive(:exist?).with(pe_tarball).and_return(false)
+          expect(install).not_to receive(:upload_pe_tarball)
 
           expect(install.handle_tarball_path_with_remote_target_master(pe_tarball))
             .to eq(false)
@@ -703,7 +695,7 @@ describe RefArchSetup::Install do
       context "when the tarball path is a valid URL" do
         context "when the tarball URL is handled successfully" do
           it "returns the tarball path on the master" do
-            # expect(install).to receive(:validate_extension).with(pe_tarball_url)
+            expect(install).to receive(:validate_extension).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url)
               .with(pe_tarball_url).and_return(tarball_path_on_master)
@@ -715,7 +707,7 @@ describe RefArchSetup::Install do
 
         context "when the tarball URL is not handled successfully" do
           it "raises an error" do
-            # expect(install).to receive(:validate_extension).with(pe_tarball_url)
+            expect(install).to receive(:validate_extension).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url).with(pe_tarball_url).and_return(nil)
 
@@ -728,7 +720,7 @@ describe RefArchSetup::Install do
       context "when the tarball path is not a valid URL and a path is assumed" do
         context "when the tarball path is handled successfully" do
           it "returns the tarball path on the master" do
-            # expect(install).to receive(:validate_extension).with(pe_tarball)
+            expect(install).to receive(:validate_extension).with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path)
               .with(pe_tarball).and_return(tarball_path_on_master)
@@ -740,7 +732,7 @@ describe RefArchSetup::Install do
 
         context "when the tarball path is not handled successfully" do
           it "raises an error" do
-            # expect(install).to receive(:validate_extension).with(pe_tarball)
+            expect(install).to receive(:validate_extension).with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path).with(pe_tarball).and_return(nil)
 
@@ -753,15 +745,15 @@ describe RefArchSetup::Install do
 
     context "when the extension is not valid" do
       it "raises an error" do
-        path = "invalid"
-        # expect(install).to receive(:validate_extension).with(path)
+        path = "/tmp/invalid"
+        expect(install).to receive(:validate_extension).with(path).and_raise(RuntimeError)
         expect { install.handle_pe_tarball(path) }
           .to raise_error(RuntimeError)
       end
     end
   end
 
-  describe "make_tmp_work_dir" do
+  describe "#make_tmp_work_dir" do
     context "with defaults and make_dir returns true" do
       it "returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
@@ -787,7 +779,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "upload_pe_conf" do
+  describe "#upload_pe_conf" do
     context "with defaults and upload_file returns true" do
       it "returns true" do
         src = "#{RefArchSetup::RAS_FIXTURES_PATH}/pe.conf"
@@ -819,7 +811,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "upload_pe_tarball" do
+  describe "#upload_pe_tarball" do
     context "with defaults and upload_file returns true" do
       it "returns true" do
         src = "/tmp/foo.tar"
@@ -834,25 +826,25 @@ describe RefArchSetup::Install do
 
     context "with option values passed in and upload_file returns true" do
       it "returns true" do
-        src = "/tmp/foo.tar"
-        dest = "/tmp/foo"
+        src = pe_tarball
+        dest = tarball_path_on_master
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
         expect(install).to receive(:puts).with(message)
         expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
           .with(src, dest, target_master).and_return(true)
-        expect(install.upload_pe_tarball(src, dest)).to eq(true)
+        expect(install.upload_pe_tarball(src)).to eq(true)
       end
     end
 
     context "with option values passed in and upload_file returns false" do
       it "returns false" do
-        src = "/tmp/foo.tar"
-        dest = "/tmp/foo"
+        src = pe_tarball
+        dest = tarball_path_on_master
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
         expect(install).to receive(:puts).with(message)
         expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
           .with(src, dest, target_master).and_return(false)
-        expect(install.upload_pe_tarball(src, dest)).to eq(false)
+        expect(install.upload_pe_tarball(src)).to eq(false)
       end
     end
   end
