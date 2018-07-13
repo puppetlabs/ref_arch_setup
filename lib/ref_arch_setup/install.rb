@@ -113,11 +113,11 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] url Path to PE tarball file
+    # @param [string] url URL for the PE tarball file
     #
     # @raise [RuntimeError] Based on the validity of the url
     #
-    # @return [true] Based on the validity of the extension
+    # @return [true] Based on the validity of the URL
     def parse_url(url)
       begin
         @pe_tarball_uri = URI.parse(url)
@@ -137,7 +137,7 @@ module RefArchSetup
     # @raise [RuntimeError] Based on the validity of the extension
     #
     # @return [true] Based on the validity of the extension
-    def validate_extension(pe_tarball)
+    def validate_tarball_extension(pe_tarball)
       message = "Invalid extension for tarball: #{pe_tarball}; extension must be .tar.gz"
       raise(message) unless pe_tarball.end_with?(".tar.gz")
       return true
@@ -229,7 +229,7 @@ module RefArchSetup
       else
         # if downloading to the target master fails try to download locally and then upload
         success = download_pe_tarball(url, @target_master)
-        puts "Unable to download the tarball directly to localhost" unless success
+        puts "Unable to download the tarball directly to #{@target_master}" unless success
         success = download_and_move_pe_tarball(url) unless success
         raise remote_error unless success
       end
@@ -242,11 +242,11 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] path The pe tarball path
+    # @param [string] tarball_path_on_target_master The pe tarball path on the target master
     #
     # @return [true,false] Based on exit status of the bolt task
-    def copy_pe_tarball_on_target_master(path)
-      command = "cp #{path} #{TMP_WORK_DIR}"
+    def copy_pe_tarball_on_target_master(tarball_path_on_target_master)
+      command = "cp #{tarball_path_on_target_master} #{TMP_WORK_DIR}"
       success = BoltHelper.run_cmd_with_bolt(command, @target_master)
       return success
     end
@@ -313,7 +313,7 @@ module RefArchSetup
     # @return [string] The tarball path on the master after copying if successful
     def handle_pe_tarball(pe_tarball)
       error = "Unable to handle the specified PE tarball path: #{pe_tarball}"
-      validate_extension(pe_tarball)
+      validate_tarball_extension(pe_tarball)
       tarball_path_on_master = if valid_url?(pe_tarball)
                                  handle_tarball_url(pe_tarball)
                                else

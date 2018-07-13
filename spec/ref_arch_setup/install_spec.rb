@@ -261,23 +261,23 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "#validate_extension" do
+  describe "#validate_tarball_extension" do
     context "when given a path ending with .tar.gz" do
       it "returns true" do
-        expect(install.validate_extension(pe_tarball)).to eq(true)
+        expect(install.validate_tarball_extension(pe_tarball)).to eq(true)
       end
     end
 
     context "when given a url ending with .tar.gz" do
       it "returns true" do
-        expect(install.validate_extension(pe_tarball_url)).to eq(true)
+        expect(install.validate_tarball_extension(pe_tarball_url)).to eq(true)
       end
     end
 
     context "when given a path not ending in .tar.gz" do
       it "raises an error" do
         path = "/tmp/file.txt"
-        expect { install.validate_extension(path) }.to raise_error(RuntimeError)
+        expect { install.validate_tarball_extension(path) }.to raise_error(RuntimeError)
       end
     end
   end
@@ -531,7 +531,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "#handle_tarball_with_remote_target_master" do
+  describe "#handle_tarball_path_with_remote_target_master" do
     before do
       install.instance_variable_set(:@target_master, remote_target_master)
       @remote_flag = "#{remote_target_master}:"
@@ -695,7 +695,7 @@ describe RefArchSetup::Install do
       context "when the tarball path is a valid URL" do
         context "when the tarball URL is handled successfully" do
           it "returns the tarball path on the master" do
-            expect(install).to receive(:validate_extension).with(pe_tarball_url).and_return(true)
+            expect(install).to receive(:validate_tarball_extension).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url)
               .with(pe_tarball_url).and_return(tarball_path_on_master)
@@ -707,7 +707,7 @@ describe RefArchSetup::Install do
 
         context "when the tarball URL is not handled successfully" do
           it "raises an error" do
-            expect(install).to receive(:validate_extension).with(pe_tarball_url).and_return(true)
+            expect(install).to receive(:validate_tarball_extension).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url).with(pe_tarball_url).and_return(nil)
 
@@ -720,7 +720,7 @@ describe RefArchSetup::Install do
       context "when the tarball path is not a valid URL and a path is assumed" do
         context "when the tarball path is handled successfully" do
           it "returns the tarball path on the master" do
-            expect(install).to receive(:validate_extension).with(pe_tarball).and_return(true)
+            expect(install).to receive(:validate_tarball_extension).with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path)
               .with(pe_tarball).and_return(tarball_path_on_master)
@@ -732,7 +732,7 @@ describe RefArchSetup::Install do
 
         context "when the tarball path is not handled successfully" do
           it "raises an error" do
-            expect(install).to receive(:validate_extension).with(pe_tarball).and_return(true)
+            expect(install).to receive(:validate_tarball_extension).with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path).with(pe_tarball).and_return(nil)
 
@@ -746,7 +746,7 @@ describe RefArchSetup::Install do
     context "when the extension is not valid" do
       it "raises an error" do
         path = "/tmp/invalid"
-        expect(install).to receive(:validate_extension).with(path).and_raise(RuntimeError)
+        expect(install).to receive(:validate_tarball_extension).with(path).and_raise(RuntimeError)
         expect { install.handle_pe_tarball(path) }
           .to raise_error(RuntimeError)
       end
