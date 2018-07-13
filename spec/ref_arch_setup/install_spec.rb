@@ -695,7 +695,8 @@ describe RefArchSetup::Install do
       context "when the tarball path is a valid URL" do
         context "when the tarball URL is handled successfully" do
           it "returns the tarball path on the master" do
-            expect(install).to receive(:validate_tarball_extension).with(pe_tarball_url).and_return(true)
+            expect(install).to receive(:validate_tarball_extension)
+              .with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url)
               .with(pe_tarball_url).and_return(tarball_path_on_master)
@@ -707,7 +708,8 @@ describe RefArchSetup::Install do
 
         context "when the tarball URL is not handled successfully" do
           it "raises an error" do
-            expect(install).to receive(:validate_tarball_extension).with(pe_tarball_url).and_return(true)
+            expect(install).to receive(:validate_tarball_extension)
+              .with(pe_tarball_url).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball_url).and_return(true)
             expect(install).to receive(:handle_tarball_url).with(pe_tarball_url).and_return(nil)
 
@@ -720,7 +722,8 @@ describe RefArchSetup::Install do
       context "when the tarball path is not a valid URL and a path is assumed" do
         context "when the tarball path is handled successfully" do
           it "returns the tarball path on the master" do
-            expect(install).to receive(:validate_tarball_extension).with(pe_tarball).and_return(true)
+            expect(install).to receive(:validate_tarball_extension)
+              .with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path)
               .with(pe_tarball).and_return(tarball_path_on_master)
@@ -732,7 +735,8 @@ describe RefArchSetup::Install do
 
         context "when the tarball path is not handled successfully" do
           it "raises an error" do
-            expect(install).to receive(:validate_tarball_extension).with(pe_tarball).and_return(true)
+            expect(install).to receive(:validate_tarball_extension)
+              .with(pe_tarball).and_return(true)
             expect(install).to receive(:valid_url?).with(pe_tarball).and_return(false)
             expect(install).to receive(:handle_tarball_path).with(pe_tarball).and_return(nil)
 
