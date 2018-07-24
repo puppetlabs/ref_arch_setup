@@ -17,6 +17,7 @@ coverage/
 .*.sw[op]
 .DS_Store
 .rspec
+.beaker
 
 import
 .tmp
@@ -25,4 +26,5 @@ import
 *.lock
 *.pyc
 
+hosts.cfg
 ref_arch_setup-*.gem
