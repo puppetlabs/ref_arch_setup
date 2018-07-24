@@ -20,4 +20,7 @@ Gem::Specification.new do |spec|
 
   # Run time dependencies
   spec.add_runtime_dependency "bolt", "~> 0.17"
+
+  # Development dependencies
+  spec.add_development_dependency "beaker", "~> 3.0"
 end
