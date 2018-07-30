@@ -1,9 +1,10 @@
 {
-  :ssh                         => {
-    :keys                        => [
+  :ssh => {
+    keys: [
       "id_rsa_acceptance", "#{ENV['HOME']}/.ssh/id_rsa-acceptance"
     ]
   },
+  :preserve_hosts              => "always",
   :xml                         => true,
   :timesync                    => false,
   :repo_proxy                  => true,
@@ -12,10 +13,12 @@
   :'master-start-curl-retries' => 30,
   :type                        => "pe",
   :pre_suite                   => [
-    "acceptance/pre_suites/nothing.rb"
+    "acceptance/pre_suites/setup_ssh.rb",
+    "acceptance/pre_suites/setup_ruby.rb",
+    "acceptance/pre_suites/setup_ras.rb"
   ],
-  :tests                       => [
-    "acceptance/tests/help_test.rb"
+  :tests => [
+    "acceptance/tests/install_test.rb"
   ],
   "is_puppetserver"            => true,
   "use-service"                => true, # use service scripts to start/stop stuff
