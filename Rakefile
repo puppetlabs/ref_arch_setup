@@ -7,6 +7,9 @@ require "flay_task"
 require "roodi_task"
 require "rubycritic/rake_task"
 
+require "./acceptance/helpers/beaker_helper"
+include BeakerHelper
+
 YARD_DIR = "doc".freeze
 DOCS_DIR = "docs".freeze
 
@@ -17,103 +20,38 @@ end
 namespace :test do
   desc "Create hosts.cfg file"
   task :mk_hosts_file do
-    pe_family = ENV["BEAKER_PE_FAMILY"] || "2018.2"
-    url = "http://enterprise.delivery.puppetlabs.net/#{pe_family}/ci-ready/LATEST"
-    curl_comm = "curl --silent #{url}"
-    pe_version = ENV["BEAKER_PE_VERSION"] || `#{curl_comm}`.strip
-    forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
-    layout = ENV["BEAKER_LAYOUT"] || "centos7-64controller.-64target_master."
-    comm = "export pe_version=#{pe_version}; "
-    comm += "bundle exec beaker-hostgenerator "
-    comm += "--disable-default-role "
-    comm += "--global-config forge_host=#{forge_host} "
-    comm += layout
-    comm += " > #{__dir__}/hosts.cfg"
-    # puts comm.to_str
-    sh comm
+    beaker_create_host_file
   end
 
-  desc "Run acceptance test"
-  rototiller_task :acceptance do |task|
-    comm = add_beaker_command(task)
-    puts comm.to_str
-    comm.add_option do |option|
-      option.name = "--options"
-      option.add_argument do |arg|
-        arg.name = "#{__dir__}/acceptance/config/options.rb"
-      end
-    end
-    comm.add_option do |option|
-      option.name = "--config"
-      option.add_argument do |arg|
-        arg.name = "#{__dir__}/hosts.cfg"
-      end
-    end
-    puts comm.to_str
+  desc "Run acceptance test using Beaker subcommands"
+  rototiller_task :acceptance do |_task|
+    Rake::Task["test:acceptance_init"].execute
+    Rake::Task["test:acceptance_provision"].execute
+    Rake::Task["test:acceptance_exec"].execute
+    Rake::Task["test:acceptance_destroy"].execute unless preserve_hosts?
   end
 
-  def add_beaker_command(task)
-    # env vars needed for Beaker
-    command = task.add_command do |command|
-      command.name = "bundle exec beaker"
-      command.add_env({:name => 'BEAKER_EXECUTABLE'})
-
-      command.add_option do |option|
-        option.name = '--hosts'
-        option.message = 'The configuration file that Beaker will use'
-        option.add_argument do |arg|
-          arg.add_env({:name => 'BEAKER_HOSTS'})
-        end
-      end unless ( ! ENV.has_key?('BEAKER_HOSTS') )
-      command.add_option do |option|
-        option.name = '--keyfile'
-        option.message = 'The SSH key used to access a SUT'
-        option.add_argument do |arg|
-          arg.add_env({:name => 'BEAKER_KEYFILE'})
-        end
-      end unless ( ! ENV.has_key?('BEAKER_KEYFILE') )
-      command.add_option do |option|
-        option.name = '--log-level'
-        option.message = 'The log level under which you want beaker to run'
-        option.add_argument do |arg|
-          arg.add_env({:name => 'BEAKER_LOG_LEVEL'})
-        end
-      end unless ( ! ENV.has_key?('BEAKER_LOG_LEVEL') )
-      unless ENV['BEAKER_PRE_SUITE'] == ''
-        command.add_option do |option|
-          option.name = '--pre-suite'
-          option.message = 'Beaker pre-suite'
-          option.add_argument do |arg|
-            arg.add_env({:name => 'BEAKER_PRE_SUITE'})
-          end
-        end
-      end unless ( ! ENV.has_key?('BEAKER_PRE_SUITE') )
-      unless ENV['HELPER_PATH'] == ''
-        command.add_option do |option|
-          option.name = '--helper'
-          option.message = 'Setup helper required for installing PE'
-          option.add_argument do |arg|
-            arg.add_env({:name => 'BEAKER_HELPER'})
-          end
-        end
-      end unless ( ! ENV.has_key?('BEAKER_HELPER') )
-      command.add_option do |option|
-        option.name = '--preserve-hosts'
-        option.message = 'Whether to preserve hosts or not'
-        option.add_argument do |arg|
-          arg.add_env({:name => 'BEAKER_PRESERVE_HOSTS'})
-        end
-      end unless ( ! ENV.has_key?('BEAKER_PRESERVE_HOSTS') )
-      command.add_option do |option|
-        option.name = '--type'
-        option.message = 'pe or foss'
-        option.add_argument do |arg|
-          arg.add_env({:name => 'BEAKER_INSTALL_TYPE'})
-        end
-      end unless ( ! ENV.has_key?('BEAKER_INSTALL_TYPE') )
-    end
-    return command
+  desc "Run init subcommand"
+  rototiller_task :acceptance_init do |task|
+    beaker_init(task)
   end
+
+  desc "Run provision subcommand"
+  rototiller_task :acceptance_provision do |task|
+    beaker_provision(task)
+  end
+
+  desc "Run exec subcommand"
+  rototiller_task :acceptance_exec do |task|
+    beaker_exec(task)
+  end
+
+  desc "Run destroy subcommand"
+  rototiller_task :acceptance_destroy do |task|
+    beaker_destroy(task)
+  end
+
+
 end
 
 # bunch of gem build, clean, install, release tasks
