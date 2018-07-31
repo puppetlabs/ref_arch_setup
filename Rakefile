@@ -54,7 +54,7 @@ namespace :test do
 end
 # rubocop:enable Metrics/BlockLength
 
-namespace :spec do
+namespace :test do
   begin
     # this will produce the 'test:spec' task
     require "rspec/core/rake_task"
@@ -75,6 +75,10 @@ namespace :spec do
     t.add_env(name: "SPEC_PATTERN", default: "**{,/*/**}/*_spec.rb",
               message: "The pattern RSpec will use to find tests")
   end
+end
+
+task :test do
+  Rake::Task["test:spec"].invoke
 end
 
 # bunch of gem build, clean, install, release tasks
@@ -137,10 +141,6 @@ namespace :docs do
   end
 end
 # rubocop:enable Metrics/BlockLength
-
-task :test do
-  Rake::Task["test:spec"].invoke
-end
 
 namespace :lint do
   desc "check number of lines of code changed. To protect against long PRs"
