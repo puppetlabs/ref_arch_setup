@@ -1,7 +1,30 @@
 # General namespace for RAS
 module RefArchSetup
   # Bolt helper methods
-  module BoltHelper
+  class BoltHelper
+    @bolt_options = {}
+
+    # gets the bolt options as a string
+    #
+    # @author Sam Woods
+    # @return [string] the string value for bolt options
+    def self.bolt_options_string
+      bolt_options_string = ""
+      @bolt_options.each do |key, value|
+        bolt_options_string << " --#{key} #{value}"
+      end
+      bolt_options_string
+    end
+
+    # sets the bolt options
+    #
+    # @author Sam Woods
+    #
+    # @param [hash] bolt options
+    class << self
+      attr_writer :bolt_options
+    end
+
     # Creates a dir on the target_host
     # Doesn't fail if dir is already there
     # Uses -p to create parent dirs if needed
@@ -30,6 +53,8 @@ module RefArchSetup
     def self.run_cmd_with_bolt(cmd, nodes)
       command = "bolt command run '#{cmd}'"
       command << " --nodes #{nodes}"
+      command << bolt_options_string
+
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
@@ -53,6 +78,7 @@ module RefArchSetup
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
       command << " --modulepath #{RAS_MODULE_PATH} --nodes #{nodes}"
+      command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
@@ -88,6 +114,7 @@ module RefArchSetup
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
       command << " --nodes #{nodes}"
+      command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars

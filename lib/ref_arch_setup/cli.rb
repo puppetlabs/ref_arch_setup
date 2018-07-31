@@ -14,8 +14,9 @@ module RefArchSetup
     # @option options [String] something not yet defined
     #
     # @return [void]
-    def initialize(options)
+    def initialize(options, bolt_options)
       @options = options
+      BoltHelper.bolt_options = bolt_options
     end
 
     # Check values of options to see if they are really an option

@@ -4,7 +4,7 @@ describe RefArchSetup::CLI do
   let(:no_options)          { {} }
   let(:good_options)        { {} }
   let(:missing_arg_options) { {} }
-  let(:cli)                 { RefArchSetup::CLI.new(no_options) }
+  let(:cli)                 { RefArchSetup::CLI.new(no_options, no_options) }
   let(:install_obj)         { Class.new }
 
   good_options = { "primary_master" => "local://localhost", "pe_tarball" => "goo", \
@@ -14,6 +14,7 @@ describe RefArchSetup::CLI do
   describe "Initialize" do
     it "check cli object initialization" do
       expect(cli.instance_variable_get("@options")).to eq(no_options)
+      expect(RefArchSetup::BoltHelper.bolt_options_string).to eq("")
     end
   end
 
