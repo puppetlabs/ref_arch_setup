@@ -11,7 +11,7 @@ describe RefArchSetup::Install do
   let(:tarball_path_on_master) { "#{tmp_work_dir}/#{pe_tarball_filename}" }
   let(:install) { RefArchSetup::Install.new(target_master) }
   let(:install_task_params) do
-    { "pe_conf_path" => conf_path_on_master, "pe_tarball" => tarball_path_on_master }
+    { "pe_conf_path" => conf_path_on_master, "pe_tarball_path" => tarball_path_on_master }
   end
   let(:pe_tarball_url) { "https://test.net/2018.1/#{pe_tarball_filename}" }
   let(:pe_tarball_http_url) { "http://test.net/2018.1/#{pe_tarball_filename}" }
