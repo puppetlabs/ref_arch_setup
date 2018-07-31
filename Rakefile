@@ -17,6 +17,7 @@ task :default do
   sh %(rake -T)
 end
 
+# rubocop:disable Metrics/BlockLength
 namespace :test do
   desc "Create hosts.cfg file"
   task :mk_hosts_file do
@@ -50,8 +51,30 @@ namespace :test do
   rototiller_task :acceptance_destroy do |task|
     beaker_destroy(task)
   end
+end
+# rubocop:enable Metrics/BlockLength
 
+namespace :spec do
+  begin
+    # this will produce the 'test:spec' task
+    require "rspec/core/rake_task"
+    desc "Run unit tests"
+    RSpec::Core::RakeTask.new do |t|
+      t.rspec_opts = ["--color"]
+      t.pattern = ENV["SPEC_PATTERN"]
+    end
+  # if rspec isn't available, we can still use this Rakefile
+  # rubocop:disable Lint/HandleExceptions
+  rescue LoadError
+  end
 
+  task spec: [:check_spec]
+
+  desc "" # empty description so it doesn't show up in rake -T
+  rototiller_task :check_spec do |t|
+    t.add_env(name: "SPEC_PATTERN", default: "**{,/*/**}/*_spec.rb",
+              message: "The pattern RSpec will use to find tests")
+  end
 end
 
 # bunch of gem build, clean, install, release tasks
@@ -113,12 +136,13 @@ namespace :docs do
     Dir.chdir(original_dir)
   end
 end
+# rubocop:enable Metrics/BlockLength
 
 task :test do
   Rake::Task["test:spec"].invoke
 end
 
-namespace :test do
+namespace :lint do
   desc "check number of lines of code changed. To protect against long PRs"
   task "diff_length" do
     max_length = 150
@@ -130,43 +154,22 @@ namespace :test do
     exit system(cmd)
   end
 
-  # this will produce the 'test:rubocop','test:rubocop:auto_correct' tasks
+  # this will produce the 'lint:rubocop','lint:rubocop:auto_correct' tasks
   RuboCop::RakeTask.new do |task|
     task.options = ["--debug"]
   end
 
-  # this will produce the 'test:flog' task
+  # this will produce the 'lint:flog' task
   allowed_complexity = 585 # <cough!>
   FlogTask.new :flog, allowed_complexity, %w[lib]
-  # this will produce the 'test:flay' task
+  # this will produce the 'lint:flay' task
   allowed_repitition = 0
   FlayTask.new :flay, allowed_repitition, %w[lib]
-  # this will produce the 'test:roodi' task
+  # this will produce the 'lint:roodi' task
   RoodiTask.new
-  # this will produce the 'test:rubycritic' task
+  # this will produce the 'lint:rubycritic' task
   RubyCritic::RakeTask.new do |task|
     task.paths   = FileList["lib/**/*.rb"]
-  end
-
-  begin
-    # this will produce the 'test:spec' task
-    require "rspec/core/rake_task"
-    desc "Run unit tests"
-    RSpec::Core::RakeTask.new do |t|
-      t.rspec_opts = ["--color"]
-      t.pattern = ENV["SPEC_PATTERN"]
-    end
-  # if rspec isn't available, we can still use this Rakefile
-  # rubocop:disable Lint/HandleExceptions
-  rescue LoadError
-  end
-
-  task spec: [:check_spec]
-
-  desc "" # empty description so it doesn't show up in rake -T
-  rototiller_task :check_spec do |t|
-    t.add_env(name: "SPEC_PATTERN", default: "**{,/*/**}/*_spec.rb",
-              message: "The pattern RSpec will use to find tests")
   end
 end
 

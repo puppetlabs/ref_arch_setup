@@ -13,12 +13,15 @@
   :'master-start-curl-retries' => 30,
   :type                        => "pe",
   :pre_suite                   => [
-    "acceptance/pre_suites/setup_ssh.rb",
-    "acceptance/pre_suites/setup_ruby.rb",
-    "acceptance/pre_suites/setup_ras.rb"
+    "acceptance/pre_suites/10_setup_ssh.rb",
+    "acceptance/pre_suites/20_setup_ruby.rb",
+    "acceptance/pre_suites/30_setup_ras.rb",
+    "acceptance/pre_suites/40_download_pe_tarball.rb"
   ],
   :tests => [
-    "acceptance/tests/install_test.rb"
+    "acceptance/tests/10_install_test_remote_master_tarball_url.rb"
+    # "acceptance/tests/20_install_test_remote_master_tarball_path_controller.rb",
+    # "acceptance/tests/30_install_test_remote_master_tarball_path_master.rb"
   ],
   "is_puppetserver"            => true,
   "use-service"                => true, # use service scripts to start/stop stuff
