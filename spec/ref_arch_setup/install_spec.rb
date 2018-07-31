@@ -5,7 +5,7 @@ describe RefArchSetup::Install do
   let(:remote_target_master) { "remote.target.master" }
   let(:pe_conf_path) { "/tmp/pe.conf" }
   let(:conf_path_on_master) { "#{tmp_work_dir}/pe.conf" }
-  let(:pe_tarball_filename) { "pe.tarball.tar.gz" }
+  let(:pe_tarball_filename) { "pe.tarball.tar" }
   let(:pe_tarball) { "/tmp/#{pe_tarball_filename}" }
   let(:tmp_work_dir) { "/tmp/ref_arch_setup" }
   let(:tarball_path_on_master) { "#{tmp_work_dir}/#{pe_tarball_filename}" }
@@ -262,19 +262,31 @@ describe RefArchSetup::Install do
   end
 
   describe "#validate_tarball_extension" do
-    context "when given a path ending with .tar.gz" do
+    context "when given a path ending with .tar" do
       it "returns true" do
         expect(install.validate_tarball_extension(pe_tarball)).to eq(true)
       end
     end
 
-    context "when given a url ending with .tar.gz" do
+    context "when given a url ending with .tar" do
       it "returns true" do
         expect(install.validate_tarball_extension(pe_tarball_url)).to eq(true)
       end
     end
 
-    context "when given a path not ending in .tar.gz" do
+    context "when given a path ending with .tar.gz" do
+      it "returns true" do
+        expect(install.validate_tarball_extension("#{pe_tarball}.gz")).to eq(true)
+      end
+    end
+
+    context "when given a url ending with .tar.gz" do
+      it "returns true" do
+        expect(install.validate_tarball_extension("#{pe_tarball_url}.gz")).to eq(true)
+      end
+    end
+
+    context "when given a path not ending in .tar or .tar.gz" do
       it "raises an error" do
         path = "/tmp/file.txt"
         expect { install.validate_tarball_extension(path) }.to raise_error(RuntimeError)
