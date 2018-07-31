@@ -138,8 +138,8 @@ module RefArchSetup
     #
     # @return [true] Based on the validity of the extension
     def validate_tarball_extension(pe_tarball)
-      message = "Invalid extension for tarball: #{pe_tarball}; extension must be .tar.gz"
-      raise(message) unless pe_tarball.end_with?(".tar.gz")
+      message = "Invalid extension for tarball: #{pe_tarball}; extension must be .tar or .tar.gz"
+      raise(message) unless pe_tarball =~ /.*\.(tar|tar\.gz)$/
       return true
     end
 
