@@ -43,7 +43,7 @@ module RefArchSetup
 
       params = {}
       params["pe_conf_path"] = conf_path_on_master
-      params["pe_tarball"] = tarball_path_on_master
+      params["pe_tarball_path"] = tarball_path_on_master
 
       BoltHelper.run_task_with_bolt(INSTALL_PE_TASK, params, @target_master)
     end
