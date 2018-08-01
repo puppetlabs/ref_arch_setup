@@ -246,8 +246,15 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def copy_pe_tarball_on_target_master(tarball_path_on_target_master)
-      command = "cp #{tarball_path_on_target_master} #{TMP_WORK_DIR}"
-      success = BoltHelper.run_cmd_with_bolt(command, @target_master)
+      filename = File.basename(tarball_path_on_target_master)
+      success = if tarball_path_on_target_master == "#{TMP_WORK_DIR}/#{filename}"
+                  puts "Not copying the tarball as the source and destination are the same"
+                  true
+                else
+                  command = "cp #{tarball_path_on_target_master} #{TMP_WORK_DIR}"
+                  BoltHelper.run_cmd_with_bolt(command, @target_master)
+                end
+
       return success
     end
 
@@ -266,8 +273,8 @@ module RefArchSetup
         success = file_exist_on_target_master?(actual_path)
         success = copy_pe_tarball_on_target_master(actual_path) if success
       else
-        success = File.exist?(path)
-        success = upload_pe_tarball(path) if success
+        raise "File not found: #{path}" unless File.exist?(path)
+        success = upload_pe_tarball(path)
       end
 
       return success
