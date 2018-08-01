@@ -1,12 +1,12 @@
 test_name "install RAS on controller" do
-  step "copy RAS to controller" do
+  step "copy RAS gem, fixtures, and modules to controller" do
     hosts = [controller]
     scp_to(hosts, "#{__dir__}/../../pkg", "ref_arch_setup")
     scp_to(hosts, "#{__dir__}/../../fixtures", "ref_arch_setup")
     scp_to(hosts, "#{__dir__}/../../modules", "ref_arch_setup")
   end
 
-  step "install RAS on controller and local masters" do
+  step "install RAS on controller" do
     hosts = [controller]
     version = RefArchSetup::Version::STRING
     gem = "ref_arch_setup-#{version}.gem"

@@ -7,7 +7,6 @@ require "flay_task"
 require "roodi_task"
 require "rubycritic/rake_task"
 
-require File.expand_path("../lib/ref_arch_setup/version", __FILE__)
 require "./acceptance/helpers/beaker_helper"
 include BeakerHelper
 
@@ -22,11 +21,13 @@ end
 namespace :test do
   desc "Create hosts.cfg file"
   task :mk_hosts_file do
+    beaker_initialize
     beaker_create_host_file
   end
 
   desc "Run acceptance test using Beaker subcommands"
   rototiller_task :acceptance do |_task|
+    beaker_initialize
     Rake::Task["gem:build"].execute
     Rake::Task["test:acceptance_init"].execute
     Rake::Task["test:acceptance_provision"].execute

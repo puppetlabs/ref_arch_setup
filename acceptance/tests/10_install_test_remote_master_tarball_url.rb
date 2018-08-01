@@ -1,10 +1,7 @@
-# rubocop:disable Metrics/BlockLength
+require "./acceptance/helpers/beaker_helper"
 test_name "perform install on remote master with tarball url" do
   step "perform install" do
-    # TODO: use URL from BoltHelper
-    pe_version = "puppet-enterprise-2018.1.0-rc14-el-7-x86_64"
-    pe_dir = "http://enterprise.delivery.puppetlabs.net/archives/internal/2018.1"
-    pe_url = "#{pe_dir}/#{pe_version}.tar.gz"
+    pe_url = BeakerHelper.get_pe_tarball_url(target_master)
     primary_master = "--primary-master=#{target_master}"
     pe_tarball = "--pe-tarball=#{pe_url}"
     pe_conf = "--pe-conf=/root/ref_arch_setup/fixtures/pe.conf"

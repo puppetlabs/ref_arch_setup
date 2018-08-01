@@ -1,5 +1,5 @@
-test_name "install RAS on controller" do
-  step "create key for controller to talk to target-master" do
+test_name "set up ssh between controller and target-master" do
+  step "create ssh key" do
     on controller, "yes | ssh-keygen -q -t rsa -b 4096 -f /root/.ssh/id_rsa -N '' -C 'ras'"
   end
 

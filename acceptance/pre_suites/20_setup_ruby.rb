@@ -1,4 +1,4 @@
-test_name "install rvm, ruby, bundler, and gem_of on controller and local masters" do
+test_name "install rvm, ruby, and bolt on controller" do
   step "install rvm" do
     hosts = [controller]
     key = "409B6B1796C275462A1703113804BB82D39DC0E3"

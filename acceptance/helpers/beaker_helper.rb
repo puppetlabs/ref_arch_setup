@@ -1,14 +1,18 @@
+# require "beaker"
+# module RefArchSetup
+
 # Beaker helper methods for use in running acceptance tests
 module BeakerHelper
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
   BEAKER_KEYFILE = "".freeze
+  PE_TARBALL_EXTENSION = ".tar".freeze
 
   # Initializes the PE instance variables
   #
   # @author Bill Claytor
   #
   # @return [void]
-  def initialize
+  def beaker_initialize
     @pe_family = ENV["BEAKER_PE_FAMILY"] || "2018.2"
     @pe_url = "http://enterprise.delivery.puppetlabs.net/#{@pe_family}/ci-ready/LATEST"
     curl_comm = "curl --silent #{@pe_url}"
@@ -22,8 +26,6 @@ module BeakerHelper
   # @return [exit_code] The result of the host file creation
   #
   def beaker_create_host_file
-    initialize
-
     forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
 
     # hosts = "centos7-64controller.-64remote_master_a.-64remote_master_b.-64remote_master_c."
@@ -161,4 +163,60 @@ module BeakerHelper
 
     return @beaker_cmd
   end
+
+  # Builds a PE tarball URL for the specified host
+  #
+  # The host must include a pe_dir, pe_ver, and platform
+  #
+  # Extracted from pe_utils.fetch_pe_on_unix
+  #   assumes being called by beaker with a host (master)
+  #   this version is simplified by removing the call to prepare_ras_host
+  #
+  # @param [Host] host The unix style host where PE will be installed
+  # @return [String] the tarball URL
+  # @example
+  #   url = get_pe_tarball_url(host)
+  #
+  # TODO: update to use Beaker's link_exists?
+  def self.get_pe_tarball_url(host)
+    raise "host must include a pe_dir value" unless host["pe_dir"]
+    raise "host must include a pe_ver value" unless host["pe_ver"]
+    raise "host must include a platform value" unless host["platform"]
+
+    path = host["pe_dir"]
+    version = host["pe_ver"]
+    platform = host["platform"]
+    extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
+    filename = "puppet-enterprise-#{version}-#{platform}"
+
+    url = "#{path}/#{filename}#{extension}"
+
+    return url
+  end
+
+  # Builds a PE tarball filename for the specified host
+  #
+  # The host must include a pe_ver and platform
+  #
+  # @param [Host] host The unix style host where PE will be installed
+  # @return [String] the tarball filename
+  # @example
+  #   filename = get_pe_tarball_filename(host)
+  #
+  def self.get_pe_tarball_filename(host)
+    raise "host must include a pe_ver value" unless host["pe_ver"]
+    raise "host must include a platform value" unless host["platform"]
+
+    version = host["pe_ver"]
+    platform = host["platform"]
+    extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
+    filename = "puppet-enterprise-#{version}-#{platform}#{extension}"
+
+    return filename
+  end
 end
+
+# end
+
+# Beaker::TestCase.send(:include, RefArchSetup::BeakerHelper)
+# Beaker::TestCase.send(:include, BeakerHelper)

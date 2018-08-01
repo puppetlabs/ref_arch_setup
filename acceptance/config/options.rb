@@ -21,9 +21,7 @@
   :tests => [
     "acceptance/tests/10_install_test_remote_master_tarball_url.rb",
     "acceptance/tests/20_install_test_remote_master_tarball_path_controller.rb",
-    "acceptance/tests/30_install_test_remote_master_tarball_path_master.rb" # ,
-    # "acceptance/tests/40_install_test_local_master_tarball_url.rb",
-    # "acceptance/tests/50_install_test_local_master_tarball_path.rb"
+    "acceptance/tests/30_install_test_remote_master_tarball_path_master.rb"
   ],
   "is_puppetserver"            => true,
   "use-service"                => true, # use service scripts to start/stop stuff
