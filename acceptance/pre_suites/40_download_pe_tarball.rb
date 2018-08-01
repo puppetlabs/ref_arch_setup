@@ -7,13 +7,11 @@ test_name "download PE tarball" do
 
     bolt = "bolt task run"
     task = "ref_arch_setup::download_pe_tarball"
-
-    # url = "url=#{@pe_url}"
     url = "url=#{pe_url}"
 
     destination = "destination=/tmp/ras"
     modulepath = "--modulepath /root/ref_arch_setup/modules"
-    nodes = "--nodes localhost,#{target_master_c}"
+    nodes = "--nodes localhost,#{target_master}"
     user = "--user root"
 
     command = "#{bolt} #{task} #{url} #{destination} #{modulepath} #{nodes} #{user}"

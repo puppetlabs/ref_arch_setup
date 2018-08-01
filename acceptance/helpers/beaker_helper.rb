@@ -25,7 +25,12 @@ module BeakerHelper
     initialize
 
     forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
-    hosts = "centos7-64controller.-64target_master_a.-64target_master_b.-64target_master_c."
+
+    # hosts = "centos7-64controller.-64remote_master_a.-64remote_master_b.-64remote_master_c."
+    # hosts += "-64local_master_a.-64local_master_b."
+
+    hosts = "centos7-64controller.-64target_master."
+
     layout = ENV["BEAKER_LAYOUT"] || hosts
 
     comm = "export pe_version=#{@pe_version}; "
@@ -35,7 +40,7 @@ module BeakerHelper
     comm += layout
     comm += " > #{BEAKER_HOSTS}"
 
-    puts "Creating Beaker hosts file:"
+    puts "Creating Beaker hosts file: #{BEAKER_HOSTS}"
 
     sh comm
   end

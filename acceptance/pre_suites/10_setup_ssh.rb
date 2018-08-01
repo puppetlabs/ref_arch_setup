@@ -4,10 +4,11 @@ test_name "install RAS on controller" do
   end
 
   step "put keys on the target-master" do
+    hosts = [target_master]
     results = on controller, "cat /root/.ssh/id_rsa.pub"
     key = results.stdout.strip
     command = "echo \"#{key}\" >> /root/.ssh/authorized_keys"
-    on [target_master_a, target_master_b, target_master_c], command
+    on hosts, command
   end
 
   step "copy bolt config to controller to prevent ssh host verification" do
