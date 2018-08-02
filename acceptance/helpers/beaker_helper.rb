@@ -1,7 +1,5 @@
-# require "beaker"
-# module RefArchSetup
-
 # Beaker helper methods for use in running acceptance tests
+# rubocop:disable Metrics/ModuleLength
 module BeakerHelper
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
   BEAKER_KEYFILE = "".freeze
@@ -27,14 +25,8 @@ module BeakerHelper
   #
   def beaker_create_host_file
     forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
-
-    # hosts = "centos7-64controller.-64remote_master_a.-64remote_master_b.-64remote_master_c."
-    # hosts += "-64local_master_a.-64local_master_b."
-
     hosts = "centos7-64controller.-64target_master."
-
     layout = ENV["BEAKER_LAYOUT"] || hosts
-
     comm = "export pe_version=#{@pe_version}; "
     comm += "bundle exec beaker-hostgenerator "
     comm += "--disable-default-role "
@@ -43,7 +35,6 @@ module BeakerHelper
     comm += " > #{BEAKER_HOSTS}"
 
     puts "Creating Beaker hosts file: #{BEAKER_HOSTS}"
-
     sh comm
   end
 
@@ -215,8 +206,3 @@ module BeakerHelper
     return filename
   end
 end
-
-# end
-
-# Beaker::TestCase.send(:include, RefArchSetup::BeakerHelper)
-# Beaker::TestCase.send(:include, BeakerHelper)
