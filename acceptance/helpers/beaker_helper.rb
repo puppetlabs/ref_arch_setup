@@ -1,9 +1,15 @@
-# Beaker helper methods for use in running acceptance tests
+require "beaker"
+
+# Helper methods for use in running Beaker acceptance tests
 # rubocop:disable Metrics/ModuleLength
 module BeakerHelper
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
-  BEAKER_KEYFILE = "".freeze
-  PE_TARBALL_EXTENSION = ".tar".freeze
+  PE_TARBALL_EXTENSION = ENV["BEAKER_PE_TARBALL_EXTENSION"] || ".tar".freeze
+  RAS_PATH = "$HOME/ref_arch_setup".freeze
+  RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures".freeze
+  RAS_MODULES_PATH = "#{RAS_PATH}/modules".freeze
+  RAS_PE_CONF = "#{RAS_FIXTURES_PATH}/pe.conf".freeze
+  RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
 
   # Initializes the PE instance variables
   #
@@ -15,6 +21,12 @@ module BeakerHelper
     @pe_url = "http://enterprise.delivery.puppetlabs.net/#{@pe_family}/ci-ready/LATEST"
     curl_comm = "curl --silent #{@pe_url}"
     @pe_version = ENV["BEAKER_PE_VERSION"] || `#{curl_comm}`.strip
+
+    @beaker_hosts = if ENV["BEAKER_HOSTS"] && File.exist?(ENV["BEAKER_HOSTS"])
+                      ENV["BEAKER_HOSTS"]
+                    else
+                      BEAKER_HOSTS
+                    end
   end
 
   # Creates a Beaker host file for the acceptance tests
@@ -32,9 +44,9 @@ module BeakerHelper
     comm += "--disable-default-role "
     comm += "--global-config forge_host=#{forge_host} "
     comm += layout
-    comm += " > #{BEAKER_HOSTS}"
+    comm += " > #{@beaker_hosts}"
 
-    puts "Creating Beaker hosts file: #{BEAKER_HOSTS}"
+    puts "Creating Beaker hosts file: #{@beaker_hosts}"
     sh comm
   end
 
@@ -60,14 +72,15 @@ module BeakerHelper
   #
   # rubocop:disable Metrics/MethodLength
   def beaker_init(task)
-    beaker_create_host_file unless File.exist?(BEAKER_HOSTS)
+    # TODO: config
+    beaker_create_host_file unless File.exist?(@beaker_hosts)
 
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker init"
       command.add_option do |option|
         option.name = "-h"
         option.add_argument do |arg|
-          arg.name = BEAKER_HOSTS
+          arg.name = @beaker_hosts
         end
       end
 
@@ -169,7 +182,7 @@ module BeakerHelper
   #   url = get_pe_tarball_url(host)
   #
   # TODO: update to use Beaker's link_exists?
-  def self.get_pe_tarball_url(host)
+  def get_pe_tarball_url(host)
     raise "host must include a pe_dir value" unless host["pe_dir"]
     raise "host must include a pe_ver value" unless host["pe_ver"]
     raise "host must include a platform value" unless host["platform"]
@@ -177,10 +190,10 @@ module BeakerHelper
     path = host["pe_dir"]
     version = host["pe_ver"]
     platform = host["platform"]
-    extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
+    # extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
     filename = "puppet-enterprise-#{version}-#{platform}"
 
-    url = "#{path}/#{filename}#{extension}"
+    url = "#{path}/#{filename}#{PE_TARBALL_EXTENSION}"
 
     return url
   end
@@ -194,15 +207,53 @@ module BeakerHelper
   # @example
   #   filename = get_pe_tarball_filename(host)
   #
-  def self.get_pe_tarball_filename(host)
+  def get_pe_tarball_filename(host)
     raise "host must include a pe_ver value" unless host["pe_ver"]
     raise "host must include a platform value" unless host["platform"]
 
     version = host["pe_ver"]
     platform = host["platform"]
-    extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
-    filename = "puppet-enterprise-#{version}-#{platform}#{extension}"
+    # extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
+    filename = "puppet-enterprise-#{version}-#{platform}#{PE_TARBALL_EXTENSION}"
 
     return filename
   end
+
+  # Gets the path to the installed RAS gem on the specified host
+  #
+  # @param [Host] host A unix style host
+  # @example
+  #   gem_path = get_ras_gem_path(host)
+  #
+  def get_ras_gem_path(host)
+    command = "gem path ref_arch_setup"
+    gem_path = on(host, command).stdout.rstrip
+    puts "RAS gem path: #{gem_path}"
+    gem_path
+  end
+
+  # Uninstalls puppet and removes the RAS working dir on the specified hosts
+  #
+  # @param [Array] hosts The unix style hosts to where teardown should be run
+  # @example
+  #   ras_teardown(hosts)
+  #
+  def ras_teardown(hosts)
+    # TODO: make this a task
+    uninstall = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
+    remove_temp = "rm -rf #{RAS_TMP_WORK_DIR}"
+
+    puts "Uninstalling puppet on #{hosts}:"
+    puts uninstall
+    puts
+    on hosts, uninstall
+
+    puts "Removing temp work directory on #{hosts}:"
+    puts remove_temp
+    puts
+    on hosts, remove_temp
+  end
 end
+
+Beaker::TestCase.send(:include, BeakerHelper)
+Beaker::TestCase.class_eval { include Beaker::DSL }
