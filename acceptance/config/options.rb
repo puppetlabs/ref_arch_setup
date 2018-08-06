@@ -4,7 +4,9 @@
       "id_rsa_acceptance", "#{ENV['HOME']}/.ssh/id_rsa-acceptance"
     ]
   },
-  :preserve_hosts              => "always",
+  :helper => [
+    "acceptance/helpers/beaker_helper.rb"
+  ],
   :xml                         => true,
   :timesync                    => false,
   :repo_proxy                  => true,
