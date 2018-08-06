@@ -11,6 +11,7 @@ test_name "set up ssh between controller and target-master" do
     on hosts, command
   end
 
+  # TODO: remove once bolt ssh issue is resolved
   step "copy bolt config to controller to prevent ssh host verification" do
     scp_to(controller, "#{__dir__}/../../fixtures/.puppetlabs", ".puppetlabs")
   end

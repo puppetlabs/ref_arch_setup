@@ -7,13 +7,21 @@ test_name "install rvm, ruby, and bolt on controller" do
     on hosts, "#{gpg_command} && #{curl_command}"
   end
 
+  # bolt requires 2.3 or above
   step "install ruby" do
     hosts = [controller]
-    on hosts, "rvm install ruby"
+    on hosts, "rvm install 2.3"
   end
 
+  # ras requires bolt
   step "install bolt" do
     hosts = [controller]
     on hosts, "gem install bolt"
+  end
+
+  # gem path
+  step "install gem-path" do
+    hosts = [controller]
+    on hosts, "gem install gem-path"
   end
 end

@@ -1,11 +1,9 @@
-require "./acceptance/helpers/beaker_helper"
-
 test_name "perform install on remote master with tarball path on master" do
   step "perform install" do
-    filename = BeakerHelper.get_pe_tarball_filename(target_master)
+    filename = get_pe_tarball_filename(target_master)
     primary_master = "--primary-master=#{target_master}"
-    pe_tarball = "--pe-tarball=#{target_master}:/tmp/ras/#{filename}"
-    pe_conf = "--pe-conf=/root/ref_arch_setup/fixtures/pe.conf"
+    pe_tarball = "--pe-tarball=#{target_master}:#{RAS_PATH}/#{filename}"
+    pe_conf = "--pe-conf=#{RAS_PE_CONF}"
     command = "ref_arch_setup install #{primary_master} #{pe_tarball} #{pe_conf}"
 
     puts command
@@ -17,20 +15,7 @@ test_name "perform install on remote master with tarball path on master" do
   end
 
   teardown do
-    # TODO: make this a task
-    uninstall = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
-    remove_temp = "rm -rf /tmp/ref_arch_setup"
-
-    puts "Uninstalling puppet on #{target_master}:"
-    puts uninstall
-    puts
-
-    on target_master, uninstall
-
-    puts "Removing temp work directory on #{target_master}:"
-    puts remove_temp
-    puts
-
-    on target_master, remove_temp
+    hosts = [target_master]
+    ras_teardown(hosts)
   end
 end
