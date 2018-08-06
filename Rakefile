@@ -26,7 +26,7 @@ namespace :test do
   end
 
   desc "Run acceptance test using Beaker subcommands"
-  rototiller_task :acceptance do |_task|
+  task :acceptance do
     beaker_initialize
     Rake::Task["gem:build"].execute
     Rake::Task["test:acceptance_init"].execute
