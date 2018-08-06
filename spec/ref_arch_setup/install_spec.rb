@@ -543,7 +543,7 @@ describe RefArchSetup::Install do
     end
 
     context "when the specified file is already in the TMP_WORK_DIR" do
-      it "returns false" do
+      it "returns true" do
         message = "Not copying the tarball as the source and destination are the same"
         tarball = "#{tmp_work_dir}/#{pe_tarball_filename}"
 
