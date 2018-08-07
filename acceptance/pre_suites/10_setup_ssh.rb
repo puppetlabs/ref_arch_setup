@@ -4,11 +4,10 @@ test_name "set up ssh between controller and target-master" do
   end
 
   step "put keys on the target-master" do
-    hosts = [target_master]
     results = on controller, "cat /root/.ssh/id_rsa.pub"
     key = results.stdout.strip
     command = "echo \"#{key}\" >> /root/.ssh/authorized_keys"
-    on hosts, command
+    on hosts_without_role(hosts, "controller"), command
   end
 
   # TODO: remove once bolt ssh issue is resolved
