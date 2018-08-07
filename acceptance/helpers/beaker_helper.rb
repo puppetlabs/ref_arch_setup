@@ -4,6 +4,8 @@ require "beaker"
 # rubocop:disable Metrics/ModuleLength
 module BeakerHelper
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
+  LAYOUT = ENV["BEAKER_LAYOUT"] || "centos7-64controller.-64target_master.".freeze
+  FORGE_HOST = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com".freeze
   PE_TARBALL_EXTENSION = ENV["BEAKER_PE_TARBALL_EXTENSION"] || ".tar".freeze
   RAS_PATH = "$HOME/ref_arch_setup".freeze
   RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures".freeze
@@ -17,9 +19,9 @@ module BeakerHelper
   #
   # @return [void]
   def beaker_initialize
-    @pe_family = ENV["BEAKER_PE_FAMILY"] || "2018.2"
-    @pe_url = "http://enterprise.delivery.puppetlabs.net/#{@pe_family}/ci-ready/LATEST"
-    curl_comm = "curl --silent #{@pe_url}"
+    pe_family = ENV["BEAKER_PE_FAMILY"] || "2018.2"
+    pe_url = "http://enterprise.delivery.puppetlabs.net/#{pe_family}/ci-ready/LATEST"
+    curl_comm = "curl --silent #{pe_url}"
     @pe_version = ENV["BEAKER_PE_VERSION"] || `#{curl_comm}`.strip
 
     @beaker_hosts = if ENV["BEAKER_HOSTS"] && File.exist?(ENV["BEAKER_HOSTS"])
@@ -36,14 +38,14 @@ module BeakerHelper
   # @return [exit_code] The result of the host file creation
   #
   def beaker_create_host_file
-    forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
-    hosts = "centos7-64controller.-64target_master."
-    layout = ENV["BEAKER_LAYOUT"] || hosts
+    # forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
+    # hosts = "centos7-64controller.-64target_master."
+    # layout = ENV["BEAKER_LAYOUT"] || hosts
     comm = "export pe_version=#{@pe_version}; "
     comm += "bundle exec beaker-hostgenerator "
     comm += "--disable-default-role "
-    comm += "--global-config forge_host=#{forge_host} "
-    comm += layout
+    comm += "--global-config forge_host=#{FORGE_HOST} "
+    comm += LAYOUT
     comm += " > #{@beaker_hosts}"
 
     puts "Creating Beaker hosts file: #{@beaker_hosts}"
@@ -133,7 +135,6 @@ module BeakerHelper
             arg.add_env(name: "BEAKER_PRE_SUITE")
           end
         end
-
       end
 
       if ENV.key?("BEAKER_TESTS")
@@ -144,7 +145,6 @@ module BeakerHelper
             arg.add_env(name: "BEAKER_TESTS")
           end
         end
-
       end
     end
 
@@ -234,7 +234,7 @@ module BeakerHelper
 
   # Uninstalls puppet and removes the RAS working dir on the specified hosts
   #
-  # @param [Array] hosts The unix style hosts to where teardown should be run
+  # @param [Array] hosts The unix style hosts where teardown should be run
   # @example
   #   ras_teardown(hosts)
   #
@@ -252,6 +252,18 @@ module BeakerHelper
     puts remove_temp
     puts
     on hosts, remove_temp
+  end
+
+  # Returns all hosts except those with the specified role
+  #
+  # @param [Array] hosts The unix style hosts
+  # @example
+  #   hosts_except_controller = hosts_without_role(hosts, "controller")
+  #
+  def hosts_without_role(hosts, role_to_exclude)
+    hosts.select do |host|
+      host unless host["roles"].include?(role_to_exclude.to_s)
+    end
   end
 end
 
