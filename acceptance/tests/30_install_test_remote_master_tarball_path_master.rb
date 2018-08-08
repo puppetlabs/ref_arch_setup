@@ -15,7 +15,6 @@ test_name "perform install on remote master with tarball path on master" do
   end
 
   teardown do
-    hosts = [target_master]
-    ras_teardown(hosts)
+    ras_teardown(target_master)
   end
 end

@@ -181,22 +181,34 @@ module BeakerHelper
   # @example
   #   url = get_pe_tarball_url(host)
   #
-  # TODO: update to use Beaker's link_exists?
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
   def get_pe_tarball_url(host)
-    raise "host must include a pe_dir value" unless host["pe_dir"]
-    raise "host must include a pe_ver value" unless host["pe_ver"]
-    raise "host must include a platform value" unless host["platform"]
+    raise "The host must include a pe_dir value" unless host["pe_dir"]
+    raise "The host must include a pe_ver value" unless host["pe_ver"]
+    raise "The host must include a platform value" unless host["platform"]
 
     path = host["pe_dir"]
     version = host["pe_ver"]
     platform = host["platform"]
-    # extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
     filename = "puppet-enterprise-#{version}-#{platform}"
 
     url = "#{path}/#{filename}#{PE_TARBALL_EXTENSION}"
 
+    puts "Determining tarball path for host: #{host}"
+    puts "pe_dir: #{path}"
+    puts "pe_ver: #{version}"
+    puts "platform: #{platform}"
+    puts
+    puts "PE tarball URL: #{url}"
+    puts
+
+    raise "The URL is not a valid link: #{url}" unless link_exists?(url)
+
     return url
   end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
 
   # Builds a PE tarball filename for the specified host
   #
@@ -213,7 +225,6 @@ module BeakerHelper
 
     version = host["pe_ver"]
     platform = host["platform"]
-    # extension = ENV["BEAKER_PE_TARBALL_EXTENSION"] || PE_TARBALL_EXTENSION
     filename = "puppet-enterprise-#{version}-#{platform}#{PE_TARBALL_EXTENSION}"
 
     return filename
@@ -243,12 +254,16 @@ module BeakerHelper
     uninstall = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
     remove_temp = "rm -rf #{RAS_TMP_WORK_DIR}"
 
-    puts "Uninstalling puppet on #{hosts}:"
+    puts "Tearing down the following hosts:"
+    puts hosts
+    puts
+
+    puts "Uninstalling puppet:"
     puts uninstall
     puts
     on hosts, uninstall
 
-    puts "Removing temp work directory on #{hosts}:"
+    puts "Removing temp work directory:"
     puts remove_temp
     puts
     on hosts, remove_temp
