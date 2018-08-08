@@ -519,7 +519,7 @@ describe RefArchSetup::Install do
     end
   end
 
-  describe "#copy_pe_tarball" do
+  describe "#copy_pe_tarball_on_target_master" do
     before do
       @command = "cp #{pe_tarball} #{tmp_work_dir}"
     end
@@ -539,6 +539,18 @@ describe RefArchSetup::Install do
           .with(@command, target_master)
           .and_return(false)
         expect(install.copy_pe_tarball_on_target_master(pe_tarball)).to eq(false)
+      end
+    end
+
+    context "when the specified file is already in the TMP_WORK_DIR" do
+      it "returns true" do
+        message = "Not copying the tarball as the source and destination are the same"
+        tarball = "#{tmp_work_dir}/#{pe_tarball_filename}"
+
+        expect(install).to receive(:puts).with(message)
+        expect(RefArchSetup::BoltHelper).not_to receive(:run_cmd_with_bolt)
+
+        expect(install.copy_pe_tarball_on_target_master(tarball)).to eq(true)
       end
     end
   end
@@ -607,7 +619,7 @@ describe RefArchSetup::Install do
       end
 
       context "when the file does not exist" do
-        it "does not upload the file and returns false" do
+        it "does not upload the file and raises an error" do
           expect(pe_tarball).to receive(:start_with?)
             .with(@remote_flag).and_return(false)
 
@@ -617,8 +629,8 @@ describe RefArchSetup::Install do
           expect(File).to receive(:exist?).with(pe_tarball).and_return(false)
           expect(install).not_to receive(:upload_pe_tarball)
 
-          expect(install.handle_tarball_path_with_remote_target_master(pe_tarball))
-            .to eq(false)
+          expect { install.handle_tarball_path_with_remote_target_master(pe_tarball) }
+            .to raise_error(RuntimeError, "File not found: #{pe_tarball}")
         end
       end
     end
