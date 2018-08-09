@@ -16,7 +16,7 @@
   :type                        => "pe",
   :pre_suite                   => [
     "acceptance/pre_suites/10_setup_ssh.rb",
-    "acceptance/pre_suites/20_setup_ruby.rb",
+    "acceptance/pre_suites/20_install_rbenv.rb",
     "acceptance/pre_suites/25_install_gems.rb",
     "acceptance/pre_suites/30_setup_ras.rb",
     "acceptance/pre_suites/40_download_pe_tarball.rb"
@@ -24,7 +24,10 @@
   :tests => [
     "acceptance/tests/10_install_test_remote_master_tarball_url.rb",
     "acceptance/tests/20_install_test_remote_master_tarball_path_controller.rb",
-    "acceptance/tests/30_install_test_remote_master_tarball_path_master.rb"
+    "acceptance/tests/30_install_test_remote_master_tarball_path_master.rb",
+    "acceptance/tests/40_install_test_local_master_tarball_url.rb",
+    "acceptance/tests/50_install_test_local_master_tarball_path.rb"
+
   ],
   "is_puppetserver"            => true,
   "use-service"                => true, # use service scripts to start/stop stuff
