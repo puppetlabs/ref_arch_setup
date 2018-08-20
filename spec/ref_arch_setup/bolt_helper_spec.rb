@@ -37,8 +37,7 @@ describe RefArchSetup::BoltHelper do
         error = "ERROR: Failed to make dir #{dir} on all nodes"
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)\
           .with(@expected_command, nodes).and_return(false)
-        expect{ RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
-
+        expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
       end
     end
   end
@@ -77,7 +76,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect{ RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes) }.to raise_error(error)
+        expect { RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes) }.to raise_error(error)
       end
     end
 
@@ -172,7 +171,8 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         allow(RefArchSetup::BoltHelper).to receive(:puts)
-        expect{ RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }.to raise_error(error)
+        expect { RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }
+          .to raise_error(error)
       end
       it "outputs informative messages and raises an error" do
         error = "ERROR: bolt task failed!"
@@ -186,7 +186,8 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
-        expect{ RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }.to raise_error(error)
+        expect { RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }
+          .to raise_error(error)
       end
     end
 
@@ -290,7 +291,8 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect{ RefArchSetup::BoltHelper.upload_file(source, destination, nodes) }.to raise_error(error)
+        expect { RefArchSetup::BoltHelper.upload_file(source, destination, nodes) }
+          .to raise_error(error)
       end
     end
 

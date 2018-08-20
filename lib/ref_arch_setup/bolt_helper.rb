@@ -61,7 +61,7 @@ module RefArchSetup
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       raise "ERROR: bolt command failed!" unless success
-      
+
       return success
     end
 
