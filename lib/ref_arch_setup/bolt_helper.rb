@@ -38,7 +38,7 @@ module RefArchSetup
     def self.make_dir(dir, nodes)
       cmd = "[ -d #{dir} ] || mkdir -p #{dir}"
       success = run_cmd_with_bolt(cmd, nodes)
-      puts "ERROR: Failed to make dir #{dir} on all nodes" unless success
+      raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
     end
 
@@ -54,13 +54,14 @@ module RefArchSetup
       command = "bolt command run '#{cmd}'"
       command << " --nodes #{nodes}"
       command << bolt_options_string
-
       puts "Running: #{command}"
       output = `#{command}`
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: bolt command failed!" unless success
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
+
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      raise "ERROR: bolt command failed!" unless success
+
       return success
     end
 
@@ -81,10 +82,12 @@ module RefArchSetup
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: bolt task failed!" unless success
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
+
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      raise "ERROR: bolt task failed!" unless success
+
       return success
     end
 
@@ -117,10 +120,12 @@ module RefArchSetup
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts "Output was: #{output}"
+
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      raise "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
+
       return success
     end
   end
