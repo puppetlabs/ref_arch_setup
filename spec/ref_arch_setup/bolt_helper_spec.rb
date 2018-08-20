@@ -33,12 +33,12 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when run_cmd_with_bolt returns false" do
-      it "returns false and output an error" do
+      it "raises an error" do
+        error = "ERROR: Failed to make dir #{dir} on all nodes"
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)\
           .with(@expected_command, nodes).and_return(false)
-        expect(RefArchSetup::BoltHelper).to receive(:puts)\
-          .with("ERROR: Failed to make dir #{dir} on all nodes")
-        expect(RefArchSetup::BoltHelper.make_dir(dir, nodes)).to eq(false)
+        expect{ RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
+
       end
     end
   end
@@ -65,7 +65,8 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when bolt fails and returns false" do
-      it "returns false and outputs informative messages and errors" do
+      it "outputs informative messages and raises an error" do
+        error = "ERROR: bolt command failed!"
         expected_output = "No Good"
         expected_status = 1
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -73,11 +74,10 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt command failed!")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(false)
+        expect{ RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes) }.to raise_error(error)
       end
     end
 
@@ -163,7 +163,8 @@ describe RefArchSetup::BoltHelper do
       expected_output = "No Good"
       expected_status = 1
 
-      it "returns false" do
+      it "raises an error" do
+        error = "ERROR: bolt task failed!"
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -171,9 +172,10 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         allow(RefArchSetup::BoltHelper).to receive(:puts)
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(false)
+        expect{ RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }.to raise_error(error)
       end
-      it "returns false and outputs informative messages" do
+      it "outputs informative messages and raises an error" do
+        error = "ERROR: bolt task failed!"
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -182,10 +184,9 @@ describe RefArchSetup::BoltHelper do
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("ERROR: bolt task failed!")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
-        RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)
+        expect{ RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes) }.to raise_error(error)
       end
     end
 
@@ -277,7 +278,8 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when bolt fails and returns false" do
-      it "returns false and outputs informative messages and errors" do
+      it "outputs informative messages and raises an error" do
+        error = "ERROR: failed to upload file #{source} to #{destination} on #{nodes}"
         expected_output = "No Good"
         expected_status = 1
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -285,12 +287,10 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("ERROR: failed to upload file #{source} to #{destination} on #{nodes}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(false)
+        expect{ RefArchSetup::BoltHelper.upload_file(source, destination, nodes) }.to raise_error(error)
       end
     end
 
