@@ -69,7 +69,10 @@ module RefArchSetup
     def run(command, subcommand = nil)
       check_for_missing_value
       comm = command
-      comm += "_" + subcommand unless subcommand.nil?
+      unless subcommand.nil?
+        str = subcommand.tr("-", "_")
+        comm += "_" + str
+      end
       success = send(comm)
       return success
     end

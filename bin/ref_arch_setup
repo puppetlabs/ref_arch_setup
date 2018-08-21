@@ -70,7 +70,7 @@ def install_bootstrap(opt)
   opt.on("--pe-tarball <path|URL>", "Path or URL to PE tarball") do |value|
     @options["pe_tarball"] = value
   end
-  opt.on("--pe-version <version>", "PE version to be installed") do |value|
+  opt.on("--pe-version <version>", "PE version to get tarball for") do |value|
     @options["pe_version"] = value
   end
   opt.on("--pe-conf <path>", "Path to pe.conf file") do |value|

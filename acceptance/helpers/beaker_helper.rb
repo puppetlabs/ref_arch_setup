@@ -19,7 +19,7 @@ module BeakerHelper
   #
   # @return [void]
   def beaker_initialize
-    pe_family = ENV["BEAKER_PE_FAMILY"] || "2018.2"
+    pe_family = ENV["BEAKER_PE_FAMILY"] || "2019.0"
     pe_url = "http://enterprise.delivery.puppetlabs.net/#{pe_family}/ci-ready/LATEST"
     curl_comm = "curl --silent #{pe_url}"
     @pe_version = ENV["BEAKER_PE_VERSION"] || `#{curl_comm}`.strip
