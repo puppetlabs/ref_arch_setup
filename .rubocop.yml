@@ -1,5 +1,10 @@
 AllCops:
   TargetRubyVersion: 2.3
+  Exclude:
+    - "Boltdir/**/*"
+    - "fixtures/**/*"
+    - "gem_of/**/*"
+    - "vendor/**/*"
 
 # Single quotes being faster is hardly measurable and only affects parse time.
 # # Enforcing double quotes reduces the times where you need to change them
