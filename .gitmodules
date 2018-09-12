@@ -1,0 +1,3 @@
+[submodule "gem_of"]
+	path = gem_of
+	url = https://github.com/puppetlabs/gem_of.git

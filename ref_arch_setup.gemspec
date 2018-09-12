@@ -23,5 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "bolt", "~> 0.17"
 
   # Development dependencies
-  spec.add_development_dependency "beaker", "~> 3.0"
+  # spec.add_development_dependency "beaker", "~> 3.0"
+  spec.add_runtime_dependency "beaker", "~>4.0"
+  spec.add_runtime_dependency "beaker-vmpooler"
 end

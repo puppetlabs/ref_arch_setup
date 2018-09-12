@@ -1,5 +1,8 @@
 slv/ref_arch_setup:
   PreBuild:
+    # Initialize and update gem_of submodule
+    - git submodule init
+    - git submodule update
     # Check to see if rvm is already installed
     - if [ -a ~/.rvm/scripts/rvm ]; then
     -   echo "rvm exists"
