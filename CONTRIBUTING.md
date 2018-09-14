@@ -2,13 +2,26 @@
 
 ## Getting Started
 
-* Create a [Jira](http://tickets.puppetlabs.com) account.
 * Make sure you have a [GitHub](https://github.com) account.
-* Submit a ticket for your issue, assuming one does not already exist.
-  * Clearly describe the issue including steps to reproduce when it is a bug.
-  * File a ticket in the [SLV project](https://tickets.puppetlabs.com/projects/SLV/)
 * Clone the [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup) repository on GitHub.
+* RefArchSetup uses [gem_of](https://github.com/puppetlabs/gem_of) for some development gem dependencies and rake tasks.
+   Initialize and update the `gem_of` submodule:
+  ```
+  git submodule init
+  git submodule update
+  ```
+* Install the required gems:
+  ```
+  bundle install 
+  ```
 
+## Filing Tickets With Jira
+
+* Create a [Jira](http://tickets.puppetlabs.com) account if you don't already have one.
+* Submit a ticket for your issue, assuming one does not already exist:
+  * File a ticket in the [SLV project](https://tickets.puppetlabs.com/projects/SLV/).
+  * Clearly describe the issue including steps to reproduce when it is a bug.
+  
 ## Making Changes
 
 ### GitHub
