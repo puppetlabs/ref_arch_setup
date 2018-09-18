@@ -202,7 +202,7 @@ end
 cli = RefArchSetup::CLI.new(@options, @bolt_options)
 if subcommand_string !~ /^[a-zA-Z]/
   commands[command_string].parse!
-  cli.send(command_string)
+  exit cli.run(command_string)
 else
   unless available_subcommands.include?(subcommand_string)
     puts "# ERROR, #{subcommand_string} is not an available subcommand of #{command_string}"
@@ -211,5 +211,5 @@ else
     exit 1
   end
   subcommands[subcommand_string].parse!
-  cli.run(command_string, subcommand_string)
+  exit cli.run(command_string, subcommand_string)
 end
