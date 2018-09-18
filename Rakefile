@@ -2,6 +2,7 @@ require "fileutils"
 require "rototiller"
 require "./gem_of/lib/gem_of/rake_tasks"
 require "./acceptance/helpers/beaker_helper"
+require "./lib/ref_arch_setup/bolt_helper.rb"
 
 include BeakerHelper
 
@@ -17,6 +18,18 @@ GemOf::YardStickTasks.new
 GemOf::DocsTasks.new
 GemOf::LintTasks.new
 
+namespace :bolt do
+  desc "Install modules from the forge via Puppetfile"
+  task :install_forge_modules do
+    RefArchSetup::BoltHelper.install_forge_modules
+  end
+
+  desc "Run the facts::retrieve plan locally"
+  task :facts do
+    RefArchSetup::BoltHelper.run_forge_plan_with_bolt("facts::retrieve", nil, "localhost")
+  end
+end
+
 # rubocop:disable Metrics/BlockLength
 namespace :test do
   desc "Create hosts.cfg file"
@@ -28,6 +41,7 @@ namespace :test do
   desc "Run acceptance test using Beaker subcommands"
   task :acceptance do
     beaker_initialize
+    Rake::Task["bolt:install_forge_modules"].execute
     Rake::Task["gem:build"].execute
     Rake::Task["test:acceptance_init"].execute
     Rake::Task["test:acceptance_provision"].execute
