@@ -20,9 +20,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Run time dependencies
-  spec.add_runtime_dependency "bolt", "~> 0.17"
+  spec.add_runtime_dependency "bolt", "~> 0.22.0"
 
   # Development dependencies
-  spec.add_runtime_dependency "beaker", "~>4.0"
-  spec.add_runtime_dependency "beaker-vmpooler"
+  spec.add_development_dependency "beaker", "~>4.0"
+  spec.add_development_dependency "beaker-vmpooler"
 end
