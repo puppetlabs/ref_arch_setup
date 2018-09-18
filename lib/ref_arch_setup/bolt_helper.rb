@@ -76,7 +76,7 @@ module RefArchSetup
     # @param modulepath [string] The modulepath to use when running bolt
     #
     # @return [true,false] Based on exit status of the bolt task
-    def self.run_task_with_bolt(task, params, nodes, modulepath=RAS_MODULE_PATH)
+    def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
@@ -103,7 +103,7 @@ module RefArchSetup
     # @param modulepath [string] The modulepath to use when running bolt
     #
     # @return [true,false] Based on exit status of the bolt task
-    def self.run_plan_with_bolt(plan, params, nodes, modulepath=RAS_MODULE_PATH)
+    def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt plan run #{plan} #{params_str}"
@@ -203,9 +203,5 @@ module RefArchSetup
 
       return success
     end
-
   end
-
-
-
 end

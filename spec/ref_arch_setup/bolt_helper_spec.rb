@@ -289,7 +289,7 @@ describe RefArchSetup::BoltHelper do
         expect($?).to receive(:success?).and_return(false) # rubocop:disable Style/SpecialGlobalVars
         allow(RefArchSetup::BoltHelper).to receive(:puts)
         expect { RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes) }
-            .to raise_error(error)
+          .to raise_error(error)
       end
       it "outputs informative messages and raises an error" do
         error = "ERROR: bolt plan failed!"
@@ -304,7 +304,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect { RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes) }
-            .to raise_error(error)
+          .to raise_error(error)
       end
     end
 
@@ -324,7 +324,7 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts)
-                                                .with("Running: #{@expected_command_with_ssh}")
+          .with("Running: #{@expected_command_with_ssh}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
@@ -348,7 +348,7 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
         expect(RefArchSetup::BoltHelper).to receive(:puts)
-                                                .with("Running: #{@expected_command_with_ssh}")
+          .with("Running: #{@expected_command_with_ssh}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
@@ -366,7 +366,6 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper.run_forge_task_with_bolt(task, params, nodes)).to eq(true)
       end
     end
-
   end
 
   describe "run_forge_plan_with_bolt" do
@@ -378,7 +377,6 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper.run_forge_plan_with_bolt(plan, params, nodes)).to eq(true)
       end
     end
-
   end
 
   describe "params_to_string" do
@@ -482,12 +480,6 @@ describe RefArchSetup::BoltHelper do
     end
   end
 
-
-
-
-
-
-
   describe "install_forge_modules" do
     before do
       modulepath = RefArchSetup::BoltHelper::FORGE_MODULE_PATH
@@ -527,7 +519,5 @@ describe RefArchSetup::BoltHelper do
         expect { RefArchSetup::BoltHelper.install_forge_modules }.to raise_error(error)
       end
     end
-
   end
-
 end
