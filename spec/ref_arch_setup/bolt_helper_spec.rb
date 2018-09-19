@@ -247,10 +247,10 @@ describe RefArchSetup::BoltHelper do
       "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
     end
 
-    context "when bolt works and returns true" do
+    context "when bolt works and returns output" do
       expected_output = "All Good"
       expected_status = 0
-      it "returns true" do
+      it "returns the output" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -258,7 +258,8 @@ describe RefArchSetup::BoltHelper do
         `(exit #{expected_status})`
         expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
         allow(RefArchSetup::BoltHelper).to receive(:puts)
-        expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes)).to eq(true)
+        expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes))
+          .to eq(expected_output)
       end
       it "outputs informative messages" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
@@ -275,7 +276,7 @@ describe RefArchSetup::BoltHelper do
       end
     end
 
-    context "when bolt fails and returns false" do
+    context "when bolt fails" do
       expected_output = "No Good"
       expected_status = 1
 
@@ -358,8 +359,8 @@ describe RefArchSetup::BoltHelper do
   end
 
   describe "run_forge_task_with_bolt" do
-    context "when bolt works and returns true" do
-      it "returns true" do
+    context "when bolt works and returns output" do
+      it "returns the output" do
         modulepath = RefArchSetup::BoltHelper::FORGE_MODULE_PATH
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
           .with(task, params, nodes, modulepath).and_return(true)
@@ -369,12 +370,14 @@ describe RefArchSetup::BoltHelper do
   end
 
   describe "run_forge_plan_with_bolt" do
-    context "when bolt works and returns true" do
-      it "returns true" do
+    context "when bolt works and returns output" do
+      it "returns the output" do
+        expected_output = "All Good"
         modulepath = RefArchSetup::BoltHelper::FORGE_MODULE_PATH
         expect(RefArchSetup::BoltHelper).to receive(:run_plan_with_bolt)
-          .with(plan, params, nodes, modulepath).and_return(true)
-        expect(RefArchSetup::BoltHelper.run_forge_plan_with_bolt(plan, params, nodes)).to eq(true)
+          .with(plan, params, nodes, modulepath).and_return(expected_output)
+        expect(RefArchSetup::BoltHelper.run_forge_plan_with_bolt(plan, params, nodes))
+          .to eq(expected_output)
       end
     end
   end

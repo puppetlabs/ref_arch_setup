@@ -102,7 +102,7 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run task on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [string] The output from the bolt run
     def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
@@ -117,7 +117,7 @@ module RefArchSetup
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       raise "ERROR: bolt plan failed!" unless success
 
-      return success
+      return output
     end
 
     # Run a task from the forge with bolt on given nodes
@@ -143,7 +143,7 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run task on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [true,false] Based on exit status of the bolt plan
+    # @return [string] The output from the bolt run
     def self.run_forge_plan_with_bolt(plan, params, nodes)
       run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
     end
