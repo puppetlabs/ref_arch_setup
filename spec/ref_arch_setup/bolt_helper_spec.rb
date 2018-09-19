@@ -131,10 +131,31 @@ describe RefArchSetup::BoltHelper do
       "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
     end
 
+    context "when a modulepath is specified" do
+      expected_output = "All Good"
+      expected_status = 0
+      modulepath = "./my_modules"
+
+      it "uses the specified value" do
+        expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
+          "#{modulepath} --nodes #{nodes}"
+
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        allow(RefArchSetup::BoltHelper).to receive(:puts)
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes, modulepath))
+          .to eq(true)
+      end
+    end
+
     context "when bolt works and returns true" do
       expected_output = "All Good"
       expected_status = 0
-      it "returns true" do
+      it "uses the default modulepath and returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -144,7 +165,7 @@ describe RefArchSetup::BoltHelper do
         allow(RefArchSetup::BoltHelper).to receive(:puts)
         expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
       end
-      it "outputs informative messages" do
+      it "uses the default modulepath and outputs informative messages" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -247,10 +268,31 @@ describe RefArchSetup::BoltHelper do
       "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
     end
 
+    context "when a modulepath is specified" do
+      expected_output = "All Good"
+      expected_status = 0
+      modulepath = "./my_modules"
+
+      it "uses the specified value" do
+        expected_command = "bolt plan run #{plan} VAR1=1 VAR2=2 --modulepath "\
+        "#{modulepath} --nodes #{nodes}"
+
+        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
+          .with(params).and_return(params_str)
+        expect(RefArchSetup::BoltHelper).to receive(:`)\
+          .with(expected_command).and_return(expected_output)
+        `(exit #{expected_status})`
+        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        allow(RefArchSetup::BoltHelper).to receive(:puts)
+        expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes, modulepath))
+          .to eq(expected_output)
+      end
+    end
+
     context "when bolt works and returns output" do
       expected_output = "All Good"
       expected_status = 0
-      it "returns the output" do
+      it "uses the default modulepath and returns the output" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
@@ -261,13 +303,13 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes))
           .to eq(expected_output)
       end
-      it "outputs informative messages" do
+      it "uses the default modulepath and outputs informative messages" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:`)\
           .with(@expected_command).and_return(expected_output)
         `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
+        expect($CHILD_STATUS).to receive(:success?).and_return(true)
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Running: #{@expected_command}")
         expect(RefArchSetup::BoltHelper).to receive(:puts)\
           .with("Exit status was: #{expected_status}")
@@ -306,54 +348,6 @@ describe RefArchSetup::BoltHelper do
           .with("Exit status was: #{expected_status}")
         expect { RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes) }
           .to raise_error(error)
-      end
-    end
-
-    context "when ssh user and password options are sent" do
-      before do
-        RefArchSetup::BoltHelper.bolt_options = bolt_user_opts
-        @expected_command_with_ssh = "#{@expected_command} #{bolt_user_string}"
-      end
-
-      it "passes the arguments to bolt" do
-        expected_output = "All Good"
-        expected_status = 0
-        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
-          .with(params).and_return(params_str)
-        expect(RefArchSetup::BoltHelper).to receive(:`)\
-          .with(@expected_command_with_ssh).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("Running: #{@expected_command_with_ssh}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)\
-          .with("Exit status was: #{expected_status}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes)
-      end
-    end
-
-    context "when ssh private key is sent" do
-      before do
-        RefArchSetup::BoltHelper.bolt_options = bolt_pkey_opts
-        @expected_command_with_ssh = "#{@expected_command} #{bolt_pkey_string}"
-      end
-
-      it "passes the argument to bolt" do
-        expected_output = "All Good"
-        expected_status = 0
-        expect(RefArchSetup::BoltHelper).to receive(:params_to_string) \
-          .with(params).and_return(params_str)
-        expect(RefArchSetup::BoltHelper).to receive(:`)\
-          .with(@expected_command_with_ssh).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("Running: #{@expected_command_with_ssh}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)\
-          .with("Exit status was: #{expected_status}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes)
       end
     end
   end

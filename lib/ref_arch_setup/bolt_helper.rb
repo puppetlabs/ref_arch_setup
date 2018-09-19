@@ -98,8 +98,8 @@ module RefArchSetup
     # @author Sam Woods
     #
     # @param task [string] Task to run on nodes
-    # @param params [hash] task parameters to send to bolt
-    # @param nodes [string] Host or space delimited hosts to run task on
+    # @param params [hash] Plan parameters to send to bolt
+    # @param nodes [string] Host or space delimited hosts to run plan on
     # @param modulepath [string] The modulepath to use when running bolt
     #
     # @return [string] The output from the bolt run
@@ -127,7 +127,6 @@ module RefArchSetup
     # @param task [string] Task to run on nodes
     # @param params [hash] Task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
-    # @param modulepath [string] The modulepath to use when running bolt
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.run_forge_task_with_bolt(task, params, nodes)
@@ -140,8 +139,7 @@ module RefArchSetup
     #
     # @param plan [string] Plan to run on nodes
     # @param params [hash] Plan parameters to send to bolt
-    # @param nodes [string] Host or space delimited hosts to run task on
-    # @param modulepath [string] The modulepath to use when running bolt
+    # @param nodes [string] Host or space delimited hosts to run plan on
     #
     # @return [string] The output from the bolt run
     def self.run_forge_plan_with_bolt(plan, params, nodes)
