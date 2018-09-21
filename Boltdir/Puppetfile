@@ -1,0 +1,2 @@
+# Modules from the Puppet Forge
+mod "puppetlabs-facts", "0.2.0"

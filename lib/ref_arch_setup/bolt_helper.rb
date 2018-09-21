@@ -2,6 +2,9 @@
 module RefArchSetup
   # Bolt helper methods
   class BoltHelper
+    # location of modules downloaded from the Puppet Forge
+    FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
+
     @bolt_options = {}
 
     # gets the bolt options as a string
@@ -72,13 +75,14 @@ module RefArchSetup
     # @param task [string] Task to run on nodes
     # @param params [hash] task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
+    # @param modulepath [string] The modulepath to use when running bolt
     #
     # @return [true,false] Based on exit status of the bolt task
-    def self.run_task_with_bolt(task, params, nodes)
+    def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
-      command << " --modulepath #{RAS_MODULE_PATH} --nodes #{nodes}"
+      command << " --modulepath #{modulepath} --nodes #{nodes}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -89,6 +93,61 @@ module RefArchSetup
       raise "ERROR: bolt task failed!" unless success
 
       return success
+    end
+
+    # Run a plan with bolt on given nodes
+    #
+    # @author Sam Woods
+    #
+    # @param plan [string] Plan to run on nodes
+    # @param params [hash] Plan parameters to send to bolt
+    # @param nodes [string] Host or space delimited hosts to run plan on
+    # @param modulepath [string] The modulepath to use when running bolt
+    #
+    # @return [string] The output from the bolt run
+    def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
+      params_str = ""
+      params_str = params_to_string(params) unless params.nil?
+      command = "bolt plan run #{plan} #{params_str}"
+      command << " --modulepath #{modulepath} --nodes #{nodes}"
+      command << bolt_options_string
+      puts "Running: #{command}"
+      output = `#{command}`
+      puts "Output was: #{output}"
+
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      raise "ERROR: bolt plan failed!" unless success
+
+      return output
+    end
+
+    # Run a task from the forge with bolt on given nodes
+    #
+    # @author Bill Claytor
+    #
+    # @param task [string] Task to run on nodes
+    # @param params [hash] Task parameters to send to bolt
+    # @param nodes [string] Host or space delimited hosts to run task on
+    #
+    # @return [true,false] Based on exit status of the bolt task
+    def self.run_forge_task_with_bolt(task, params, nodes)
+      install_forge_modules
+      run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+    end
+
+    # Run a plan from the forge with bolt on given nodes
+    #
+    # @author Bill Claytor
+    #
+    # @param plan [string] Plan to run on nodes
+    # @param params [hash] Plan parameters to send to bolt
+    # @param nodes [string] Host or space delimited hosts to run plan on
+    #
+    # @return [string] The output from the bolt run
+    def self.run_forge_plan_with_bolt(plan, params, nodes)
+      install_forge_modules
+      run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
     end
 
     # Convert params to string for bolt
@@ -125,6 +184,24 @@ module RefArchSetup
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       raise "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
+
+      return success
+    end
+
+    # Install modules from the forge via Puppetfile
+    #
+    # @author Bill Claytor
+    #
+    # @return [true,false] Based on exit status of the bolt task
+    def self.install_forge_modules
+      command = "bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
+      puts "Running: #{command}"
+      output = `#{command}`
+      puts "Output was: #{output}"
+
+      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
+      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
+      raise "ERROR: bolt command failed!" unless success
 
       return success
     end

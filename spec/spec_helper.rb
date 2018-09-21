@@ -1,7 +1,9 @@
 require "simplecov"
 require "rspec"
 
-SimpleCov.start
+SimpleCov.start do
+  add_filter "/spec/"
+end
 
 require "ref_arch_setup"
 
