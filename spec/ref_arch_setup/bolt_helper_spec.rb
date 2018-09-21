@@ -301,7 +301,6 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes, modulepath))
           .to eq(expected_output)
       end
-
     end
 
     context "when bolt works and returns output" do
@@ -341,9 +340,8 @@ describe RefArchSetup::BoltHelper do
         expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
         allow(RefArchSetup::BoltHelper).to receive(:puts)
         expect(RefArchSetup::BoltHelper.run_plan_with_bolt(plan, params, nodes))
-            .to eq(expected_output)
+          .to eq(expected_output)
       end
-
     end
 
     context "when bolt fails" do
