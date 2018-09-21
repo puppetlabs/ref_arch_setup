@@ -226,30 +226,6 @@ describe RefArchSetup::BoltHelper do
       end
     end
 
-    context "when ssh user and password options are sent" do
-      before do
-        RefArchSetup::BoltHelper.bolt_options = bolt_user_opts
-        @expected_command_with_ssh = "#{@expected_command} #{bolt_user_string}"
-      end
-
-      it "passes the arguments to bolt" do
-        expected_output = "All Good"
-        expected_status = 0
-        expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
-          .with(params).and_return(params_str)
-        expect(RefArchSetup::BoltHelper).to receive(:`)
-          .with(@expected_command_with_ssh).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("Running: #{@expected_command_with_ssh}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("Exit status was: #{expected_status}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)
-      end
-    end
-
     context "when ssh private key is sent" do
       before do
         RefArchSetup::BoltHelper.bolt_options = bolt_pkey_opts
@@ -493,28 +469,6 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
         expect { RefArchSetup::BoltHelper.upload_file(source, destination, nodes) }
           .to raise_error(error)
-      end
-    end
-
-    context "when ssh user and password options are sent" do
-      before do
-        RefArchSetup::BoltHelper.bolt_options = bolt_user_opts
-        @expected_command_with_ssh = "#{@expected_command} #{bolt_user_string}"
-      end
-
-      it "passes the arguments to bolt" do
-        expected_output = "All Good"
-        expected_status = 0
-        expect(RefArchSetup::BoltHelper).to receive(:`)\
-          .with(@expected_command_with_ssh).and_return(expected_output)
-        `(exit #{expected_status})`
-        expect($?).to receive(:success?).and_return(true) # rubocop:disable Style/SpecialGlobalVars
-        expect(RefArchSetup::BoltHelper).to receive(:puts)
-          .with("Running: #{@expected_command_with_ssh}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts)\
-          .with("Exit status was: #{expected_status}")
-        expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
-        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(true)
       end
     end
 

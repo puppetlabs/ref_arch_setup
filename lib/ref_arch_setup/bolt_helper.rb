@@ -2,7 +2,9 @@
 module RefArchSetup
   # Bolt helper methods
   class BoltHelper
+    # location of modules downloaded from the Puppet Forge
     FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
+
     @bolt_options = {}
 
     # gets the bolt options as a string
