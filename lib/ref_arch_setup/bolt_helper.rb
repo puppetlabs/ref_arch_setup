@@ -97,7 +97,7 @@ module RefArchSetup
     #
     # @author Sam Woods
     #
-    # @param task [string] Task to run on nodes
+    # @param plan [string] Plan to run on nodes
     # @param params [hash] Plan parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run plan on
     # @param modulepath [string] The modulepath to use when running bolt
@@ -130,6 +130,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.run_forge_task_with_bolt(task, params, nodes)
+      install_forge_modules
       run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
     end
 
@@ -143,6 +144,7 @@ module RefArchSetup
     #
     # @return [string] The output from the bolt run
     def self.run_forge_plan_with_bolt(plan, params, nodes)
+      install_forge_modules
       run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
     end
 
