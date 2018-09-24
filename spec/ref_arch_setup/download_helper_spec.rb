@@ -134,14 +134,17 @@ describe RefArchSetup::DownloadHelper do
     context "when environment variables are specified" do
       versions_url = "http://this.test.net.versions"
       base_url = "http://this.test.net.base"
+      min_version = "444.44.44"
 
       it "sets the expected properties to the specified values" do
         ENV["PE_VERSIONS_URL"] = versions_url
         ENV["BASE_PROD_URL"] = base_url
+        ENV["MIN_PROD_VERSION"] = min_version
         test_subject = RefArchSetup::DownloadHelper.new
 
         expect(test_subject.instance_variable_get(:@pe_versions_url)).to eq(versions_url)
         expect(test_subject.instance_variable_get(:@base_prod_url)).to eq(base_url)
+        expect(test_subject.instance_variable_get(:@min_prod_version)).to eq(min_version)
         expect(test_subject.instance_variable_get(:@pe_platforms)).to eq(subject::PE_PLATFORMS)
       end
     end
@@ -150,11 +153,14 @@ describe RefArchSetup::DownloadHelper do
       it "sets the properties to the default values" do
         ENV["PE_VERSIONS_URL"] = nil
         ENV["BASE_PROD_URL"] = nil
+        ENV["MIN_PROD_VERSION"] = nil
         test_subject = RefArchSetup::DownloadHelper.new
 
         expect(test_subject.instance_variable_get(:@pe_versions_url))
           .to eq(subject::PE_VERSIONS_URL)
         expect(test_subject.instance_variable_get(:@base_prod_url)).to eq(subject::BASE_PROD_URL)
+        expect(test_subject.instance_variable_get(:@min_prod_version))
+          .to eq(subject::MIN_PROD_VERSION)
         expect(test_subject.instance_variable_get(:@pe_platforms)).to eq(subject::PE_PLATFORMS)
       end
     end
