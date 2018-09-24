@@ -208,7 +208,7 @@ module RefArchSetup
       else
         is_valid_response = true
       end
-      is_valid_response
+      return is_valid_response
     end
 
     # Handles the host and platform and determines the appropriate PE platform
