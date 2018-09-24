@@ -15,12 +15,13 @@ Gem::Specification.new do |spec|
   # Ensure the gem is build out of the versioned files
   spec.files            = Dir["CONTRIBUTING.md", "LICENSE.md", "MAINTAINERS",
                               "README.md", "lib/**/*", "bin/*", "docs/**/*",
-                              "fixtures/**/*", "modules/**/*"]
+                              "fixtures/**/*", "modules/**/*", "Boltdir/**/*"]
   spec.executables   = ["ref_arch_setup"]
   spec.require_paths = ["lib"]
 
   # Run time dependencies
   spec.add_runtime_dependency "bolt", "~> 0.22.0"
+  spec.add_runtime_dependency "oga", "~> 2.15"
 
   # Development dependencies
   spec.add_development_dependency "beaker", "~>4.0"
