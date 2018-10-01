@@ -314,7 +314,7 @@ describe RefArchSetup::DownloadHelper do
       it "returns the specified version" do
         version = TEST_LATEST_VERSION
         pe_version = TEST_LATEST_VERSION
-        message = "Using specified version: #{version}"
+        message = "Proceeding with specified version: #{version}"
 
         expect(subject).not_to receive(:latest_prod_version)
         expect(subject).to receive(:ensure_valid_prod_version).with(version).and_return(true)
@@ -434,7 +434,9 @@ describe RefArchSetup::DownloadHelper do
   describe "#fetch_prod_versions" do
     context "when called" do
       it "returns the default result from parse_prod_versions_url" do
+        allow(subject).to receive(:puts)
         expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
+        expect(test_versions_result).to receive(:each)
         expect(subject.fetch_prod_versions).to eq(test_versions_result)
       end
     end
@@ -471,7 +473,7 @@ describe RefArchSetup::DownloadHelper do
           expect(test_net_http).to receive(:get_response)
             .with(test_pe_versions_uri).and_return(test_http_response)
 
-          expect(subject).to receive(:valid_response?)
+          expect(subject).to receive(:validate_response)
             .with(test_http_response).and_return(true)
 
           expect(test_http_response).to receive(:body).and_return(test_body)
@@ -498,7 +500,7 @@ describe RefArchSetup::DownloadHelper do
           expect(test_net_http).to receive(:get_response)
             .with(test_pe_versions_uri).and_return(test_http_response)
 
-          expect(subject).to receive(:valid_response?)
+          expect(subject).to receive(:validate_response)
             .with(test_http_response).and_return(true)
 
           expect(test_http_response).to receive(:body).and_return(test_body)
@@ -516,8 +518,6 @@ describe RefArchSetup::DownloadHelper do
 
     context "when the response is not valid" do
       it "raises an error" do
-        error = "Invalid response"
-
         expect(subject).to receive(:puts).with(message)
 
         expect(test_uri).to receive(:parse)
@@ -526,17 +526,18 @@ describe RefArchSetup::DownloadHelper do
         expect(test_net_http).to receive(:get_response)
           .with(test_pe_versions_uri).and_return(test_http_response)
 
-        expect(subject).to receive(:valid_response?)
-          .with(test_http_response).and_return(false)
+        expect(subject).to receive(:validate_response)
+          .with(test_http_response).and_raise(RuntimeError)
 
         expect(test_http_response).not_to receive(:body)
+        expect(test_oga).not_to receive(:parse_html)
 
-        expect { subject.parse_prod_versions_url }.to raise_error(RuntimeError, error)
+        expect { subject.parse_prod_versions_url }.to raise_error(RuntimeError)
       end
     end
   end
 
-  describe "#valid_response?" do
+  describe "#validate_response" do
     let(:test_http_response) { Class.new }
 
     context "when a valid response is provided" do
@@ -548,113 +549,150 @@ describe RefArchSetup::DownloadHelper do
         expect(test_http_response).to receive(:code).and_return(code)
         expect(test_http_response).to receive(:body).and_return(body)
 
-        expect(subject.valid_response?(test_http_response)).to eq(true)
+        expect(subject.validate_response(test_http_response)).to eq(true)
       end
     end
 
-    context "when the response is nil" do
-      it "reports the error" do
-        error = "Invalid response:"
-        expect(subject).to receive(:puts).with(error)
-        expect(subject).to receive(:puts).with(no_args)
-        subject.valid_response?(nil)
+    context "when an invalid response is provided" do
+      message = "Invalid response:"
+      error = "Invalid response"
+
+      context "when the response is nil" do
+        it "outputs the expected messages (and raises an error)" do
+          expect(subject).to receive(:puts).with(message)
+          expect(subject).to receive(:puts).with("nil")
+          expect(subject).to receive(:puts).with(no_args)
+          expect { subject.validate_response(nil) }.to raise_error(RuntimeError)
+        end
+
+        it "raises the expected error" do
+          allow(subject).to receive(:puts)
+          expect { subject.validate_response(nil) }.to raise_error(RuntimeError, error)
+        end
       end
 
-      it "returns false" do
-        allow(subject).to receive(:puts)
-        expect(subject.valid_response?(nil)).to eq(false)
-      end
-    end
+      context "when the response code is not valid" do
+        code = TEST_INVALID_RESPONSE_CODE
+        body = TEST_VALID_RESPONSE_BODY
 
-    context "when the response code is not valid" do
-      code = TEST_INVALID_RESPONSE_CODE
-      body = TEST_VALID_RESPONSE_BODY
-      error = "Invalid response:"
-      code_message = "code: #{code}"
-      body_message = "body: #{body}"
+        code_message = "code: #{code}"
+        body_message = "body: #{body}"
 
-      it "reports the error" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+        it "outputs the expected messages (and raises an error)" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
 
-        expect(subject).to receive(:puts).with(error)
-        expect(subject).to receive(:puts).with(code_message)
-        expect(subject).to receive(:puts).with(body_message)
-        expect(subject).to receive(:puts).with(no_args)
+          expect(subject).to receive(:puts).with(message)
+          expect(subject).to receive(:puts).with(code_message)
+          expect(subject).to receive(:puts).with(body_message)
+          expect(subject).to receive(:puts).with(no_args)
 
-        subject.valid_response?(test_http_response)
-      end
+          expect { subject.validate_response(test_http_response) }.to raise_error(RuntimeError)
+        end
 
-      it "returns false" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+        it "raises the expected error" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
 
-        allow(subject).to receive(:puts)
-        expect(subject.valid_response?(test_http_response)).to eq(false)
-      end
-    end
-
-    context "when the response body is empty" do
-      code = TEST_VALID_RESPONSE_CODE
-      body = TEST_INVALID_RESPONSE_BODY
-      error = "Invalid response:"
-      code_message = "code: #{code}"
-      body_message = "body: #{body}"
-
-      it "reports the error" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
-
-        expect(subject).to receive(:puts).with(error)
-        expect(subject).to receive(:puts).with(code_message)
-        expect(subject).to receive(:puts).with(body_message)
-        expect(subject).to receive(:puts).with(no_args)
-
-        subject.valid_response?(test_http_response)
+          allow(subject).to receive(:puts)
+          expect { subject.validate_response(test_http_response) }
+            .to raise_error(RuntimeError, error)
+        end
       end
 
-      it "returns false" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+      context "when the response code is nill" do
+        code = nil
+        body = TEST_VALID_RESPONSE_BODY
 
-        allow(subject).to receive(:puts)
+        code_message = "code: nil"
+        body_message = "body: #{body}"
 
-        expect(subject.valid_response?(test_http_response)).to eq(false)
+        it "outputs the expected messages (and raises an error)" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+
+          expect(subject).to receive(:puts).with(message)
+          expect(subject).to receive(:puts).with(code_message)
+          expect(subject).to receive(:puts).with(body_message)
+          expect(subject).to receive(:puts).with(no_args)
+
+          expect { subject.validate_response(test_http_response) }.to raise_error(RuntimeError)
+        end
+
+        it "raises the expected error" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+
+          allow(subject).to receive(:puts)
+          expect { subject.validate_response(test_http_response) }
+            .to raise_error(RuntimeError, error)
+        end
       end
-    end
 
-    context "when the response body is nil" do
-      code = TEST_VALID_RESPONSE_CODE
-      body = nil
-      error = "Invalid response:"
-      code_message = "code: #{code}"
-      body_message = "body: #{body}"
+      context "when the response body is empty" do
+        code = TEST_VALID_RESPONSE_CODE
+        body = TEST_INVALID_RESPONSE_BODY
+        code_message = "code: #{code}"
+        body_message = "body: #{body}"
 
-      it "reports the error" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+        it "outputs the expected messages (and raises an error)" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
 
-        expect(subject).to receive(:puts).with(error)
-        expect(subject).to receive(:puts).with(code_message)
-        expect(subject).to receive(:puts).with(body_message)
-        expect(subject).to receive(:puts).with(no_args)
+          expect(subject).to receive(:puts).with(message)
+          expect(subject).to receive(:puts).with(code_message)
+          expect(subject).to receive(:puts).with(body_message)
+          expect(subject).to receive(:puts).with(no_args)
 
-        subject.valid_response?(test_http_response)
+          expect { subject.validate_response(test_http_response) }.to raise_error(RuntimeError)
+        end
+
+        it "raises the expected error" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+
+          allow(subject).to receive(:puts)
+
+          expect { subject.validate_response(test_http_response) }
+            .to raise_error(RuntimeError, error)
+        end
       end
 
-      it "returns false" do
-        expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
-        expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
-        expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+      context "when the response body is nil" do
+        code = TEST_VALID_RESPONSE_CODE
+        body = nil
+        code_message = "code: #{code}"
+        body_message = "body: nil"
 
-        allow(subject).to receive(:puts)
+        it "outputs the expected messages (and raises an error)" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
 
-        expect(subject.valid_response?(test_http_response)).to eq(false)
+          expect(subject).to receive(:puts).with(message)
+          expect(subject).to receive(:puts).with(code_message)
+          expect(subject).to receive(:puts).with(body_message)
+          expect(subject).to receive(:puts).with(no_args)
+
+          expect { subject.validate_response(test_http_response) }.to raise_error(RuntimeError)
+        end
+
+        it "raises the expected error" do
+          expect(test_http_response).to receive(:nil?).at_least(:once).and_return(false)
+          expect(test_http_response).to receive(:code).at_least(:once).and_return(code)
+          expect(test_http_response).to receive(:body).at_least(:once).and_return(body)
+
+          allow(subject).to receive(:puts)
+
+          expect { subject.validate_response(test_http_response) }
+            .to raise_error(RuntimeError, error)
+        end
       end
     end
   end
@@ -670,7 +708,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).to receive(:puts)
             .with("Default platform specified; determining platform for host")
 
-          expect(subject).to receive(:handle_platform_for_host)
+          expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)
 
           expect(subject).not_to receive(:puts).with("Specified platform: #{pe_platform}")
@@ -684,7 +722,7 @@ describe RefArchSetup::DownloadHelper do
         it "returns the validated platform for the specified host" do
           allow(subject).to receive(:puts)
 
-          expect(subject).to receive(:handle_platform_for_host)
+          expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)
 
           expect(subject).to receive(:valid_platform?)
@@ -703,7 +741,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).to receive(:puts)
             .with("Default platform specified; determining platform for host")
 
-          expect(subject).to receive(:handle_platform_for_host)
+          expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)
 
           expect(subject).not_to receive(:puts).with("Specified platform: #{pe_platform}")
@@ -718,7 +756,7 @@ describe RefArchSetup::DownloadHelper do
         it "raises the expected error" do
           allow(subject).to receive(:puts)
 
-          expect(subject).to receive(:handle_platform_for_host)
+          expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)
 
           expect(subject).to receive(:valid_platform?)
@@ -740,7 +778,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).not_to receive(:puts)
             .with("Default platform specified; determining platform for host")
 
-          expect(subject).not_to receive(:handle_platform_for_host).with(host)
+          expect(subject).not_to receive(:get_host_platform).with(host)
           expect(subject).not_to receive(:puts).with("platform: #{pe_platform}")
 
           expect(subject).to receive(:puts).with("Specified platform: #{pe_platform}")
@@ -759,7 +797,7 @@ describe RefArchSetup::DownloadHelper do
         it "outputs the expected message (and raises an error)" do
           expect(subject).not_to receive(:puts)
             .with("Default platform specified; determining platform for host")
-          expect(subject).not_to receive(:handle_platform_for_host).with(host)
+          expect(subject).not_to receive(:get_host_platform).with(host)
           expect(subject).not_to receive(:puts).with("platform: #{pe_platform}")
 
           expect(subject).to receive(:puts).with("Specified platform: #{pe_platform}")
@@ -783,7 +821,7 @@ describe RefArchSetup::DownloadHelper do
     end
   end
 
-  describe "#handle_platform_for_host" do
+  describe "#get_host_platform" do
     context "when the host os family is RedHat" do
       it "returns the correct platform string" do
         host = "my_host"
@@ -793,7 +831,7 @@ describe RefArchSetup::DownloadHelper do
         expect(subject).to receive(:retrieve_facts)
           .with(host).and_return(TEST_CENTOS_FACTS)
         expect(subject).to receive(:puts).with(message)
-        expect(subject.handle_platform_for_host(host)).to eq(pe_platform)
+        expect(subject.get_host_platform(host)).to eq(pe_platform)
       end
     end
 
@@ -806,7 +844,7 @@ describe RefArchSetup::DownloadHelper do
         expect(subject).to receive(:retrieve_facts)
           .with(host).and_return(TEST_SLES_FACTS)
         expect(subject).to receive(:puts).with(message)
-        expect(subject.handle_platform_for_host(host)).to eq(pe_platform)
+        expect(subject.get_host_platform(host)).to eq(pe_platform)
       end
     end
 
@@ -820,7 +858,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).to receive(:retrieve_facts)
             .with(host).and_return(TEST_UBUNTU_FACTS)
           expect(subject).to receive(:puts).with(message)
-          expect(subject.handle_platform_for_host(host)).to eq(pe_platform)
+          expect(subject.get_host_platform(host)).to eq(pe_platform)
         end
       end
 
@@ -832,7 +870,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).to receive(:retrieve_facts)
             .with(host).and_return(TEST_UNKNOWN_DEBIAN_FACTS)
 
-          expect { subject.handle_platform_for_host(host) }
+          expect { subject.get_host_platform(host) }
             .to raise_error(RuntimeError, error)
         end
       end
@@ -845,7 +883,7 @@ describe RefArchSetup::DownloadHelper do
           expect(subject).to receive(:retrieve_facts)
             .with(host).and_return(TEST_UNKNOWN_FACTS)
 
-          expect { subject.handle_platform_for_host(host) }
+          expect { subject.get_host_platform(host) }
             .to raise_error(RuntimeError, error)
         end
       end
@@ -894,14 +932,11 @@ describe RefArchSetup::DownloadHelper do
   end
 
   describe "#valid_platform?" do
-    message = "Checking valid platforms: #{TEST_PE_PLATFORMS}"
-
     context "when the platform is included in the list of valid platforms" do
       platform = TEST_UBUNTU_PLATFORM
       result = "Platform #{platform} is valid"
 
       it "outputs the expected messages" do
-        expect(subject).to receive(:puts).with(message)
         expect(subject).to receive(:puts).with(result)
 
         subject.valid_platform?(platform)
@@ -916,10 +951,11 @@ describe RefArchSetup::DownloadHelper do
     context "when the platform is not included in the list of valid platforms" do
       platform = TEST_INVALID_PLATFORM
       result = "Platform #{platform} is not valid"
+      platforms_message = "Valid platforms are: #{TEST_PE_PLATFORMS}"
 
       it "outputs the expected messages" do
-        expect(subject).to receive(:puts).with(message)
         expect(subject).to receive(:puts).with(result)
+        expect(subject).to receive(:puts).with(platforms_message)
 
         subject.valid_platform?(platform)
       end

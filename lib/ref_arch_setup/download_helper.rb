@@ -51,7 +51,7 @@ module RefArchSetup
       return url
     end
 
-    # Handles the specified version of PE
+    # Retrieves the latest production PE version or verifies a user-specified version
     #
     # @author Bill Claytor
     #
@@ -72,7 +72,7 @@ module RefArchSetup
         raise "Invalid version: #{version}" unless success
 
         pe_version = version
-        puts "Using specified version: #{pe_version}"
+        puts "Proceeding with specified version: #{pe_version}"
       end
 
       return pe_version
@@ -141,16 +141,24 @@ module RefArchSetup
     end
 
     # Fetches the list of production PE versions from the 'Puppet Enterprise Version History'
-    #
+    # *note: this is no longer used but has been left as an example
     # @author Bill Claytor
     #
-    # @return [string] The versions list
+    # @return [Oga::XML::NodeSet] The versions list
     #
     # @example:
     #   versions = fetch_prod_versions
     #
     def self.fetch_prod_versions
       versions = parse_prod_versions_url
+      puts "Versions:"
+
+      versions.each do |version|
+        version_text = version.text
+        puts version_text
+      end
+      puts
+
       return versions
     end
 
@@ -161,7 +169,7 @@ module RefArchSetup
     #
     # @param [string] xpath The xpath to use when parsing the version history
     #
-    # @return [string] The result
+    # @return [Oga::XML::NodeSet] The resulting Oga NodeSet
     #
     # @example:
     #   versions = parse_prod_versions_url
@@ -173,7 +181,7 @@ module RefArchSetup
 
       uri = URI.parse(@pe_versions_url)
       response = Net::HTTP.get_response(uri)
-      raise "Invalid response" unless valid_response?(response)
+      validate_response(response)
 
       document = Oga.parse_html(response.body)
       result = document.xpath(xpath)
@@ -191,25 +199,42 @@ module RefArchSetup
     # @return [true,false] Based on whether the response is valid
     #
     # @example
-    #   valid = valid_response?(res)
-    #   valid = valid_response?(res, ["200", "123"], ["", nil], "xyz")
+    #   valid = validate_response(res)
+    #   valid = validate_response(res, ["200", "123"], ["", nil])
     #
-    def self.valid_response?(res, valid_response_codes = ["200"],
-                             invalid_response_bodies = ["", nil])
-      # TODO: other criteria?
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/PerceivedComplexity
+    def self.validate_response(res, valid_response_codes = ["200"],
+                               invalid_response_bodies = ["", nil])
       is_valid_response = false
 
-      if res.nil? || !valid_response_codes.include?(res.code) ||
-         invalid_response_bodies.include?(res.body)
+      if res.nil?
         puts "Invalid response:"
-        puts "code: #{res.code}" unless res.nil?
-        puts "body: #{res.body}" unless res.nil?
+        puts "nil"
+        puts
+      elsif !valid_response_codes.include?(res.code) ||
+            invalid_response_bodies.include?(res.body)
+        code = res.code.nil? ? "nil" : res.code
+        body = res.body.nil? ? "nil" : res.body
+
+        puts "Invalid response:"
+        puts "code: #{code}"
+        puts "body: #{body}"
         puts
       else
         is_valid_response = true
       end
+
+      raise "Invalid response" unless is_valid_response
+
       return is_valid_response
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Handles the host and platform and determines the appropriate PE platform
     #
@@ -230,7 +255,7 @@ module RefArchSetup
     def self.handle_platform(host, platform)
       if platform == "default"
         puts "Default platform specified; determining platform for host"
-        pe_platform = handle_platform_for_host(host)
+        pe_platform = get_host_platform(host)
       else
         puts "Specified platform: #{platform}"
         pe_platform = platform
@@ -248,11 +273,11 @@ module RefArchSetup
     # @return [string] The corresponding platform for the specified host
     #
     # @example:
-    #   platform = handle_platform_for_host("localhost")
+    #   platform = get_host_platform("localhost")
     #
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Metrics/AbcSize
-    def self.handle_platform_for_host(host)
+    def self.get_host_platform(host)
       facts = retrieve_facts(host)
       os = facts[0]["result"]["os"]
       os_name = os["name"]
@@ -326,11 +351,10 @@ module RefArchSetup
     # TODO: validate for a specified version?
     #
     def self.valid_platform?(platform)
-      puts "Checking valid platforms: #{@pe_platforms}"
       valid = @pe_platforms.include?(platform) ? true : false
       puts "Platform #{platform} is valid" if valid
       puts "Platform #{platform} is not valid" unless valid
-
+      puts "Valid platforms are: #{@pe_platforms}" unless valid
       return valid
     end
   end
