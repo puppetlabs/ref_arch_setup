@@ -21,8 +21,7 @@ describe RefArchSetup::BoltHelper do
 
   describe "make_dir" do
     before do
-      @expected_command = "[ -d #{dir} ] ||"
-      @expected_command << " mkdir -p #{dir}"
+      @expected_command = "mkdir -p #{dir}"
     end
 
     context "when run_cmd_with_bolt returns true" do
@@ -45,7 +44,7 @@ describe RefArchSetup::BoltHelper do
 
   describe "run_cmd_with_bolt" do
     before do
-      @expected_command = "bolt command run '#{cmd}' --nodes #{nodes}"
+      @expected_command = "bolt command run '#{cmd}' --nodes #{nodes} --run-as root"
     end
 
     context "when bolt works and returns true" do
@@ -128,7 +127,7 @@ describe RefArchSetup::BoltHelper do
   describe "run_task_with_bolt" do
     before do
       @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
+      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes} --run-as root"
     end
 
     context "when a modulepath is specified" do
@@ -139,7 +138,7 @@ describe RefArchSetup::BoltHelper do
       it "uses the specified value" do
         # update @expected_command to specify the modulepath for this test only
         @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-          "#{modulepath} --nodes #{nodes}"
+          "#{modulepath} --nodes #{nodes} --run-as root"
 
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
@@ -254,7 +253,7 @@ describe RefArchSetup::BoltHelper do
   describe "run_plan_with_bolt" do
     before do
       @expected_command = "bolt plan run #{plan} VAR1=1 VAR2=2 --modulepath "\
-      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
+      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes} --run-as root"
     end
 
     context "when a modulepath is specified" do
@@ -265,7 +264,7 @@ describe RefArchSetup::BoltHelper do
       it "uses the specified value" do
         # update @expected_command to specify the modulepath for this test only
         @expected_command = "bolt plan run #{plan} VAR1=1 VAR2=2 --modulepath "\
-        "#{modulepath} --nodes #{nodes}"
+        "#{modulepath} --nodes #{nodes} --run-as root"
 
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
@@ -435,7 +434,7 @@ describe RefArchSetup::BoltHelper do
 
   describe "upload_file" do
     before do
-      @expected_command = "bolt file upload #{source} #{destination} --nodes #{nodes}"
+      @expected_command = "bolt file upload #{source} #{destination} --nodes #{nodes} --run-as root"
     end
 
     context "when bolt works and returns true" do

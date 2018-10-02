@@ -5,6 +5,9 @@ module RefArchSetup
     # location of modules downloaded from the Puppet Forge
     FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
 
+    # the user RAS will provide to the bolt --run-as option
+    BOLT_RUN_AS_USER = "root".freeze
+
     @bolt_options = {}
 
     # gets the bolt options as a string
@@ -39,7 +42,12 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.make_dir(dir, nodes)
-      cmd = "[ -d #{dir} ] || mkdir -p #{dir}"
+      # this causes an issue with bolt when 'run-as root' is not allowed
+      # cmd = "[ -d #{dir} ] || mkdir -p #{dir}"
+
+      # this seems to achieve the same desired behavior without the side-effect
+      cmd = "mkdir -p #{dir}"
+
       success = run_cmd_with_bolt(cmd, nodes)
       raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
@@ -55,7 +63,7 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.run_cmd_with_bolt(cmd, nodes)
       command = "bolt command run '#{cmd}'"
-      command << " --nodes #{nodes}"
+      command << " --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -82,7 +90,7 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes}"
+      command << " --modulepath #{modulepath} --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -109,7 +117,7 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt plan run #{plan} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes}"
+      command << " --modulepath #{modulepath} --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -175,7 +183,7 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
-      command << " --nodes #{nodes}"
+      command << " --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
