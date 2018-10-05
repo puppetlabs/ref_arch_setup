@@ -51,6 +51,9 @@ def install_bolt_opts(opt)
          "ssh to target host") do |value|
     @bolt_options["private-key"] = value
   end
+  opt.on("--sudo-password <password>", "Root user password for privilege escalation") do |value|
+    @bolt_options["sudo-password"] = value
+  end
 end
 
 def install_generate_opts(opt)

@@ -1,28 +1,66 @@
 require "spec_helper"
 
 describe RefArchSetup::BoltHelper do
-  let(:nodes)             { "local://localhost" }
-  let(:dir)               { "/tmp/ref_arch_setup" }
-  let(:cmd)               { "echo foo" }
-  let(:task)              { "ref_arch_setup::foo" }
-  let(:plan)              { "ref_arch_setup::foo_plan" }
-  let(:params)            { { "VAR1" => "1", "VAR2" => "2" } }
-  let(:params_str)        { "VAR1=1 VAR2=2" }
-  let(:bolt_user_opts)    { { "user" => "my_user", "password" => "my_password" } }
-  let(:bolt_user_string)  { "--user my_user --password my_password" }
-  let(:bolt_pkey_opts)    { { "private-key" => "private_key_path" } }
-  let(:bolt_pkey_string)  { "--private-key private_key_path" }
-  let(:source)            { "/tmp/foo" }
-  let(:destination)       { "/tmp/bar" }
+  let(:nodes)               { "local://localhost" }
+  let(:dir)                 { "/tmp/ref_arch_setup" }
+  let(:cmd)                 { "echo foo" }
+  let(:task)                { "ref_arch_setup::foo" }
+  let(:plan)                { "ref_arch_setup::foo_plan" }
+  let(:params)              { { "VAR1" => "1", "VAR2" => "2" } }
+  let(:params_str)          { "VAR1=1 VAR2=2" }
+  let(:bolt_default_opts)   { { "run-as" => "root" } }
+  let(:bolt_default_string) { "--run-as root" }
+  let(:bolt_user_opts)      { { "user" => "my_user", "password" => "my_password" } }
+  let(:bolt_user_string)    { "--user my_user --password my_password" }
+  let(:bolt_pkey_opts)      { { "private-key" => "private_key_path" } }
+  let(:bolt_pkey_string)    { "--private-key private_key_path" }
+  let(:source)              { "/tmp/foo" }
+  let(:destination)         { "/tmp/bar" }
 
   after do
-    RefArchSetup::BoltHelper.bolt_options = {}
+    RefArchSetup::BoltHelper.init
+  end
+
+  describe "init" do
+    it "sets the bolt options to the default" do
+      RefArchSetup::BoltHelper.bolt_options = bolt_user_opts
+      RefArchSetup::BoltHelper.init
+      expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+       .to(eq(" #{bolt_default_string}")))
+    end
+  end
+
+  describe "bolt_options" do
+    context "when the overwrite option is specified as true" do
+      it "uses the user-specified options" do
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts, true)
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq(" #{bolt_user_string}")))
+      end
+    end
+
+    context "when the overwrite option is specified as false" do
+      it "merges the user-specified options with the default options" do
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts, false)
+
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq(" #{bolt_default_string} #{bolt_user_string}")))
+      end
+    end
+
+    context "when the overwrite option is not specified" do
+      it "merges the user-specified options with the default options" do
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts)
+
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq(" #{bolt_default_string} #{bolt_user_string}")))
+      end
+    end
   end
 
   describe "make_dir" do
     before do
-      @expected_command = "[ -d #{dir} ] ||"
-      @expected_command << " mkdir -p #{dir}"
+      @expected_command = "mkdir -p #{dir}"
     end
 
     context "when run_cmd_with_bolt returns true" do
@@ -45,7 +83,7 @@ describe RefArchSetup::BoltHelper do
 
   describe "run_cmd_with_bolt" do
     before do
-      @expected_command = "bolt command run '#{cmd}' --nodes #{nodes}"
+      @expected_command = "bolt command run '#{cmd}' --nodes #{nodes} #{bolt_default_string}"
     end
 
     context "when bolt works and returns true" do
@@ -128,7 +166,7 @@ describe RefArchSetup::BoltHelper do
   describe "run_task_with_bolt" do
     before do
       @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
+      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes} #{bolt_default_string}"
     end
 
     context "when a modulepath is specified" do
@@ -139,7 +177,7 @@ describe RefArchSetup::BoltHelper do
       it "uses the specified value" do
         # update @expected_command to specify the modulepath for this test only
         @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-          "#{modulepath} --nodes #{nodes}"
+          "#{modulepath} --nodes #{nodes} #{bolt_default_string}"
 
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
@@ -254,7 +292,7 @@ describe RefArchSetup::BoltHelper do
   describe "run_plan_with_bolt" do
     before do
       @expected_command = "bolt plan run #{plan} VAR1=1 VAR2=2 --modulepath "\
-      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes}"
+      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes} #{bolt_default_string}"
     end
 
     context "when a modulepath is specified" do
@@ -265,7 +303,7 @@ describe RefArchSetup::BoltHelper do
       it "uses the specified value" do
         # update @expected_command to specify the modulepath for this test only
         @expected_command = "bolt plan run #{plan} VAR1=1 VAR2=2 --modulepath "\
-        "#{modulepath} --nodes #{nodes}"
+        "#{modulepath} --nodes #{nodes} #{bolt_default_string}"
 
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
@@ -435,7 +473,8 @@ describe RefArchSetup::BoltHelper do
 
   describe "upload_file" do
     before do
-      @expected_command = "bolt file upload #{source} #{destination} --nodes #{nodes}"
+      @expected_command = "bolt file upload #{source} #{destination}" \
+        " --nodes #{nodes} #{bolt_default_string}"
     end
 
     context "when bolt works and returns true" do

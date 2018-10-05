@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 # General namespace for RAS
 module RefArchSetup
   # Bolt helper methods
@@ -5,7 +6,48 @@ module RefArchSetup
     # location of modules downloaded from the Puppet Forge
     FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
 
-    @bolt_options = {}
+    # the user RAS will provide to the bolt --run-as option
+    BOLT_RUN_AS_USER = "root".freeze
+
+    # the default options to specify when running bolt commands
+    BOLT_DEFAULT_OPTIONS = { "run-as" => BOLT_RUN_AS_USER }.freeze
+
+    @bolt_options = BOLT_DEFAULT_OPTIONS
+
+    # Initializes the bolt options to the default
+    #
+    # @author Bill Claytor
+    #
+    def self.init
+      @bolt_options = BOLT_DEFAULT_OPTIONS
+    end
+
+    # Merges the specified bolt options with the default options
+    # or optionally overwriting the default options
+    #
+    # @author Bill Claytor
+    #
+    # @param [hash] options_hash The user-specified bolt options hash
+    # @param [boolean] overwrite The flag indicating whether the default options
+    #   should be overwritten
+    #
+    def self.bolt_options(options_hash, overwrite = false)
+      @bolt_options = if overwrite
+                        options_hash
+                      else
+                        @bolt_options.merge(options_hash)
+                      end
+    end
+
+    # Merges the default bolt options with the specified options
+    #
+    # @author Bill Claytor
+    #
+    # @param [hash] options_hash The user-specified bolt options hash
+    #
+    def self.bolt_options=(options_hash)
+      bolt_options(options_hash)
+    end
 
     # gets the bolt options as a string
     #
@@ -19,15 +61,6 @@ module RefArchSetup
       bolt_options_string
     end
 
-    # sets the bolt options
-    #
-    # @author Sam Woods
-    #
-    # @param [hash] bolt options
-    class << self
-      attr_writer :bolt_options
-    end
-
     # Creates a dir on the target_host
     # Doesn't fail if dir is already there
     # Uses -p to create parent dirs if needed
@@ -39,7 +72,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.make_dir(dir, nodes)
-      cmd = "[ -d #{dir} ] || mkdir -p #{dir}"
+      cmd = "mkdir -p #{dir}"
       success = run_cmd_with_bolt(cmd, nodes)
       raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
