@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 # General namespace for RAS
 module RefArchSetup
   # Bolt helper methods
@@ -8,7 +9,45 @@ module RefArchSetup
     # the user RAS will provide to the bolt --run-as option
     BOLT_RUN_AS_USER = "root".freeze
 
-    @bolt_options = {}
+    # the default options to specify when running bolt commands
+    BOLT_DEFAULT_OPTIONS = { "run-as" => BOLT_RUN_AS_USER }.freeze
+
+    @bolt_options = BOLT_DEFAULT_OPTIONS
+
+    # Initializes the bolt options to the default
+    #
+    # @author Bill Claytor
+    #
+    def self.init
+      @bolt_options = BOLT_DEFAULT_OPTIONS
+    end
+
+    # Merges the specified bolt options with the default options
+    # or optionally overwriting the default options
+    #
+    # @author Bill Claytor
+    #
+    # @param [hash] options_hash The user-specified bolt options hash
+    # @param [boolean] overwrite The flag indicating whether the default options
+    #   should be overwritten
+    #
+    def self.bolt_options(options_hash, overwrite = false)
+      @bolt_options = if overwrite
+                        options_hash
+                      else
+                        @bolt_options.merge(options_hash)
+                      end
+    end
+
+    # Merges the default bolt options with the specified options
+    #
+    # @author Bill Claytor
+    #
+    # @param [hash] options_hash The user-specified bolt options hash
+    #
+    def self.bolt_options=(options_hash)
+      bolt_options(options_hash)
+    end
 
     # gets the bolt options as a string
     #
@@ -16,19 +55,11 @@ module RefArchSetup
     # @return [string] the string value for bolt options
     def self.bolt_options_string
       bolt_options_string = ""
+
       @bolt_options.each do |key, value|
         bolt_options_string << " --#{key} #{value}"
       end
       bolt_options_string
-    end
-
-    # sets the bolt options
-    #
-    # @author Sam Woods
-    #
-    # @param [hash] bolt options
-    class << self
-      attr_writer :bolt_options
     end
 
     # Creates a dir on the target_host
@@ -42,12 +73,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.make_dir(dir, nodes)
-      # this causes an issue with bolt when 'run-as root' is not allowed
-      # cmd = "[ -d #{dir} ] || mkdir -p #{dir}"
-
-      # this seems to achieve the same desired behavior without the side-effect
       cmd = "mkdir -p #{dir}"
-
       success = run_cmd_with_bolt(cmd, nodes)
       raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
@@ -63,7 +89,7 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.run_cmd_with_bolt(cmd, nodes)
       command = "bolt command run '#{cmd}'"
-      command << " --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
+      command << " --nodes #{nodes}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -90,7 +116,7 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
+      command << " --modulepath #{modulepath} --nodes #{nodes}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -117,7 +143,7 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt plan run #{plan} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
+      command << " --modulepath #{modulepath} --nodes #{nodes}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`
@@ -183,7 +209,7 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
-      command << " --nodes #{nodes} --run-as #{BOLT_RUN_AS_USER}"
+      command << " --nodes #{nodes}"
       command << bolt_options_string
       puts "Running: #{command}"
       output = `#{command}`

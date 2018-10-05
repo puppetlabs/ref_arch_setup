@@ -16,7 +16,47 @@ describe RefArchSetup::BoltHelper do
   let(:destination)       { "/tmp/bar" }
 
   after do
-    RefArchSetup::BoltHelper.bolt_options = {}
+    RefArchSetup::BoltHelper.init
+  end
+
+  describe "init" do
+    it "sets the bolt options to the default" do
+      default_bolt_options = " --run-as root"
+      RefArchSetup::BoltHelper.bolt_options = bolt_user_opts
+      RefArchSetup::BoltHelper.init
+      expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+       .to(eq(default_bolt_options)))
+    end
+  end
+
+  describe "bolt_options" do
+    context "when the overwrite option is specified as true" do
+      it "uses on the user-specified options" do
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts, true)
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq(" #{bolt_user_string}")))
+      end
+    end
+
+    context "when the overwrite option is specified as false" do
+      it "merges the user-specified options with the default options" do
+        default_bolt_options = " --run-as root"
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts, false)
+
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq("#{default_bolt_options} #{bolt_user_string}")))
+      end
+    end
+
+    context "when the overwrite option is not specified" do
+      it "merges the user-specified options with the default options" do
+        default_bolt_options = " --run-as root"
+        RefArchSetup::BoltHelper.bolt_options(bolt_user_opts)
+
+        expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
+          .to(eq("#{default_bolt_options} #{bolt_user_string}")))
+      end
+    end
   end
 
   describe "make_dir" do
