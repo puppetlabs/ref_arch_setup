@@ -31,7 +31,7 @@ describe RefArchSetup::BoltHelper do
 
   describe "bolt_options" do
     context "when the overwrite option is specified as true" do
-      it "uses on the user-specified options" do
+      it "uses the user-specified options" do
         RefArchSetup::BoltHelper.bolt_options(bolt_user_opts, true)
         expect(expect(RefArchSetup::BoltHelper.bolt_options_string)
           .to(eq(" #{bolt_user_string}")))

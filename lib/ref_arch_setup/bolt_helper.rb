@@ -55,7 +55,6 @@ module RefArchSetup
     # @return [string] the string value for bolt options
     def self.bolt_options_string
       bolt_options_string = ""
-
       @bolt_options.each do |key, value|
         bolt_options_string << " --#{key} #{value}"
       end
