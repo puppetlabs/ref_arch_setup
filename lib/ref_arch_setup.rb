@@ -4,11 +4,11 @@ module RefArchSetup
     require "ref_arch_setup/#{lib}"
   end
   # the location of ref_arch_setup
-  RAS_PATH = File.dirname(__FILE__) + "/.."
+  RAS_PATH = File.dirname(__FILE__) + "/..".freeze
   # location of modules shipped with RAS (Ref Arch Setup)
-  RAS_MODULE_PATH = "#{RAS_PATH}/modules"
+  RAS_MODULE_PATH = "#{RAS_PATH}/modules".freeze
   # location of fixtures shipped with RAS (Ref Arch Setup)
-  RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures"
+  RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures".freeze
   # location of modules downloaded from the Puppet Forge
-  FORGE_MODULE_PATH = "#{RAS_PATH}/Boltdir/modules"
+  FORGE_MODULE_PATH = "#{RAS_PATH}/Boltdir/modules".freeze
 end
