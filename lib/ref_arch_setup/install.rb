@@ -36,17 +36,32 @@ module RefArchSetup
     # @param [string] pe_tarball Path or URL for the pe tarball
     #
     # @return [true,false] Based on exit status of the bolt task
-    def bootstrap(pe_conf_path, pe_tarball)
+    # rubocop:disable Metrics/MethodLength
+    def bootstrap(pe_conf_path, pe_tarball, pe_version)
+      if pe_tarball
+        puts "Proceeding with specified pe_tarball: #{pe_tarball}"
+        @pe_tarball = pe_tarball
+      else
+        raise "Either a pe_version or pe_tarball must be specified" unless pe_version
+        puts "Proceeding with specified pe_version: #{pe_version}"
+        @pe_tarball = RefArchSetup::DownloadHelper.build_prod_tarball_url(pe_version,
+                                                                          @target_master)
+      end
+
+      raise "Unable to proceed without pe_tarball" unless @pe_tarball
       raise "Unable to create RAS working directory" unless make_tmp_work_dir
+
       conf_path_on_master = handle_pe_conf(pe_conf_path)
-      tarball_path_on_master = handle_pe_tarball(pe_tarball)
+      tarball_path_on_master = handle_pe_tarball(@pe_tarball)
 
       params = {}
       params["pe_conf_path"] = conf_path_on_master
       params["pe_tarball_path"] = tarball_path_on_master
 
-      BoltHelper.run_task_with_bolt(INSTALL_PE_TASK, params, @target_master)
+      success = BoltHelper.run_task_with_bolt(INSTALL_PE_TASK, params, @target_master)
+      return success
     end
+    # rubocop:enable Metrics/MethodLength
 
     # Handles user inputted pe.conf or if nil assumes it is in the CWD
     # Validates file exists (allows just a dir to be given if pe.conf is in it)
@@ -218,24 +233,31 @@ module RefArchSetup
     # @param [string] url The PE tarball URL
     #
     # @return [string] The tarball path on the target master
+    # rubocop:disable Metrics/MethodLength
     def handle_tarball_url(url)
       parse_url(url)
       tarball_path_on_master = "#{TMP_WORK_DIR}/#{@pe_tarball_filename}"
       remote_error = "Failed downloading #{url} to localhost and moving to #{@target_master}"
+      success = false
 
       if target_master_is_localhost?
         success = download_pe_tarball(url, "localhost")
         raise "Failed downloading #{url} to localhost" unless success
       else
         # if downloading to the target master fails try to download locally and then upload
-        success = download_pe_tarball(url, @target_master)
-        puts "Unable to download the tarball directly to #{@target_master}" unless success
-        success = download_and_move_pe_tarball(url) unless success
-        raise remote_error unless success
+        begin
+          success = download_pe_tarball(url, @target_master)
+        rescue
+          puts "Unable to download the tarball directly to #{@target_master}"
+          success = download_and_move_pe_tarball(url) unless success
+          raise remote_error unless success
+        end
+
       end
 
       return tarball_path_on_master
     end
+    # rubocop:enable Metrics/MethodLength
 
     # Copies the PE tarball from the specified location to the temp working directory
     # on the target master

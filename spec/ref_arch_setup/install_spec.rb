@@ -1,12 +1,17 @@
 require "spec_helper"
 
 describe RefArchSetup::Install do
+  # let(:target_master) { "local://localhost" }
+
   let(:target_master) { "local://localhost" }
+
   let(:remote_target_master) { "remote.target.master" }
   let(:pe_conf_path) { "/tmp/pe.conf" }
   let(:conf_path_on_master) { "#{tmp_work_dir}/pe.conf" }
   let(:pe_tarball_filename) { "pe.tarball.tar" }
   let(:pe_tarball) { "/tmp/#{pe_tarball_filename}" }
+  let(:pe_version_latest) { "latest" }
+  let(:pe_version_number) { "2018.1.4" }
   let(:tmp_work_dir) { "/tmp/ref_arch_setup" }
   let(:tarball_path_on_master) { "#{tmp_work_dir}/#{pe_tarball_filename}" }
   let(:install) { RefArchSetup::Install.new(target_master) }
@@ -29,60 +34,121 @@ describe RefArchSetup::Install do
   end
 
   describe "#bootstrap" do
-    context "when make_temp_dir and handle_pe_conf do not raise errors" do
-      context "when called using default value" do
-        context "when run_task_with_bolt returned true" do
-          it "returns true" do
-            expect(install).to receive(:make_tmp_work_dir).and_return(true)
-            expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
-            expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
-            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-              .and_return(true)
-            expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(true)
-          end
+    context "when a tarball is specified" do
+      context "when a version is not specified" do
+        it "uses the specified tarball" do
+          message = "Proceeding with specified pe_tarball: #{pe_tarball}"
+
+          expect(install).to receive(:puts).with(message)
+          expect(RefArchSetup::DownloadHelper).not_to receive(:build_prod_tarball_url)
+
+          expect(install).to receive(:make_tmp_work_dir).and_return(true)
+          expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
+          expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+            .and_return(true)
+
+          install.bootstrap(pe_conf_path, pe_tarball, nil)
         end
       end
 
-      context "when called passing in all values" do
-        context "when run_task_with_bolt returned true" do
-          it "returns true" do
-            expect(install).to receive(:make_tmp_work_dir).and_return(true)
-            expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
-            expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
-            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-              .and_return(true)
-            expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(true)
-          end
-        end
+      context "when a version is specified" do
+        it "still uses the specified tarball" do
+          message = "Proceeding with specified pe_tarball: #{pe_tarball}"
 
-        context "when run_task_with_bolt returned false" do
-          it "returns false" do
-            expect(install).to receive(:make_tmp_work_dir).and_return(true)
-            expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
-            expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
-            expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-              .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-              .and_return(false)
-            expect(install.bootstrap(pe_conf_path, pe_tarball)).to eq(false)
-          end
+          expect(install).to receive(:puts).with(message)
+          expect(RefArchSetup::DownloadHelper).not_to receive(:build_prod_tarball_url)
+
+          expect(install).to receive(:make_tmp_work_dir).and_return(true)
+          expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
+          expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+            .and_return(true)
+
+          install.bootstrap(pe_conf_path, pe_tarball, "2077.1.4")
+        end
+      end
+    end
+
+    context "when a version is specified without a tarball" do
+      it "uses the specified version" do
+        message = "Proceeding with specified pe_version: #{pe_version_number}"
+
+        expect(install).to receive(:puts).with(message)
+        expect(RefArchSetup::DownloadHelper).to receive(:build_prod_tarball_url)
+          .with(pe_version_number, target_master).and_return(pe_tarball_url)
+
+        expect(install).to receive(:make_tmp_work_dir).and_return(true)
+        expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
+        expect(install).to receive(:handle_pe_tarball)
+          .with(pe_tarball_url).and_return(tarball_path_on_master)
+
+        expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+          .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+          .and_return(true)
+
+        install.bootstrap(pe_conf_path, nil, pe_version_number)
+      end
+    end
+
+    context "when neither a tarball or version is specified" do
+      it "raises an error" do
+        error = "Either a pe_version or pe_tarball must be specified"
+
+        expect { install.bootstrap(pe_conf_path, nil, nil) }
+          .to raise_error(RuntimeError, error)
+      end
+    end
+
+    context "when setup methods do not raise errors" do
+      context "when run_task_with_bolt returns true" do
+        it "returns true" do
+          allow(install).to receive(:puts)
+
+          expect(install).to receive(:make_tmp_work_dir).and_return(true)
+          expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
+          expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+            .and_return(true)
+          expect(install.bootstrap(pe_conf_path, pe_tarball, nil)).to eq(true)
+        end
+      end
+
+      context "when run_task_with_bolt returns false" do
+        it "returns false" do
+          allow(install).to receive(:puts)
+
+          expect(install).to receive(:make_tmp_work_dir).and_return(true)
+          expect(install).to receive(:handle_pe_conf).and_return(conf_path_on_master)
+          expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
+          expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
+            .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
+            .and_return(false)
+          expect(install.bootstrap(pe_conf_path, pe_tarball, nil)).to eq(false)
         end
       end
     end
 
     context "When make_tmp_dir raises an error" do
       it "should not be trapped" do
+        allow(install).to receive(:puts)
+
         expect(install).to receive(:make_tmp_work_dir).and_raise(RuntimeError)
-        expect { install.bootstrap(pe_conf_path, pe_tarball) }.to raise_error(RuntimeError)
+        expect { install.bootstrap(pe_conf_path, pe_tarball, nil) }.to raise_error(RuntimeError)
       end
     end
 
     context "When handle_pe_conf raises an error" do
       it "should not be trapped" do
+        allow(install).to receive(:puts)
+
         expect(install).to receive(:make_tmp_work_dir).and_return(true)
         expect(install).to receive(:handle_pe_conf).and_raise(RuntimeError)
-        expect { install.bootstrap(pe_conf_path, pe_tarball) }.to raise_error(RuntimeError)
+        expect { install.bootstrap(pe_conf_path, pe_tarball, nil) }
+          .to raise_error(RuntimeError)
       end
     end
   end
@@ -475,7 +541,7 @@ describe RefArchSetup::Install do
 
               expect(install).to receive(:download_pe_tarball)
                 .with(pe_tarball_url, remote_target_master)
-                .and_return(false)
+                .and_raise(RuntimeError)
 
               expect(install).to receive(:download_and_move_pe_tarball)
                 .with(pe_tarball_url)
@@ -495,11 +561,11 @@ describe RefArchSetup::Install do
 
               expect(install).to receive(:download_pe_tarball)
                 .with(pe_tarball_url, remote_target_master)
-                .and_return(false)
+                .and_raise(RuntimeError)
 
               expect(install).to receive(:download_and_move_pe_tarball)
                 .with(pe_tarball_url)
-                .and_return(false)
+                .and_raise(RuntimeError)
 
               expect { install.handle_tarball_url(pe_tarball_url) }
                 .to raise_error(RuntimeError)

@@ -115,9 +115,9 @@ module RefArchSetup
       puts "Running bootstrap subcommand of install command"
       # none of these will be required in the future...  but are for now
       check_option("primary_master", "install")
-      check_option("pe_tarball", "install")
       install_obj = RefArchSetup::Install.new(@options["primary_master"])
-      success = install_obj.bootstrap(@options["pe_conf"], @options["pe_tarball"])
+      success = install_obj.bootstrap(@options["pe_conf"], @options["pe_tarball"],
+                                      @options["pe_version"])
       return success
     end
 

@@ -13,9 +13,8 @@ describe RefArchSetup::CLI do
 
   describe "Initialize" do
     it "check cli object initialization" do
-      default_bolt_options = " --run-as root"
       expect(cli.instance_variable_get("@options")).to eq(no_options)
-      expect(RefArchSetup::BoltHelper.bolt_options_string).to eq(default_bolt_options)
+      expect(cli.instance_variable_get("@bolt_options")).to eq(no_options)
     end
   end
 
@@ -54,6 +53,17 @@ describe RefArchSetup::CLI do
   end
 
   describe "run" do
+    context "when run" do
+      it "sets the bolt options" do
+        bolt_options = "--user testuser"
+        cli.instance_variable_set(:@bolt_options, bolt_options)
+
+        expect(RefArchSetup::BoltHelper).to receive(:bolt_options=).with(bolt_options)
+        expect(cli).to receive(:check_for_missing_value).and_return(true)
+        expect(cli).to receive(:install).and_return(true)
+        cli.run("install")
+      end
+    end
     context "when given only a command to run" do
       context "when the command returns true" do
         it "runs the command and returns true" do
