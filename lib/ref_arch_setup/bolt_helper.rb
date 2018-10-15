@@ -2,9 +2,6 @@
 module RefArchSetup
   # Bolt helper methods
   class BoltHelper
-    # location of modules downloaded from the Puppet Forge
-    FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
-
     # the user RAS will provide to the bolt --run-as option
     BOLT_RUN_AS_USER = "root".freeze
 
@@ -231,7 +228,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on exit status of the bolt task
     def self.install_forge_modules
-      command = "bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
+      command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
       output = run_command(command, "ERROR: bolt command failed!")
       success = true unless output.nil?
 

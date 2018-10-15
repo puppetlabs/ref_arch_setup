@@ -413,7 +413,7 @@ describe RefArchSetup::BoltHelper do
       end
 
       it "returns the output" do
-        modulepath = RefArchSetup::BoltHelper::FORGE_MODULE_PATH
+        modulepath = RefArchSetup::FORGE_MODULE_PATH
         expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
           .with(task, params, nodes, modulepath).and_return(true)
@@ -432,7 +432,7 @@ describe RefArchSetup::BoltHelper do
 
       it "returns the output" do
         expected_output = "All Good"
-        modulepath = RefArchSetup::BoltHelper::FORGE_MODULE_PATH
+        modulepath = RefArchSetup::FORGE_MODULE_PATH
         expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
         expect(RefArchSetup::BoltHelper).to receive(:run_plan_with_bolt)
           .with(plan, params, nodes, modulepath).and_return(expected_output)
@@ -506,8 +506,8 @@ describe RefArchSetup::BoltHelper do
 
   describe "install_forge_modules" do
     before do
-      @expected_command = "bolt puppetfile install --modulepath "\
-      "#{RefArchSetup::BoltHelper::FORGE_MODULE_PATH}"
+      @expected_command = "cd #{RefArchSetup::RAS_PATH} && bolt puppetfile install --modulepath "\
+      "#{RefArchSetup::FORGE_MODULE_PATH}"
       @error_message = "ERROR: bolt command failed!"
     end
 
