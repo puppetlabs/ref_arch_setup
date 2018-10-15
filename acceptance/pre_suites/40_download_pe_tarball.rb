@@ -4,8 +4,8 @@ test_name "download PE tarball" do
     bolt = "bolt task run"
     task = "ref_arch_setup::download_pe_tarball"
     url = "url=#{pe_url}"
-    destination = "destination=#{RAS_PATH}"
-    modulepath = "--modulepath #{RAS_MODULES_PATH}"
+    destination = "destination=#{BEAKER_RAS_PATH}"
+    modulepath = "--modulepath #{BEAKER_RAS_MODULES_PATH}"
     nodes = "--nodes localhost,#{target_master}"
     user = "--user root"
 

@@ -1,9 +1,9 @@
-test_name "perform install on local master with tarball path" do
+test_name "perform install on local master with tarball url" do
   step "perform install" do
-    filename = get_pe_tarball_filename(controller)
+    pe_url = get_pe_tarball_url(controller)
     primary_master = "--primary-master=localhost"
-    pe_tarball = "--pe-tarball=#{RAS_PATH}/#{filename}"
-    pe_conf = "--pe-conf=#{RAS_PE_CONF}"
+    pe_tarball = "--pe-tarball=#{pe_url}"
+    pe_conf = "--pe-conf=#{BEAKER_RAS_PE_CONF}"
     command = "ref_arch_setup install #{primary_master} #{pe_tarball} #{pe_conf}"
 
     puts command

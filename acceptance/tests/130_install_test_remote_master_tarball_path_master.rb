@@ -1,9 +1,9 @@
-test_name "perform install on remote master with tarball url" do
+test_name "perform install on remote master with tarball path on master" do
   step "perform install" do
-    pe_url = get_pe_tarball_url(target_master)
+    filename = get_pe_tarball_filename(target_master)
     primary_master = "--primary-master=#{target_master}"
-    pe_tarball = "--pe-tarball=#{pe_url}"
-    pe_conf = "--pe-conf=#{RAS_PE_CONF}"
+    pe_tarball = "--pe-tarball=#{target_master}:#{BEAKER_RAS_PATH}/#{filename}"
+    pe_conf = "--pe-conf=#{BEAKER_RAS_PE_CONF}"
     command = "ref_arch_setup install #{primary_master} #{pe_tarball} #{pe_conf}"
 
     puts command
