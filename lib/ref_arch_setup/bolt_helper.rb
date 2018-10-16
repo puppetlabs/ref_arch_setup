@@ -10,6 +10,15 @@ module RefArchSetup
 
     @bolt_options = BOLT_DEFAULT_OPTIONS
 
+    # custom exception class for bolt command errors
+    class BoltCommandError < StandardError
+      attr_reader :output
+      def initialize(message, output)
+        @output = output
+        super(message)
+      end
+    end
+
     # Initializes the bolt options to the default
     #
     # @author Bill Claytor
@@ -69,7 +78,9 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.make_dir(dir, nodes)
       cmd = "mkdir -p #{dir}"
-      success = run_cmd_with_bolt(cmd, nodes)
+      output = run_cmd_with_bolt(cmd, nodes)
+      success = output.nil? ? false : true
+
       raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
     end
@@ -91,7 +102,9 @@ module RefArchSetup
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
       puts
 
-      raise error_message unless success
+      # raise error_message unless success
+      raise BoltCommandError.new(error_message, output) unless success
+
       return output
     end
 
@@ -109,9 +122,7 @@ module RefArchSetup
       command << bolt_options_string
 
       output = run_command(command, "ERROR: bolt command failed!")
-      success = true unless output.nil?
-
-      return success
+      return output
     end
 
     # Run a task with bolt on given nodes
@@ -132,9 +143,7 @@ module RefArchSetup
       command << bolt_options_string
 
       output = run_command(command, "ERROR: bolt task failed!")
-      success = true unless output.nil?
-
-      return success
+      return output
     end
 
     # Run a plan with bolt on given nodes
@@ -155,7 +164,6 @@ module RefArchSetup
       command << bolt_options_string
 
       output = run_command(command, "ERROR: bolt plan failed!")
-
       return output
     end
 
@@ -170,7 +178,8 @@ module RefArchSetup
     # @return [true,false] Based on exit status of the bolt task
     def self.run_forge_task_with_bolt(task, params, nodes)
       install_forge_modules
-      run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+      output = run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+      return output
     end
 
     # Run a plan from the forge with bolt on given nodes
@@ -184,7 +193,8 @@ module RefArchSetup
     # @return [string] The output from the bolt run
     def self.run_forge_plan_with_bolt(plan, params, nodes)
       install_forge_modules
-      run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
+      output = run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
+      return output
     end
 
     # Convert params to string for bolt
@@ -196,7 +206,6 @@ module RefArchSetup
     #
     # @return [String] stringified params
     def self.params_to_string(params)
-      # str = ""
       str = params.map { |k, v| "#{k}=#{v}" }.join(" ")
       return str
     end
@@ -209,7 +218,7 @@ module RefArchSetup
     # @param [string] destination Path to upload to
     # @param [string] nodes Host to put files on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [output] The output returned from the bolt command
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
       command << " --nodes #{nodes}"
@@ -217,9 +226,7 @@ module RefArchSetup
 
       error_message = "ERROR: failed to upload file #{source} to #{destination} on #{nodes}"
       output = run_command(command, error_message)
-      success = true unless output.nil?
-
-      return success
+      return output
     end
 
     # Install modules from the forge via Puppetfile
@@ -230,9 +237,7 @@ module RefArchSetup
     def self.install_forge_modules
       command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
       output = run_command(command, "ERROR: bolt command failed!")
-      success = true unless output.nil?
-
-      return success
+      return output
     end
   end
 end

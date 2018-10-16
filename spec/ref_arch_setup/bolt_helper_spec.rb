@@ -63,7 +63,7 @@ describe RefArchSetup::BoltHelper do
       @expected_command = "mkdir -p #{dir}"
     end
 
-    context "when run_cmd_with_bolt returns true" do
+    context "when run_cmd_with_bolt returns output" do
       it "returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
           .with(@expected_command, nodes).and_return(true)
@@ -71,12 +71,33 @@ describe RefArchSetup::BoltHelper do
       end
     end
 
-    context "when run_cmd_with_bolt returns false" do
+    context "when run_cmd_with_bolt returns nil" do
       it "raises an error" do
         error = "ERROR: Failed to make dir #{dir} on all nodes"
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@expected_command, nodes).and_return(false)
+          .with(@expected_command, nodes).and_return(nil)
         expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
+      end
+    end
+
+    context "when run_cmd_with_bolt returns nil" do
+      it "raises an error" do
+        error = "ERROR: Failed to make dir #{dir} on all nodes"
+        expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
+          .with(@expected_command, nodes).and_return(nil)
+        expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
+      end
+    end
+
+    context "when run_cmd_with_bolt raises an error" do
+      # TODO: should it trap the error?
+      # error = "ERROR: Failed to make dir #{dir} on all nodes"
+      it "does not trap the error" do
+        run_command_error = "run command failed!"
+        expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
+          .with(@expected_command, nodes).and_raise(RuntimeError, run_command_error)
+        expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }
+          .to raise_error(RuntimeError, run_command_error)
       end
     end
   end
@@ -139,7 +160,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:puts).with("Output was: #{expected_output}")
 
         expect { RefArchSetup::BoltHelper.run_command(@expected_command) }
-          .to raise_error(RuntimeError)
+          .to raise_error(RefArchSetup::BoltHelper::BoltCommandError)
       end
 
       context "when the error is specified" do
@@ -159,7 +180,7 @@ describe RefArchSetup::BoltHelper do
           allow(RefArchSetup::BoltHelper).to receive(:puts)
 
           expect { RefArchSetup::BoltHelper.run_command(@expected_command, error) }
-            .to raise_error(RuntimeError, error)
+            .to raise_error(RefArchSetup::BoltHelper::BoltCommandError, error)
         end
       end
 
@@ -180,7 +201,7 @@ describe RefArchSetup::BoltHelper do
           allow(RefArchSetup::BoltHelper).to receive(:puts)
 
           expect { RefArchSetup::BoltHelper.run_command(@expected_command) }
-            .to raise_error(RuntimeError, error)
+            .to raise_error(RefArchSetup::BoltHelper::BoltCommandError, error)
         end
       end
     end
@@ -193,13 +214,13 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when bolt succeeds and returns output" do
-      it "returns true" do
+      it "returns the expected output" do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(true)
+        expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(expected_output)
       end
     end
 
@@ -225,7 +246,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(true)
+        RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)
       end
     end
     context "when ssh private key is sent" do
@@ -240,7 +261,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(true)
+        RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)
       end
     end
   end
@@ -266,8 +287,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes, modulepath))
-          .to eq(true)
+        RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes, modulepath)
       end
     end
 
@@ -283,13 +303,13 @@ describe RefArchSetup::BoltHelper do
         RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)
       end
 
-      it "returns true" do
+      it "returns the expected output" do
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(true)
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(expected_output)
       end
     end
 
@@ -467,13 +487,13 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when bolt works and returns true" do
-      it "returns true" do
+      it "returns the expected output" do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(true)
+        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(expected_output)
       end
     end
 
@@ -499,7 +519,7 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(true)
+        RefArchSetup::BoltHelper.upload_file(source, destination, nodes)
       end
     end
   end
@@ -512,18 +532,18 @@ describe RefArchSetup::BoltHelper do
     end
 
     context "when bolt works and returns output" do
-      it "returns true" do
+      it "returns the expected output" do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.install_forge_modules).to eq(true)
+        expect(RefArchSetup::BoltHelper.install_forge_modules).to eq(expected_output)
       end
     end
 
     context "when bolt fails" do
-      it "raises the specified error" do
+      it "does not trap the error" do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_raise(RuntimeError, @error_message)
 

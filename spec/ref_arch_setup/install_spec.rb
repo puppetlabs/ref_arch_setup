@@ -25,6 +25,8 @@ describe RefArchSetup::Install do
   end
 
   let(:test_uri) { Class.new }
+  let(:bolt_output_success) { "Bolt command was successful" }
+  let(:bolt_output_failure) { "Bolt command failed!" }
 
   describe "#initialize" do
     it "checks that the passed in parameters get used" do
@@ -47,7 +49,7 @@ describe RefArchSetup::Install do
           expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
             .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-            .and_return(true)
+            .and_return(bolt_output_success)
 
           install.bootstrap(pe_conf_path, pe_tarball, nil)
         end
@@ -65,7 +67,7 @@ describe RefArchSetup::Install do
           expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
             .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-            .and_return(true)
+            .and_return(bolt_output_success)
 
           install.bootstrap(pe_conf_path, pe_tarball, "2077.1.4")
         end
@@ -87,7 +89,7 @@ describe RefArchSetup::Install do
 
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
           .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-          .and_return(true)
+          .and_return(bolt_output_success)
 
         install.bootstrap(pe_conf_path, nil, pe_version_number)
       end
@@ -103,7 +105,7 @@ describe RefArchSetup::Install do
     end
 
     context "when setup methods do not raise errors" do
-      context "when run_task_with_bolt returns true" do
+      context "when run_task_with_bolt returns output" do
         it "returns true" do
           allow(install).to receive(:puts)
 
@@ -112,13 +114,13 @@ describe RefArchSetup::Install do
           expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
             .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-            .and_return(true)
+            .and_return(bolt_output_success)
           expect(install.bootstrap(pe_conf_path, pe_tarball, nil)).to eq(true)
         end
       end
 
-      context "when run_task_with_bolt returns false" do
-        it "returns false" do
+      context "when run_task_with_bolt raises an error" do
+        it "does not trap the error" do
           allow(install).to receive(:puts)
 
           expect(install).to receive(:make_tmp_work_dir).and_return(true)
@@ -126,14 +128,15 @@ describe RefArchSetup::Install do
           expect(install).to receive(:handle_pe_tarball).and_return(tarball_path_on_master)
           expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
             .with(RefArchSetup::INSTALL_PE_TASK, install_task_params, target_master)
-            .and_return(false)
-          expect(install.bootstrap(pe_conf_path, pe_tarball, nil)).to eq(false)
+            .and_raise(RuntimeError)
+          expect { install.bootstrap(pe_conf_path, pe_tarball, nil) }
+            .to raise_error(RuntimeError)
         end
       end
     end
 
     context "When make_tmp_dir raises an error" do
-      it "should not be trapped" do
+      it "does not trap the error" do
         allow(install).to receive(:puts)
 
         expect(install).to receive(:make_tmp_work_dir).and_raise(RuntimeError)
@@ -142,7 +145,7 @@ describe RefArchSetup::Install do
     end
 
     context "When handle_pe_conf raises an error" do
-      it "should not be trapped" do
+      it "does not trap the error" do
         allow(install).to receive(:puts)
 
         expect(install).to receive(:make_tmp_work_dir).and_return(true)
@@ -399,7 +402,7 @@ describe RefArchSetup::Install do
     context "when the file exists on the target master" do
       it "returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@command, target_master).and_return(true)
+          .with(@command, target_master).and_return(bolt_output_success)
         expect(install.file_exist_on_target_master?(pe_tarball)).to eq(true)
       end
     end
@@ -407,7 +410,7 @@ describe RefArchSetup::Install do
     context "when the file does not exist on the target master" do
       it "returns false" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@command, target_master).and_return(false)
+          .with(@command, target_master).and_raise(RuntimeError)
         expect(install.file_exist_on_target_master?(pe_tarball)).to eq(false)
       end
     end
@@ -425,12 +428,13 @@ describe RefArchSetup::Install do
     end
 
     context "when the download is not successful" do
-      it "returns false" do
+      it "does not trap the error" do
         allow(install).to receive(:puts)
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
           .with(RefArchSetup::DOWNLOAD_PE_TARBALL_TASK, download_task_params, target_master)
-          .and_return(false)
-        expect(install.download_pe_tarball(pe_tarball_url, target_master)).to eq(false)
+          .and_raise(RuntimeError)
+        expect { install.download_pe_tarball(pe_tarball_url, target_master) }
+          .to raise_error(RuntimeError)
       end
     end
   end
@@ -554,6 +558,10 @@ describe RefArchSetup::Install do
 
           context "when the subsequent download and move is not successful" do
             it "raises an error" do
+              error_a = "download_pe_tarball failed"
+              error_b = "download_and_move_pe_tarball"
+              remote_error = "Failed downloading #{pe_tarball_url} to localhost and moving to #{remote_target_master}"
+
               expect(install).to receive(:parse_url).with(pe_tarball_url).and_return(true)
               expect(install).to receive(:target_master_is_localhost?).and_return(false)
 
@@ -561,22 +569,22 @@ describe RefArchSetup::Install do
 
               expect(install).to receive(:download_pe_tarball)
                 .with(pe_tarball_url, remote_target_master)
-                .and_raise(RuntimeError)
+                .and_raise(RuntimeError, error_a)
 
               expect(install).to receive(:download_and_move_pe_tarball)
                 .with(pe_tarball_url)
-                .and_raise(RuntimeError)
+                .and_return(false)
 
               expect { install.handle_tarball_url(pe_tarball_url) }
-                .to raise_error(RuntimeError)
+                .to raise_error(RuntimeError, remote_error)
             end
           end
         end
       end
     end
 
-    context "when the url is not successfully parsed" do
-      it "raises an error" do
+    context "when parse_url raises an error" do
+      it "does not trap the error" do
         expect(install).to receive(:parse_url).with("http:// 123").and_raise(RuntimeError)
 
         expect { install.handle_tarball_url("http:// 123") }
@@ -594,17 +602,18 @@ describe RefArchSetup::Install do
       it "returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
           .with(@command, target_master)
-          .and_return(true)
+          .and_return(bolt_output_success)
         expect(install.copy_pe_tarball_on_target_master(pe_tarball)).to eq(true)
       end
     end
 
     context "when the file is not copied successfully" do
-      it "returns false" do
+      it "does not trap the error" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
           .with(@command, target_master)
-          .and_return(false)
-        expect(install.copy_pe_tarball_on_target_master(pe_tarball)).to eq(false)
+          .and_raise(RuntimeError)
+        expect { install.copy_pe_tarball_on_target_master(pe_tarball) }
+          .to raise_error(RuntimeError)
       end
     end
 
@@ -722,7 +731,9 @@ describe RefArchSetup::Install do
         end
 
         context "when the upload is not successful" do
-          it "raises an error" do
+          it "raises the expected error" do
+            copy_error = "Unable to copy tarball to the RAS working directory on #{target_master}"
+
             expect(File).to receive(:basename).with(pe_tarball).and_return(pe_tarball_filename)
             expect(install).to receive(:target_master_is_localhost?).and_return(true)
             expect(File).to receive(:exist?).with(pe_tarball).and_return(true)
@@ -730,19 +741,21 @@ describe RefArchSetup::Install do
               .with(pe_tarball).and_return(false)
 
             expect { install.handle_tarball_path(pe_tarball) }
-              .to raise_error(RuntimeError)
+              .to raise_error(RuntimeError, copy_error)
           end
         end
       end
 
       context "when the tarball does not exist" do
-        it "raises an error" do
+        it "raises the expected error" do
+          file_not_found_error = "File not found: #{pe_tarball}"
+
           expect(File).to receive(:basename).with(pe_tarball).and_return(pe_tarball_filename)
           expect(install).to receive(:target_master_is_localhost?).and_return(true)
           expect(File).to receive(:exist?).with(pe_tarball).and_return(false)
           expect(install).not_to receive(:upload_pe_tarball)
           expect { install.handle_tarball_path(pe_tarball) }
-            .to raise_error(RuntimeError)
+            .to raise_error(RuntimeError, file_not_found_error)
         end
       end
     end
@@ -766,7 +779,9 @@ describe RefArchSetup::Install do
       end
 
       context "when the tarball is not handled successfully" do
-        it "raises an error" do
+        it "raises the expected error" do
+          upload_error = "Unable to upload tarball to the RAS working directory on #{remote_target_master}"
+
           expect(File).to receive(:basename).with(pe_tarball).and_return(pe_tarball_filename)
           expect(install).to receive(:target_master_is_localhost?).and_return(false)
 
@@ -774,7 +789,7 @@ describe RefArchSetup::Install do
             .with(pe_tarball).and_return(false)
 
           expect { install.handle_tarball_path(pe_tarball) }
-            .to raise_error(RuntimeError)
+            .to raise_error(RuntimeError, upload_error)
         end
       end
     end
@@ -850,7 +865,7 @@ describe RefArchSetup::Install do
   describe "#make_tmp_work_dir" do
     context "with defaults and make_dir returns true" do
       it "returns true" do
-        expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
+        expect(RefArchSetup::BoltHelper).to receive(:make_dir)
           .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(true)
         expect(install.make_tmp_work_dir).to eq(true)
       end
@@ -858,87 +873,118 @@ describe RefArchSetup::Install do
 
     context "with option values passed in and make_dir returns true" do
       it "returns true" do
-        expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
+        expect(RefArchSetup::BoltHelper).to receive(:make_dir)
           .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(true)
         expect(install.make_tmp_work_dir).to eq(true)
       end
     end
 
-    context "with option values passed in and make_dir returns false" do
-      it "returns false" do
-        expect(RefArchSetup::BoltHelper).to receive(:make_dir)\
-          .with(RefArchSetup::TMP_WORK_DIR, target_master).and_return(false)
-        expect(install.make_tmp_work_dir).to eq(false)
+    context "with option values passed in and make_dir raises an error" do
+      it "does not trap the error" do
+        expect(RefArchSetup::BoltHelper).to receive(:make_dir)
+          .with(RefArchSetup::TMP_WORK_DIR, target_master).and_raise(RuntimeError)
+        expect { install.make_tmp_work_dir }.to raise_error(RuntimeError)
       end
     end
   end
 
   describe "#upload_pe_conf" do
-    context "with defaults and upload_file returns true" do
+    context "with defaults and upload_file returns output" do
       it "returns true" do
         src = "#{RefArchSetup::RAS_FIXTURES_PATH}/pe.conf"
         dest = "#{RefArchSetup::TMP_WORK_DIR}/pe.conf"
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(true)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(bolt_output_success)
         expect(install.upload_pe_conf).to eq(true)
       end
     end
 
-    context "with option values passed in and upload_file returns true" do
+    context "with option values passed in and upload_file returns output" do
       it "returns true" do
         src = pe_conf_path
         dest = "/tmp/foo"
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(true)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(bolt_output_success)
         expect(install.upload_pe_conf(src, dest, target_master)).to eq(true)
       end
     end
 
-    context "with option values passed in and upload_file returns false" do
+    context "with option values passed in and upload_file returns nil" do
       it "returns false" do
         src = pe_conf_path
         dest = "/tmp/foo"
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(false)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(nil)
         expect(install.upload_pe_conf(src, dest, target_master)).to eq(false)
+      end
+    end
+
+    context "with option values passed in and upload_file raises an error" do
+      it "does not trap the error" do
+        src = pe_conf_path
+        dest = "/tmp/foo"
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_raise(RuntimeError)
+        expect { install.upload_pe_conf(src, dest, target_master) }
+          .to raise_error(RuntimeError)
       end
     end
   end
 
   describe "#upload_pe_tarball" do
-    context "with defaults and upload_file returns true" do
+    context "with defaults and upload_file returns output" do
       it "returns true" do
         src = "/tmp/foo.tar"
         dest = "#{RefArchSetup::TMP_WORK_DIR}/foo.tar"
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
+        expected_output = "All Good"
+
         expect(install).to receive(:puts).with(message)
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(true)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(expected_output)
         expect(install.upload_pe_tarball(src)).to eq(true)
       end
     end
 
-    context "with option values passed in and upload_file returns true" do
+    context "with option values passed in and upload_file returns output" do
       it "returns true" do
         src = pe_tarball
         dest = tarball_path_on_master
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
+        expected_output = "All Good"
+
         expect(install).to receive(:puts).with(message)
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(true)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(expected_output)
         expect(install.upload_pe_tarball(src)).to eq(true)
       end
     end
 
-    context "with option values passed in and upload_file returns false" do
-      it "returns false" do
+    context "with option values passed in and upload_file returns nil" do
+      it "returns true" do
         src = pe_tarball
         dest = tarball_path_on_master
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
+        expected_output = "All Good"
+
         expect(install).to receive(:puts).with(message)
-        expect(RefArchSetup::BoltHelper).to receive(:upload_file)\
-          .with(src, dest, target_master).and_return(false)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_return(nil)
         expect(install.upload_pe_tarball(src)).to eq(false)
+      end
+    end
+
+    context "with option values passed in and upload_file raises an error" do
+      it "does not trap the error" do
+        src = pe_tarball
+        dest = tarball_path_on_master
+        message = "Attempting upload from #{src} to #{dest} on #{target_master}"
+        error = "Upload failed!!!"
+        expect(install).to receive(:puts).with(message)
+        expect(RefArchSetup::BoltHelper).to receive(:upload_file)
+          .with(src, dest, target_master).and_raise(RuntimeError, error)
+
+        expect { install.upload_pe_tarball(src) }.to raise_error(RuntimeError, error)
       end
     end
   end
