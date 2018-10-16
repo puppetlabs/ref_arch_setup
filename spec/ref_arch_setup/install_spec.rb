@@ -156,6 +156,27 @@ describe RefArchSetup::Install do
     end
   end
 
+  describe "#specified_option?" do
+    context "when the option is nil" do
+      it "returns false" do
+        value = nil
+        expect(install.specified_option?(value)).to eq(false)
+      end
+    end
+    context "when the option is empty" do
+      it "returns false" do
+        value = ""
+        expect(install.specified_option?(value)).to eq(false)
+      end
+    end
+    context "when the option is neither nil nor empty" do
+      it "returns true" do
+        value = "good"
+        expect(install.specified_option?(value)).to eq(true)
+      end
+    end
+  end
+
   describe "#handle_pe_conf_path" do
     context "When user gave a value for pe.conf that is a directory" do
       context "When a pe.conf is found in the dir" do
