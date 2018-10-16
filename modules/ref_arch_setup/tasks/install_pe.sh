@@ -26,6 +26,18 @@ execute_command() {
     fi
 }
 
+#check that pe.conf is present
+if [ ! -f $PT_pe_conf_path ]; then
+  echo "ERROR: Specified pe.conf file not found: $PT_pe_conf_path"
+  exit 1
+fi
+
+#check that pe tarball is present
+if [ ! -f $PT_pe_tarball_path ]; then
+  echo "ERROR: Specified pe tarball not found: $PT_pe_tarball_path"
+  exit 1
+fi
+
 # Install tar using existing package manager if it is not already installed
 if [ "" == "`which tar`" ]
 then
