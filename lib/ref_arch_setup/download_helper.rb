@@ -141,11 +141,11 @@ module RefArchSetup
     #
     def self.ensure_supported_prod_version(version)
       major_version = version.split(".")[0]
-      supported_version = MIN_PROD_VERSION.split(".")[0]
+      supported_version = @min_prod_version.split(".")[0]
 
       supported = major_version >= supported_version ? true : false
       puts "Specified version #{version} is supported by RAS" if supported
-      puts "The minimum supported version is #{MIN_PROD_VERSION}" unless supported
+      puts "The minimum supported version is #{@min_prod_version}" unless supported
 
       raise "Specified version #{version} is not supported by RAS" unless supported
 
@@ -294,7 +294,7 @@ module RefArchSetup
       facts = retrieve_facts(host)
 
       status = facts[0]["status"]
-      raise "Status for host #{host} is failure" if status == "failure"
+      raise "Facts indicate that status for host #{host} is failure" if status == "failure"
 
       os = facts[0]["result"]["os"]
       os_name = os["name"]

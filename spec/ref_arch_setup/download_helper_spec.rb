@@ -410,7 +410,7 @@ describe RefArchSetup::DownloadHelper do
 
   describe "#ensure_supported_prod_version" do
     context "when the version is supported" do
-      version = "2018.1.4"
+      version = "2076.1.1"
       message = "Specified version #{version} is supported by RAS"
 
       it "outputs a confirmation" do
@@ -426,7 +426,7 @@ describe RefArchSetup::DownloadHelper do
 
     context "when the version is not supported" do
       version = "2017.1.4"
-      message = "The minimum supported version is #{subject::MIN_PROD_VERSION}"
+      message = "The minimum supported version is #{TEST_MIN_PROD_VERSION}"
       error = "Specified version #{version} is not supported by RAS"
 
       it "outputs an explanation (and raises an error)" do
