@@ -43,7 +43,8 @@ module RefArchSetup
         puts "Proceeding with specified pe_tarball: #{pe_tarball}"
         @pe_tarball = pe_tarball
       else
-        raise "Either a pe_version or pe_tarball must be specified" unless specified_option?(pe_version)
+        options_error = "Either a pe_version or pe_tarball must be specified"
+        raise options_error unless specified_option?(pe_version)
         puts "Proceeding with specified pe_version: #{pe_version}"
         @pe_tarball = RefArchSetup::DownloadHelper.build_prod_tarball_url(pe_version,
                                                                           @target_master)

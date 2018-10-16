@@ -558,9 +558,9 @@ describe RefArchSetup::Install do
 
           context "when the subsequent download and move is not successful" do
             it "raises an error" do
-              error_a = "download_pe_tarball failed"
-              error_b = "download_and_move_pe_tarball"
-              remote_error = "Failed downloading #{pe_tarball_url} to localhost and moving to #{remote_target_master}"
+              download_error = "download_pe_tarball failed"
+              remote_error = "Failed downloading #{pe_tarball_url} to localhost and moving to"\
+              " #{remote_target_master}"
 
               expect(install).to receive(:parse_url).with(pe_tarball_url).and_return(true)
               expect(install).to receive(:target_master_is_localhost?).and_return(false)
@@ -569,7 +569,7 @@ describe RefArchSetup::Install do
 
               expect(install).to receive(:download_pe_tarball)
                 .with(pe_tarball_url, remote_target_master)
-                .and_raise(RuntimeError, error_a)
+                .and_raise(RuntimeError, download_error)
 
               expect(install).to receive(:download_and_move_pe_tarball)
                 .with(pe_tarball_url)
@@ -780,7 +780,8 @@ describe RefArchSetup::Install do
 
       context "when the tarball is not handled successfully" do
         it "raises the expected error" do
-          upload_error = "Unable to upload tarball to the RAS working directory on #{remote_target_master}"
+          upload_error = "Unable to upload tarball to the RAS working directory on"\
+            " #{remote_target_master}"
 
           expect(File).to receive(:basename).with(pe_tarball).and_return(pe_tarball_filename)
           expect(install).to receive(:target_master_is_localhost?).and_return(false)
@@ -965,11 +966,11 @@ describe RefArchSetup::Install do
         src = pe_tarball
         dest = tarball_path_on_master
         message = "Attempting upload from #{src} to #{dest} on #{target_master}"
-        expected_output = "All Good"
+        expected_output = nil
 
         expect(install).to receive(:puts).with(message)
         expect(RefArchSetup::BoltHelper).to receive(:upload_file)
-          .with(src, dest, target_master).and_return(nil)
+          .with(src, dest, target_master).and_return(expected_output)
         expect(install.upload_pe_tarball(src)).to eq(false)
       end
     end

@@ -309,7 +309,8 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes)).to eq(expected_output)
+        expect(RefArchSetup::BoltHelper.run_task_with_bolt(task, params, nodes))
+          .to eq(expected_output)
       end
     end
 
@@ -493,7 +494,8 @@ describe RefArchSetup::BoltHelper do
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
           .with(@expected_command, @error_message).and_return(expected_output)
 
-        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes)).to eq(expected_output)
+        expect(RefArchSetup::BoltHelper.upload_file(source, destination, nodes))
+          .to eq(expected_output)
       end
     end
 
