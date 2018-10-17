@@ -67,6 +67,8 @@ module RefArchSetup
     #
     # @param [string] version The desired version of PE
     #
+    # @raise [RuntimeError] If the specified version is not valid
+    #
     # @return [string] The corresponding PE version
     #
     # @example:
@@ -111,6 +113,8 @@ module RefArchSetup
     #
     # @param [string] version The specified version of PE
     #
+    # @raise [RuntimeError] If the specified version is not found
+    #
     # @return [true, false] Whether the specified version was found
     #
     # @example:
@@ -133,6 +137,8 @@ module RefArchSetup
     # @author Bill Claytor
     #
     # @param [string] version The specified version of PE
+    #
+    # @raise [RuntimeError] If the specified version is not supported
     #
     # @return [true, false] Whether the specified version is supported
     #
@@ -208,6 +214,8 @@ module RefArchSetup
     # @param [Array] valid_response_codes The list of valid response codes
     # @param [Array] invalid_response_bodies The list of invalid response bodies
     #
+    # @raise [RuntimeError] If the response is not valid
+    #
     # @return [true,false] Based on whether the response is valid
     #
     # @example
@@ -258,6 +266,8 @@ module RefArchSetup
     # *** Specifying the host will determine and validate the platform for the host
     # *** Specifying the platform will ignore the host value and only perform the validation
     #
+    # @raise [RuntimeError] If the platform is not valid
+    #
     # @return [string] The PE platform
     #
     # @example:
@@ -281,6 +291,9 @@ module RefArchSetup
     # @author Bill Claytor
     #
     # @param [string] host The target host
+    #
+    # @raise [RuntimeError] If the facts status is 'failure'
+    # @raise [RuntimeError] If the platform can't be determined
     #
     # @return [string] The corresponding platform for the specified host
     #
@@ -334,7 +347,9 @@ module RefArchSetup
     #
     # @param [string] hosts The host(s) from which to retrieve facts
     #
-    # @return [string] The retrieved facts
+    # @raise [JSON::ParserError] If the output from the bolt plan can't be parsed
+    #
+    # @return [Array<Hash] The retrieved facts
     #
     # @example:
     #   facts = retrieve_facts("localhost")

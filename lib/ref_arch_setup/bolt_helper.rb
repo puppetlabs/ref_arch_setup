@@ -75,7 +75,9 @@ module RefArchSetup
     # @param [string] dir Directory to create
     # @param [string] nodes Hosts to make dir on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [RuntimeError] If the bolt command is not successful
+    #
+    # @return [true,false] Based on the output of the bolt task
     def self.make_dir(dir, nodes)
       cmd = "mkdir -p #{dir}"
       output = run_cmd_with_bolt(cmd, nodes)
@@ -91,6 +93,8 @@ module RefArchSetup
     #
     # @param command [string] The command to run
     # @param error_message [string] The error to raise if the command is not successful
+    #
+    # @raise [BoltCommandError] If the command is not successful
     #
     # @return [string] The output returned from the command
     def self.run_command(command, error_message = "ERROR: command failed!")
@@ -112,10 +116,10 @@ module RefArchSetup
     #
     # @author Randell Pelak
     #
-    # @param [string] cmd Command to run on nodes
-    # @param [string] nodes Host to make dir on
+    # @param [string] cmd Command to run on the specified nodes
+    # @param [string] nodes Nodes on which the command should be run
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [string] The output returned from the bolt command
     def self.run_cmd_with_bolt(cmd, nodes)
       command = "bolt command run '#{cmd}'"
       command << " --nodes #{nodes}"
@@ -134,7 +138,7 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run task on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [string] The output returned from the bolt command
     def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
@@ -155,7 +159,7 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run plan on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [string] The output from the bolt run
+    # @return [string] The output returned from the bolt command
     def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
@@ -175,7 +179,7 @@ module RefArchSetup
     # @param params [hash] Task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [string] The output returned from the bolt command
     def self.run_forge_task_with_bolt(task, params, nodes)
       install_forge_modules
       output = run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
@@ -190,7 +194,7 @@ module RefArchSetup
     # @param params [hash] Plan parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run plan on
     #
-    # @return [string] The output from the bolt run
+    # @return [string] The output returned from the bolt command
     def self.run_forge_plan_with_bolt(plan, params, nodes)
       install_forge_modules
       output = run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
@@ -230,10 +234,11 @@ module RefArchSetup
     end
 
     # Install modules from the forge via Puppetfile
+    # The modules are defined in Boltdir/Puppetfile
     #
     # @author Bill Claytor
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [string] The output returned from the bolt command
     def self.install_forge_modules
       command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
       output = run_command(command, "ERROR: bolt command failed!")
