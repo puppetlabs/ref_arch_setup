@@ -38,6 +38,7 @@ module RefArchSetup
     # @raise [RuntimeError] Unless either a pe_tarball or pe_version is specified
     # @raise [RuntimeError] If a valid pe_tarball is not available
     # @raise [RuntimeError] If a RAS working directory can not be created
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [true,false] Based on exit status of the bolt task
     # rubocop:disable Metrics/MethodLength
@@ -54,7 +55,6 @@ module RefArchSetup
                                                                           @target_master)
       end
 
-      raise "Unable to proceed without pe_tarball" unless @pe_tarball
       raise "Unable to create RAS working directory" unless make_tmp_work_dir
 
       conf_path_on_master = handle_pe_conf(pe_conf_path)
@@ -276,7 +276,6 @@ module RefArchSetup
     def handle_tarball_url(url)
       parse_url(url)
       tarball_path_on_master = "#{TMP_WORK_DIR}/#{@pe_tarball_filename}"
-      remote_error = "Failed downloading #{url} to localhost and moving to #{@target_master}"
       success = false
 
       if target_master_is_localhost?
@@ -291,7 +290,7 @@ module RefArchSetup
           puts "Unable to download the tarball directly to #{@target_master}"
           success = download_and_move_pe_tarball(url)
         ensure
-          raise remote_error unless success
+          raise "Failed downloading #{url} locally and moving to #{@target_master}" unless success
         end
 
       end
@@ -408,10 +407,11 @@ module RefArchSetup
     #
     # @author Randell Pelak
     #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
     # @return [true,false] Based on exit status of the bolt task
     def make_tmp_work_dir
-      success = BoltHelper.make_dir(TMP_WORK_DIR, @target_master)
-      return success
+      BoltHelper.make_dir(TMP_WORK_DIR, @target_master)
     end
 
     # Upload the pe.conf to the target_host

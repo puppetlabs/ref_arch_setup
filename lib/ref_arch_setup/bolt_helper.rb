@@ -75,15 +75,14 @@ module RefArchSetup
     # @param [string] dir Directory to create
     # @param [string] nodes Hosts to make dir on
     #
-    # @raise [RuntimeError] If the bolt command is not successful
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
-    # @return [true,false] Based on the output of the bolt task
+    # @return [string] The output returned from the command
     def self.make_dir(dir, nodes)
+      error_message = "ERROR: Failed to make dir #{dir} on all nodes"
       cmd = "mkdir -p #{dir}"
-      output = run_cmd_with_bolt(cmd, nodes)
+      output = run_cmd_with_bolt(cmd, nodes, error_message)
       success = output.nil? ? false : true
-
-      raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
       return success
     end
 
@@ -94,7 +93,7 @@ module RefArchSetup
     # @param command [string] The command to run
     # @param error_message [string] The error to raise if the command is not successful
     #
-    # @raise [BoltCommandError] If the command is not successful
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the command
     def self.run_command(command, error_message = "ERROR: command failed!")
@@ -107,6 +106,7 @@ module RefArchSetup
       puts
 
       # raise error_message unless success
+      raise BoltCommandError.new(error_message, output) if output.nil?
       raise BoltCommandError.new(error_message, output) unless success
 
       return output
@@ -118,14 +118,17 @@ module RefArchSetup
     #
     # @param [string] cmd Command to run on the specified nodes
     # @param [string] nodes Nodes on which the command should be run
+    # @param [string] error_message The message that should be used if an error is raised
+    #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
-    def self.run_cmd_with_bolt(cmd, nodes)
+    def self.run_cmd_with_bolt(cmd, nodes, error_message = "ERROR: bolt command failed!")
       command = "bolt command run '#{cmd}'"
       command << " --nodes #{nodes}"
       command << bolt_options_string
 
-      output = run_command(command, "ERROR: bolt command failed!")
+      output = run_command(command, error_message)
       return output
     end
 
@@ -137,6 +140,8 @@ module RefArchSetup
     # @param params [hash] task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
     # @param modulepath [string] The modulepath to use when running bolt
+    #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
     def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
@@ -159,6 +164,8 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run plan on
     # @param modulepath [string] The modulepath to use when running bolt
     #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
     # @return [string] The output returned from the bolt command
     def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
@@ -179,6 +186,8 @@ module RefArchSetup
     # @param params [hash] Task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
     #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
     # @return [string] The output returned from the bolt command
     def self.run_forge_task_with_bolt(task, params, nodes)
       install_forge_modules
@@ -193,6 +202,8 @@ module RefArchSetup
     # @param plan [string] Plan to run on nodes
     # @param params [hash] Plan parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run plan on
+    #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
     def self.run_forge_plan_with_bolt(plan, params, nodes)
@@ -222,6 +233,8 @@ module RefArchSetup
     # @param [string] destination Path to upload to
     # @param [string] nodes Host to put files on
     #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
     # @return [output] The output returned from the bolt command
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
@@ -238,10 +251,12 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
     # @return [string] The output returned from the bolt command
     def self.install_forge_modules
       command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
-      output = run_command(command, "ERROR: bolt command failed!")
+      output = run_command(command, "ERROR: bolt puppetfile install failed!")
       return output
     end
   end

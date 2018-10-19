@@ -580,8 +580,8 @@ describe RefArchSetup::Install do
           context "when the subsequent download and move is not successful" do
             it "raises an error" do
               download_error = "download_pe_tarball failed"
-              remote_error = "Failed downloading #{pe_tarball_url} to localhost and moving to"\
-              " #{remote_target_master}"
+              remote_error = "Failed downloading #{pe_tarball_url} locally and moving"\
+                " to #{remote_target_master}"
 
               expect(install).to receive(:parse_url).with(pe_tarball_url).and_return(true)
               expect(install).to receive(:target_master_is_localhost?).and_return(false)

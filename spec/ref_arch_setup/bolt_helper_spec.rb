@@ -61,43 +61,23 @@ describe RefArchSetup::BoltHelper do
   describe "make_dir" do
     before do
       @expected_command = "mkdir -p #{dir}"
+      @expected_error = "ERROR: Failed to make dir #{dir} on all nodes"
     end
 
     context "when run_cmd_with_bolt returns output" do
       it "returns true" do
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@expected_command, nodes).and_return(true)
+          .with(@expected_command, nodes, @expected_error).and_return(true)
         expect(RefArchSetup::BoltHelper.make_dir(dir, nodes)).to eq(true)
       end
     end
 
-    context "when run_cmd_with_bolt returns nil" do
-      it "raises an error" do
-        error = "ERROR: Failed to make dir #{dir} on all nodes"
-        expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@expected_command, nodes).and_return(nil)
-        expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
-      end
-    end
-
-    context "when run_cmd_with_bolt returns nil" do
-      it "raises an error" do
-        error = "ERROR: Failed to make dir #{dir} on all nodes"
-        expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@expected_command, nodes).and_return(nil)
-        expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }.to raise_error(error)
-      end
-    end
-
     context "when run_cmd_with_bolt raises an error" do
-      # TODO: should it trap the error?
-      # error = "ERROR: Failed to make dir #{dir} on all nodes"
       it "does not trap the error" do
-        run_command_error = "run command failed!"
         expect(RefArchSetup::BoltHelper).to receive(:run_cmd_with_bolt)
-          .with(@expected_command, nodes).and_raise(RuntimeError, run_command_error)
+          .with(@expected_command, nodes, @expected_error).and_raise(RuntimeError, @expected_error)
         expect { RefArchSetup::BoltHelper.make_dir(dir, nodes) }
-          .to raise_error(RuntimeError, run_command_error)
+          .to raise_error(RuntimeError, @expected_error)
       end
     end
   end
@@ -210,7 +190,8 @@ describe RefArchSetup::BoltHelper do
   describe "run_cmd_with_bolt" do
     before do
       @expected_command = "bolt command run '#{cmd}' --nodes #{nodes} #{bolt_default_string}"
-      @error_message = "ERROR: bolt command failed!"
+      @default_error_message = "ERROR: bolt command failed!"
+      @spec_error_message = "ERROR: calling method provided this message!"
     end
 
     context "when bolt succeeds and returns output" do
@@ -218,19 +199,33 @@ describe RefArchSetup::BoltHelper do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command, @error_message).and_return(expected_output)
+          .with(@expected_command, @default_error_message).and_return(expected_output)
 
         expect(RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)).to eq(expected_output)
       end
     end
 
     context "when bolt fails" do
-      it "raises the specified error" do
-        expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command, @error_message).and_raise(RuntimeError, @error_message)
+      context "when an error message is specified" do
+        it "raises the specified error" do
+          expect(RefArchSetup::BoltHelper).to receive(:run_command)
+            .with(@expected_command, @spec_error_message)
+            .and_raise(RuntimeError, @spec_error_message)
 
-        expect { RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes) }
-          .to raise_error(RuntimeError, @error_message)
+          expect { RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes, @spec_error_message) }
+            .to raise_error(RuntimeError, @spec_error_message)
+        end
+      end
+
+      context "when an error message is not specified" do
+        it "raises the default error" do
+          expect(RefArchSetup::BoltHelper).to receive(:run_command)
+            .with(@expected_command, @default_error_message)
+            .and_raise(RuntimeError, @default_error_message)
+
+          expect { RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes) }
+            .to raise_error(RuntimeError, @error_message)
+        end
       end
     end
 
@@ -244,7 +239,7 @@ describe RefArchSetup::BoltHelper do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
+          .with(@expected_command_with_ssh, @default_error_message).and_return(expected_output)
 
         RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)
       end
@@ -259,7 +254,7 @@ describe RefArchSetup::BoltHelper do
         expected_output = "All Good"
 
         expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
+          .with(@expected_command_with_ssh, @default_error_message).and_return(expected_output)
 
         RefArchSetup::BoltHelper.run_cmd_with_bolt(cmd, nodes)
       end
@@ -530,7 +525,7 @@ describe RefArchSetup::BoltHelper do
     before do
       @expected_command = "cd #{RefArchSetup::RAS_PATH} && bolt puppetfile install --modulepath "\
       "#{RefArchSetup::FORGE_MODULE_PATH}"
-      @error_message = "ERROR: bolt command failed!"
+      @error_message = "ERROR: bolt puppetfile install failed!"
     end
 
     context "when bolt works and returns output" do

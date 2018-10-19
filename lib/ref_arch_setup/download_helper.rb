@@ -348,6 +348,7 @@ module RefArchSetup
     # @param [string] hosts The host(s) from which to retrieve facts
     #
     # @raise [JSON::ParserError] If the output from the bolt plan can't be parsed
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [Array<Hash] The retrieved facts
     #
