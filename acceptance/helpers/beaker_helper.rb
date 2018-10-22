@@ -7,10 +7,10 @@ module BeakerHelper
   LAYOUT = ENV["BEAKER_LAYOUT"] || "centos7-64controller.-64target_master.".freeze
   FORGE_HOST = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com".freeze
   PE_TARBALL_EXTENSION = ENV["BEAKER_PE_TARBALL_EXTENSION"] || ".tar".freeze
-  RAS_PATH = "$HOME/ref_arch_setup".freeze
-  RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures".freeze
-  RAS_MODULES_PATH = "#{RAS_PATH}/modules".freeze
-  RAS_PE_CONF = "#{RAS_FIXTURES_PATH}/pe.conf".freeze
+  BEAKER_RAS_PATH = "$HOME/ref_arch_setup".freeze
+  BEAKER_RAS_FIXTURES_PATH = "#{BEAKER_RAS_PATH}/fixtures".freeze
+  BEAKER_RAS_MODULES_PATH = "#{BEAKER_RAS_PATH}/modules".freeze
+  BEAKER_RAS_PE_CONF = "#{BEAKER_RAS_FIXTURES_PATH}/pe.conf".freeze
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
 
   # Initializes the PE instance variables

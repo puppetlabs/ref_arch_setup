@@ -16,7 +16,7 @@ module RefArchSetup
     # @return [void]
     def initialize(options, bolt_options)
       @options = options
-      BoltHelper.bolt_options = bolt_options
+      @bolt_options = bolt_options
     end
 
     # Check values of options to see if they are really an option
@@ -68,6 +68,8 @@ module RefArchSetup
     # @return [boolean] success of install
     def run(command, subcommand = nil)
       check_for_missing_value
+      BoltHelper.bolt_options = @bolt_options
+
       comm = command
       unless subcommand.nil?
         str = subcommand.tr("-", "_")
@@ -113,9 +115,9 @@ module RefArchSetup
       puts "Running bootstrap subcommand of install command"
       # none of these will be required in the future...  but are for now
       check_option("primary_master", "install")
-      check_option("pe_tarball", "install")
       install_obj = RefArchSetup::Install.new(@options["primary_master"])
-      success = install_obj.bootstrap(@options["pe_conf"], @options["pe_tarball"])
+      success = install_obj.bootstrap(@options["pe_conf"], @options["pe_tarball"],
+                                      @options["pe_version"])
       return success
     end
 

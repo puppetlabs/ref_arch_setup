@@ -2,7 +2,7 @@ require "fileutils"
 require "rototiller"
 require "./gem_of/lib/gem_of/rake_tasks"
 require "./acceptance/helpers/beaker_helper"
-require "./lib/ref_arch_setup/bolt_helper.rb"
+require "./lib/ref_arch_setup.rb"
 
 include BeakerHelper
 
@@ -41,7 +41,6 @@ namespace :test do
   desc "Run acceptance test using Beaker subcommands"
   task :acceptance do
     beaker_initialize
-    Rake::Task["bolt:install_forge_modules"].execute
     Rake::Task["gem:build"].execute
     Rake::Task["test:acceptance_init"].execute
     Rake::Task["test:acceptance_provision"].execute

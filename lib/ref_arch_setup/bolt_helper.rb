@@ -1,11 +1,7 @@
-# rubocop:disable Metrics/ClassLength
 # General namespace for RAS
 module RefArchSetup
   # Bolt helper methods
   class BoltHelper
-    # location of modules downloaded from the Puppet Forge
-    FORGE_MODULE_PATH = File.dirname(__FILE__) + "/../../Boltdir/modules"
-
     # the user RAS will provide to the bolt --run-as option
     BOLT_RUN_AS_USER = "root".freeze
 
@@ -13,6 +9,15 @@ module RefArchSetup
     BOLT_DEFAULT_OPTIONS = { "run-as" => BOLT_RUN_AS_USER }.freeze
 
     @bolt_options = BOLT_DEFAULT_OPTIONS
+
+    # custom exception class for bolt command errors
+    class BoltCommandError < StandardError
+      attr_reader :output
+      def initialize(message, output)
+        @output = output
+        super(message)
+      end
+    end
 
     # Initializes the bolt options to the default
     #
@@ -49,7 +54,7 @@ module RefArchSetup
       bolt_options(options_hash)
     end
 
-    # gets the bolt options as a string
+    # Gets the bolt options as a string
     #
     # @author Sam Woods
     # @return [string] the string value for bolt options
@@ -70,35 +75,61 @@ module RefArchSetup
     # @param [string] dir Directory to create
     # @param [string] nodes Hosts to make dir on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [true,false] Based on the output returned from the bolt command
     def self.make_dir(dir, nodes)
+      error_message = "ERROR: Failed to make dir #{dir} on all nodes"
       cmd = "mkdir -p #{dir}"
-      success = run_cmd_with_bolt(cmd, nodes)
-      raise "ERROR: Failed to make dir #{dir} on all nodes" unless success
+      output = run_cmd_with_bolt(cmd, nodes, error_message)
+      success = output.nil? ? false : true
       return success
     end
 
-    # Run a command with bolt on given nodes
+    # Run the specified command
     #
-    # @author Randell Pelak
+    # @author Bill Claytor
     #
-    # @param [string] cmd Command to run on nodes
-    # @param [string] nodes Host to make dir on
+    # @param command [string] The command to run
+    # @param error_message [string] The error to raise if the command is not successful
     #
-    # @return [true,false] Based on exit status of the bolt task
-    def self.run_cmd_with_bolt(cmd, nodes)
-      command = "bolt command run '#{cmd}'"
-      command << " --nodes #{nodes}"
-      command << bolt_options_string
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the command
+    def self.run_command(command, error_message = "ERROR: command failed!")
       puts "Running: #{command}"
       output = `#{command}`
       puts "Output was: #{output}"
 
       success = $?.success? # rubocop:disable Style/SpecialGlobalVars
       puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      raise "ERROR: bolt command failed!" unless success
+      puts
 
-      return success
+      # raise error_message unless success
+      raise BoltCommandError.new(error_message, output) if output.nil?
+      raise BoltCommandError.new(error_message, output) unless success
+
+      return output
+    end
+
+    # Run a command with bolt on given nodes
+    #
+    # @author Randell Pelak
+    #
+    # @param [string] cmd Command to run on the specified nodes
+    # @param [string] nodes Nodes on which the command should be run
+    # @param [string] error_message The message that should be used if an error is raised
+    #
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
+    def self.run_cmd_with_bolt(cmd, nodes, error_message = "ERROR: bolt command failed!")
+      command = "bolt command run '#{cmd}'"
+      command << " --nodes #{nodes}"
+      command << bolt_options_string
+
+      output = run_command(command, error_message)
+      return output
     end
 
     # Run a task with bolt on given nodes
@@ -110,22 +141,18 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run task on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
     def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
       command << " --modulepath #{modulepath} --nodes #{nodes}"
       command << bolt_options_string
-      puts "Running: #{command}"
-      output = `#{command}`
-      puts "Output was: #{output}"
 
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      raise "ERROR: bolt task failed!" unless success
-
-      return success
+      output = run_command(command, "ERROR: bolt task failed!")
+      return output
     end
 
     # Run a plan with bolt on given nodes
@@ -137,21 +164,17 @@ module RefArchSetup
     # @param nodes [string] Host or space delimited hosts to run plan on
     # @param modulepath [string] The modulepath to use when running bolt
     #
-    # @return [string] The output from the bolt run
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
     def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt plan run #{plan} #{params_str}"
       command << " --modulepath #{modulepath} --nodes #{nodes}"
       command << bolt_options_string
-      puts "Running: #{command}"
-      output = `#{command}`
-      puts "Output was: #{output}"
 
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      raise "ERROR: bolt plan failed!" unless success
-
+      output = run_command(command, "ERROR: bolt plan failed!")
       return output
     end
 
@@ -163,10 +186,13 @@ module RefArchSetup
     # @param params [hash] Task parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run task on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
     def self.run_forge_task_with_bolt(task, params, nodes)
       install_forge_modules
-      run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+      output = run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+      return output
     end
 
     # Run a plan from the forge with bolt on given nodes
@@ -177,10 +203,13 @@ module RefArchSetup
     # @param params [hash] Plan parameters to send to bolt
     # @param nodes [string] Host or space delimited hosts to run plan on
     #
-    # @return [string] The output from the bolt run
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
     def self.run_forge_plan_with_bolt(plan, params, nodes)
       install_forge_modules
-      run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
+      output = run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
+      return output
     end
 
     # Convert params to string for bolt
@@ -192,7 +221,6 @@ module RefArchSetup
     #
     # @return [String] stringified params
     def self.params_to_string(params)
-      # str = ""
       str = params.map { |k, v| "#{k}=#{v}" }.join(" ")
       return str
     end
@@ -205,38 +233,31 @@ module RefArchSetup
     # @param [string] destination Path to upload to
     # @param [string] nodes Host to put files on
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [output] The output returned from the bolt command
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
       command << " --nodes #{nodes}"
       command << bolt_options_string
-      puts "Running: #{command}"
-      output = `#{command}`
-      puts "Output was: #{output}"
 
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      raise "ERROR: failed to upload file #{source} to #{destination} on #{nodes}" unless success
-
-      return success
+      error_message = "ERROR: failed to upload file #{source} to #{destination} on #{nodes}"
+      output = run_command(command, error_message)
+      return output
     end
 
     # Install modules from the forge via Puppetfile
+    # The modules are defined in Boltdir/Puppetfile
     #
     # @author Bill Claytor
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [string] The output returned from the bolt command
     def self.install_forge_modules
-      command = "bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
-      puts "Running: #{command}"
-      output = `#{command}`
-      puts "Output was: #{output}"
-
-      success = $?.success? # rubocop:disable Style/SpecialGlobalVars
-      puts "Exit status was: #{$?.exitstatus}" # rubocop:disable Style/SpecialGlobalVars
-      raise "ERROR: bolt command failed!" unless success
-
-      return success
+      command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
+      output = run_command(command, "ERROR: bolt puppetfile install failed!")
+      return output
     end
   end
 end

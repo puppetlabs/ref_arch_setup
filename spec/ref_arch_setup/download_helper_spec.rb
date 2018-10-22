@@ -130,7 +130,7 @@ describe RefArchSetup::DownloadHelper do
     subject.instance_variable_set(:@min_prod_version, TEST_MIN_PROD_VERSION)
   end
 
-  describe "#initialize" do
+  describe "#init" do
     context "when environment variables are specified" do
       versions_url = "http://this.test.net.versions"
       base_url = "http://this.test.net.base"
@@ -140,12 +140,15 @@ describe RefArchSetup::DownloadHelper do
         ENV["PE_VERSIONS_URL"] = versions_url
         ENV["BASE_PROD_URL"] = base_url
         ENV["MIN_PROD_VERSION"] = min_version
-        test_subject = RefArchSetup::DownloadHelper.new
+        RefArchSetup::DownloadHelper.init
 
-        expect(test_subject.instance_variable_get(:@pe_versions_url)).to eq(versions_url)
-        expect(test_subject.instance_variable_get(:@base_prod_url)).to eq(base_url)
-        expect(test_subject.instance_variable_get(:@min_prod_version)).to eq(min_version)
-        expect(test_subject.instance_variable_get(:@pe_platforms)).to eq(subject::PE_PLATFORMS)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@pe_versions_url))
+          .to eq(versions_url)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@base_prod_url)).to eq(base_url)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@min_prod_version))
+          .to eq(min_version)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@pe_platforms))
+          .to eq(subject::PE_PLATFORMS)
       end
     end
 
@@ -154,19 +157,26 @@ describe RefArchSetup::DownloadHelper do
         ENV["PE_VERSIONS_URL"] = nil
         ENV["BASE_PROD_URL"] = nil
         ENV["MIN_PROD_VERSION"] = nil
-        test_subject = RefArchSetup::DownloadHelper.new
 
-        expect(test_subject.instance_variable_get(:@pe_versions_url))
+        RefArchSetup::DownloadHelper.init
+
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@pe_versions_url))
           .to eq(subject::PE_VERSIONS_URL)
-        expect(test_subject.instance_variable_get(:@base_prod_url)).to eq(subject::BASE_PROD_URL)
-        expect(test_subject.instance_variable_get(:@min_prod_version))
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@base_prod_url))
+          .to eq(subject::BASE_PROD_URL)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@min_prod_version))
           .to eq(subject::MIN_PROD_VERSION)
-        expect(test_subject.instance_variable_get(:@pe_platforms)).to eq(subject::PE_PLATFORMS)
+        expect(RefArchSetup::DownloadHelper.instance_variable_get(:@pe_platforms))
+          .to eq(subject::PE_PLATFORMS)
       end
     end
   end
 
   describe "#build_prod_tarball_url" do
+    before do
+      expect(subject).to receive(:init)
+    end
+
     context "when no arguments are specified" do
       version = TEST_LATEST_VERSION
       host = "localhost"
@@ -305,7 +315,8 @@ describe RefArchSetup::DownloadHelper do
         pe_version = TEST_LATEST_VERSION
 
         expect(subject).to receive(:latest_prod_version).and_return(pe_version)
-        expect(subject).to receive(:puts).with("The latest version is: #{pe_version}")
+        expect(subject).to receive(:puts).with("The latest version is #{pe_version}")
+        expect(subject).to receive(:puts).with(no_args)
         expect(subject.handle_prod_version(version)).to eq(pe_version)
       end
     end
@@ -320,6 +331,7 @@ describe RefArchSetup::DownloadHelper do
         expect(subject).to receive(:ensure_valid_prod_version).with(version).and_return(true)
         expect(subject).to receive(:ensure_supported_prod_version).with(version).and_return(true)
         expect(subject).to receive(:puts).with(message)
+        expect(subject).to receive(:puts).with(no_args)
         expect(subject.handle_prod_version(version)).to eq(pe_version)
       end
     end
@@ -398,7 +410,7 @@ describe RefArchSetup::DownloadHelper do
 
   describe "#ensure_supported_prod_version" do
     context "when the version is supported" do
-      version = "2018.1.4"
+      version = "2076.1.1"
       message = "Specified version #{version} is supported by RAS"
 
       it "outputs a confirmation" do
@@ -414,7 +426,7 @@ describe RefArchSetup::DownloadHelper do
 
     context "when the version is not supported" do
       version = "2017.1.4"
-      message = "The minimum supported version is #{subject::MIN_PROD_VERSION}"
+      message = "The minimum supported version is #{TEST_MIN_PROD_VERSION}"
       error = "Specified version #{version} is not supported by RAS"
 
       it "outputs an explanation (and raises an error)" do
@@ -433,6 +445,23 @@ describe RefArchSetup::DownloadHelper do
 
   describe "#fetch_prod_versions" do
     context "when called" do
+      let(:test_versions_result_1) { Class.new }
+      let(:test_versions_result_2) { Class.new }
+
+      it "outputs the list of versions" do
+        test_versions_results = [test_versions_result_1, test_versions_result_2]
+        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_results)
+        expect(subject).to receive(:puts).with("Versions:")
+
+        expect(test_versions_result_1).to receive(:text).and_return("test_versions_result_1")
+        expect(subject).to receive(:puts).with("test_versions_result_1")
+        expect(test_versions_result_2).to receive(:text).and_return("test_versions_result_2")
+        expect(subject).to receive(:puts).with("test_versions_result_2")
+
+        expect(subject).to receive(:puts).with(no_args)
+
+        subject.fetch_prod_versions
+      end
       it "returns the default result from parse_prod_versions_url" do
         allow(subject).to receive(:puts)
         expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
@@ -703,10 +732,11 @@ describe RefArchSetup::DownloadHelper do
         host = "my_host"
         platform = "default"
         pe_platform = TEST_EL7_PLATFORM
+        message = "Default platform specified; determining platform for host: #{host}"
 
         it "outputs the expected message" do
           expect(subject).to receive(:puts)
-            .with("Default platform specified; determining platform for host")
+            .with(message)
 
           expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)
@@ -737,9 +767,11 @@ describe RefArchSetup::DownloadHelper do
         platform = "default"
         pe_platform = TEST_EL7_PLATFORM
         error = "Invalid PE platform: #{pe_platform}"
+        message = "Default platform specified; determining platform for host: #{host}"
+
         it "outputs the expected message (and raises an error)" do
           expect(subject).to receive(:puts)
-            .with("Default platform specified; determining platform for host")
+            .with(message)
 
           expect(subject).to receive(:get_host_platform)
             .with(host).and_return(pe_platform)

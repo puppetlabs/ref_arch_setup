@@ -1,6 +1,7 @@
 # rubocop:disable Metrics/ClassLength
 require "oga"
 require "net/http"
+require "json"
 
 # General namespace for RAS
 module RefArchSetup
@@ -18,7 +19,15 @@ module RefArchSetup
     # the supported platforms for PE installation using RAS
     PE_PLATFORMS = ["el-6-x86_64", "el-7-x86_64", "sles-12-x86_64", "ubuntu-16.04-amd64"].freeze
 
-    def initialize
+    # Initializes the instance variables to the defaults
+    # or values specified by environment variables
+    #
+    # @author Bill Claytor
+    #
+    # @example:
+    # init
+    #
+    def self.init
       @pe_versions_url = ENV["PE_VERSIONS_URL"] ? ENV["PE_VERSIONS_URL"] : PE_VERSIONS_URL
       @base_prod_url = ENV["BASE_PROD_URL"] ? ENV["BASE_PROD_URL"] : BASE_PROD_URL
       @min_prod_version = ENV["MIN_PROD_VERSION"] ? ENV["MIN_PROD_VERSION"] : MIN_PROD_VERSION
@@ -44,6 +53,7 @@ module RefArchSetup
     # url = build_prod_tarball_url("2018.1.4", "value_is_ignored", "sles-12-x86_64")
     #
     def self.build_prod_tarball_url(version = "latest", host = "localhost", platform = "default")
+      init
       pe_version = handle_prod_version(version)
       pe_platform = handle_platform(host, platform)
       url = "#{@base_prod_url}/#{pe_version}/puppet-enterprise-#{pe_version}-#{pe_platform}.tar.gz"
@@ -57,6 +67,8 @@ module RefArchSetup
     #
     # @param [string] version The desired version of PE
     #
+    # @raise [RuntimeError] If the specified version is not valid
+    #
     # @return [string] The corresponding PE version
     #
     # @example:
@@ -66,7 +78,7 @@ module RefArchSetup
     def self.handle_prod_version(version)
       if version == "latest"
         pe_version = latest_prod_version
-        puts "The latest version is: #{pe_version}"
+        puts "The latest version is #{pe_version}"
       else
         success = ensure_valid_prod_version(version) && ensure_supported_prod_version(version)
         raise "Invalid version: #{version}" unless success
@@ -74,6 +86,8 @@ module RefArchSetup
         pe_version = version
         puts "Proceeding with specified version: #{pe_version}"
       end
+
+      puts
 
       return pe_version
     end
@@ -99,6 +113,8 @@ module RefArchSetup
     #
     # @param [string] version The specified version of PE
     #
+    # @raise [RuntimeError] If the specified version is not found
+    #
     # @return [true, false] Whether the specified version was found
     #
     # @example:
@@ -122,6 +138,8 @@ module RefArchSetup
     #
     # @param [string] version The specified version of PE
     #
+    # @raise [RuntimeError] If the specified version is not supported
+    #
     # @return [true, false] Whether the specified version is supported
     #
     # @example:
@@ -129,11 +147,11 @@ module RefArchSetup
     #
     def self.ensure_supported_prod_version(version)
       major_version = version.split(".")[0]
-      supported_version = MIN_PROD_VERSION.split(".")[0]
+      supported_version = @min_prod_version.split(".")[0]
 
       supported = major_version >= supported_version ? true : false
       puts "Specified version #{version} is supported by RAS" if supported
-      puts "The minimum supported version is #{MIN_PROD_VERSION}" unless supported
+      puts "The minimum supported version is #{@min_prod_version}" unless supported
 
       raise "Specified version #{version} is not supported by RAS" unless supported
 
@@ -196,6 +214,8 @@ module RefArchSetup
     # @param [Array] valid_response_codes The list of valid response codes
     # @param [Array] invalid_response_bodies The list of invalid response bodies
     #
+    # @raise [RuntimeError] If the response is not valid
+    #
     # @return [true,false] Based on whether the response is valid
     #
     # @example
@@ -246,6 +266,8 @@ module RefArchSetup
     # *** Specifying the host will determine and validate the platform for the host
     # *** Specifying the platform will ignore the host value and only perform the validation
     #
+    # @raise [RuntimeError] If the platform is not valid
+    #
     # @return [string] The PE platform
     #
     # @example:
@@ -254,7 +276,7 @@ module RefArchSetup
     #
     def self.handle_platform(host, platform)
       if platform == "default"
-        puts "Default platform specified; determining platform for host"
+        puts "Default platform specified; determining platform for host: #{host}"
         pe_platform = get_host_platform(host)
       else
         puts "Specified platform: #{platform}"
@@ -270,6 +292,9 @@ module RefArchSetup
     #
     # @param [string] host The target host
     #
+    # @raise [RuntimeError] If the facts status is 'failure'
+    # @raise [RuntimeError] If the platform can't be determined
+    #
     # @return [string] The corresponding platform for the specified host
     #
     # @example:
@@ -277,8 +302,13 @@ module RefArchSetup
     #
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
     def self.get_host_platform(host)
       facts = retrieve_facts(host)
+
+      status = facts[0]["status"]
+      raise "Facts indicate that status for host #{host} is failure" if status == "failure"
+
       os = facts[0]["result"]["os"]
       os_name = os["name"]
       os_family = os["family"]
@@ -309,6 +339,7 @@ module RefArchSetup
     end
     # rubocop:enable Metrics/MethodLength
     # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
 
     # Retrieves the facts for the specified host(s) using the facts::retrieve plan
     #
@@ -316,7 +347,10 @@ module RefArchSetup
     #
     # @param [string] hosts The host(s) from which to retrieve facts
     #
-    # @return [string] The retrieved facts
+    # @raise [JSON::ParserError] If the output from the bolt plan can't be parsed
+    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
+    #
+    # @return [Array<Hash] The retrieved facts
     #
     # @example:
     #   facts = retrieve_facts("localhost")
