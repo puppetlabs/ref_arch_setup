@@ -77,7 +77,7 @@ module RefArchSetup
     #
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
-    # @return [string] The output returned from the command
+    # @return [true,false] Based on the output returned from the bolt command
     def self.make_dir(dir, nodes)
       error_message = "ERROR: Failed to make dir #{dir} on all nodes"
       cmd = "mkdir -p #{dir}"

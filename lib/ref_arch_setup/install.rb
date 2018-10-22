@@ -409,7 +409,7 @@ module RefArchSetup
     #
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
-    # @return [true,false] Based on exit status of the bolt task
+    # @return [true,false] Based on the output returned from the bolt command
     def make_tmp_work_dir
       BoltHelper.make_dir(TMP_WORK_DIR, @target_master)
     end
