@@ -40,11 +40,10 @@ execute_puppet_until_idempotent() {
     echo "Executing: '$puppet_command'"
 
     # To both capture and output command output ...
-    # exec 5>&1
-    # puppet_command_output=$($puppet_command | tee /dev/fd/5; exit ${PIPESTATUS[0]})
-
-    puppet_command_output=$($puppet_command)
+    exec 5>&1
+    puppet_command_output=$($puppet_command | tee /dev/fd/5; exit "${PIPESTATUS[0]}")
     puppet_exit_code=$?
+
     if echo "$puppet_command_output" | grep -q "Run of Puppet configuration client already in progress"; then
       puppet_run_in_progress=true
     else
