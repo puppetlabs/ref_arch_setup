@@ -1,7 +1,4 @@
-test_name "install required gems on controller" do
-  step "install rake" do
-    on controller, "gem install rake"
-  end
+test_name "install bundler to build the RAS gem on the controller" do
 
   step "install bundler" do
     on controller, "gem install bundler"
@@ -16,8 +13,8 @@ test_name "install required gems on controller" do
   end
 end
 
-test_name "host info" do
-  step "output host info" do
+test_name "output host info" do
+  step "output the host info" do
     puts
     puts "controller(s): #{controller}"
     puts "master(s): #{target_master}"
