@@ -30,10 +30,10 @@ RefArchSetup supports PE versions greater than 2018.1.0.
 RefArchSetup currently supports the Standard Architecture.
 
 # Installation
-RefArchSetup can be installed via RubyGems or by building the gem locally. 
+RefArchSetup can be installed via [RubyGems](https://rubygems.org/gems/ref_arch_setup) or by building the gem locally. 
 
 ## Install via RubyGems
-The easiest way to install RefArchSetup is via RubyGems:
+The easiest way to install RefArchSetup is via [RubyGems](https://rubygems.org/gems/ref_arch_setup):
 ```
     $ gem install ref_arch_setup
 ```
@@ -129,8 +129,14 @@ To install PE using a tarball URL, specify `--pe-tarball=https://my.host.tarball
 To install PE using a tarball on a local or remote filesystem, specify `--pe-tarball=/path/to/tarball.tar.gz`.
 
 ### --pe-version
-To install a specific version of PE, specify the version number: `--pe-version=2018.1.4`. 
-To install the latest version, specify `--pe-version=latest`
+RefArchSetup can install a specific version of PE or the latest version. 
+See the [Puppet Enterprise Version History](https://puppet.com/misc/version-history) for a comprehensive list of PE versions.
+
+#### Install a specific version
+To install a specific version of PE, specify the version number: `--pe-version=2018.1.4`.
+
+#### Install the latest version 
+To install the latest version, specify `--pe-version=latest`.
 
 ### --pe-conf
 PE installation requires a valid pe.conf file. At a minimum the "console_admin_password" option must be specified.
