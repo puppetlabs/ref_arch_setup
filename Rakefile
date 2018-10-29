@@ -38,7 +38,7 @@ namespace :test do
     beaker_create_host_file
   end
 
-  desc "Run acceptance test using Beaker subcommands"
+  desc "Run acceptance test suite using Beaker subcommands"
   task :acceptance do
     beaker_initialize
     Rake::Task["gem:build"].execute
@@ -46,6 +46,23 @@ namespace :test do
     Rake::Task["test:acceptance_provision"].execute
     Rake::Task["test:acceptance_exec"].execute
     Rake::Task["test:acceptance_destroy"].execute unless preserve_hosts?
+  end
+
+  desc "Run the acceptance pre-suite"
+  task :acceptance_pre_suite do
+    ENV["BEAKER_TESTS"] = "acceptance/tests/00_nothing.rb"
+    ENV["BEAKER_PRESERVE_HOSTS"] = "always"
+    Rake::Task["test:acceptance"].execute
+  end
+
+  desc "Run the demo setup from the acceptance pre-suite"
+  task :acceptance_setup_ras_demo do
+    ENV["BEAKER_PRE_SUITE"] = "acceptance/pre_suites/10_setup_ssh.rb,"\
+                              "acceptance/pre_suites/20_install_rbenv.rb,"\
+                              "acceptance/pre_suites/25_install_gems.rb,"\
+                              "acceptance/pre_suites/90_setup_ras_demo.rb"
+
+    Rake::Task["test:acceptance_pre_suite"].execute
   end
 
   desc "Run init subcommand"
