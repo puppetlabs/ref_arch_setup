@@ -9,8 +9,8 @@ It currently supports the Standard Reference Architecture.
 RefArchSetup uses [Puppet Bolt](https://puppet.com/products/puppet-bolt) as a gem which requires a minimum Ruby version of 2.3.
 
 ## Root Access
-RefArchSetup executes commands via Bolt as the root user using the `--run-as` option to ensure a successful PE installation. 
-Access to the root user can be provided via the `--private-key` or `--sudo-password` options.
+RefArchSetup executes Bolt commands as the root user using the `--run-as root` option to ensure a successful PE installation. 
+See the [Bolt Options](#bolt-options) section for more information.
 
 ## Supported Platforms
 RefArchSetup supports the following platforms:
@@ -144,15 +144,19 @@ RefArchSetup provides a default [pe.conf](fixtures/pe.conf) file. Specify the pa
 
 ## Bolt Options
 
+### --sudo-password
+RefArchSetup executes Bolt commands as the root user using the `--run-as` option. 
+If RefArchSetup is run as a user other than root the sudo password must be specified: `--sudo-password=mysudopassword`
+
 ### --user
-To execute Bolt commands via ssh using a different user than the user running RefArchSetup, specify `--user=my.ssh.user`. 
+To execute Bolt commands via ssh with a user other than the user running RefArchSetup, specify `--user=my.ssh.user`. 
 Bolt can authenticate using a password or a private key file.
 
 ### --password
-To authenticate using a password, specify `--password=mypassword`
+To authenticate using a password, specify `--password=mypassword`.
 
 ### --private-key
-To authenticate using a private key, specify `--private-key=/path/to/my_key.rsa`
+To authenticate using a private key, specify `--private-key=/path/to/my_key.rsa`.
 
 # License
 See [LICENSE](LICENSE) file.
