@@ -1,22 +1,26 @@
 # How To Contribute To RefArchSetup
 
 ## Getting Started
-
 * Make sure you have a [GitHub](https://github.com) account.
 * Clone the [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup) repository on GitHub. 
     * RefArchSetup uses [gem_of](https://github.com/puppetlabs/gem_of) for some development gem dependencies and rake tasks.
     * Clone the repository and include the `gem_of` submodule:
       ```
-      git clone --recurse-submodules https://github.com/puppetlabs/ref_arch_setup.git
+      $ ~/> git clone --recurse-submodules https://github.com/puppetlabs/ref_arch_setup.git
       ```
     * If you've already cloned the repository you'll need to initialize and update the `gem_of` submodule:
       ```
       git submodule init
       git submodule update
       ```
+      
+* Navigate to the ref_arch_setup directory:
+  ```
+  $ ~/> cd ref_arch_setup
+  ```
 * Install the required gems:
   ```
-  bundle install 
+  $ ~/ref_arch_setup> bundle install 
   ```
 
 ## Filing Tickets With Jira
