@@ -1,0 +1,21 @@
+{
+  "description": "Tune PE",
+  "parameters": {
+    "force": {
+      "description": "Do not enforce minimum system requirements (4 CPU/8GB RAM) for infrastructure hosts",
+      "type": "Optional[Enum['true','false']]"
+    },
+    "hiera": {
+      "description": "Output optimized settings as Hiera YAML files to the specified directory",
+      "type": "Optional[String[3]]"
+    },
+    "inventory": {
+      "description": "Use a YAML file to define infrastructure nodes",
+      "type": "Optional[String[3]]"
+    },
+    "local": {
+      "description": "Query the local system to define a monolithic infrastructure master node",
+      "type": "Optional[Enum['true','false']]"
+    }
+  }
+}
