@@ -117,7 +117,7 @@ To perform the PE installation on the same host where RefArchSetup is run, speci
 
 #### Specifying a remote primary master
 To perform the PE installation on a remote host, specify `--primary-master=my.remote.master`
-If a remote host is specified it must be accessible to Bolt; see the Bolt Options section for more information.
+If a remote host is specified it must be accessible to Bolt; see the [Bolt Options](#bolt-options) section for more information.
 
 ### --pe-tarball
 Specifying a PE tarball is optional, but if the option is specified it will override the `--pe-version` option.
@@ -135,6 +135,18 @@ To install the latest version, specify `--pe-version=latest`
 ### --pe-conf
 PE installation requires a valid pe.conf file. At a minimum the "console_admin_password" option must be specified.
 RefArchSetup provides a default [pe.conf](fixtures/pe.conf) file. Specify the path to the pe.conf file: `--pe-conf=/path/to/pe.conf`
+
+## Bolt Options
+
+### --user
+To execute Bolt commands via ssh using a different user than the user running RefArchSetup, specify `--user=my.ssh.user`. 
+Bolt can authenticate using a password or a private key file.
+
+### --password
+To authenticate using a password, specify `--password=mypassword`
+
+### --private-key
+To authenticate using a private key, specify `--private-key=/path/to/my_key.rsa`
 
 # License
 See [LICENSE](LICENSE) file.
