@@ -108,37 +108,58 @@ Install PE on the desired primary master using the install command. For example:
 ```
     $ ref_arch_setup install --primary-master=localhost --pe-version=latest --pe-conf=/path/to/pe.conf
 ```
+### Subcommands
+RefArchSetup is currently in development and as such not all subcommands are currently available. 
+Currently only the `bootstrap` subcommand is implemented; other subcommands run in a noop mode.
 
-### --primary-master
+#### generate-pe-conf
+This subcommand has not been implemented.
+
+#### bootstrap
+This subcommand runs the bootstrap portion of the install which includes the following steps:
+* Download the PE tarball or verify a local tarball if specified
+* Extract the tarball
+* Run the PE installer
+* Run the Puppet agent until no changes are reported
+
+#### pe-infra-agent-install
+This subcommand has not been implemented.
+
+#### configure
+This subcommand has not been implemented.
+
+### Options
+
+#### --primary-master
 RefArchSetup can perform the PE installation with a local or remote primary master.
 
-#### Specifying a local primary master
+##### Specifying a local primary master
 To perform the PE installation on the same host where RefArchSetup is run, specify `--primary-master=localhost`.
 
-#### Specifying a remote primary master
+##### Specifying a remote primary master
 To perform the PE installation on a remote host, specify `--primary-master=my.remote.master`.
 If a remote host is specified it must be accessible to Bolt; see the [Bolt Options](#bolt-options) section for more information.
 
-### --pe-tarball
+#### --pe-tarball
 Specifying a PE tarball is optional, but if the option is specified it will override the `--pe-version` option.
 
-#### Specifying a tarball URL
+##### Specifying a tarball URL
 To install PE using a tarball URL, specify `--pe-tarball=https://my.host.tarball.tar.gz`.
 
-#### Specifying a tarball path
+##### Specifying a tarball path
 To install PE using a tarball on a local or remote filesystem, specify `--pe-tarball=/path/to/tarball.tar.gz`.
 
-### --pe-version
+#### --pe-version
 RefArchSetup can install a specific version of PE or the latest version. 
 See the [Puppet Enterprise Version History](https://puppet.com/misc/version-history) for a comprehensive list of PE versions.
 
-#### Install a specific version
+##### Install a specific version
 To install a specific version of PE, specify the version number: `--pe-version=2018.1.4`.
 
-#### Install the latest version 
+##### Install the latest version 
 To install the latest version, specify `--pe-version=latest`.
 
-### --pe-conf
+#### --pe-conf
 PE installation requires a valid pe.conf file. At a minimum the "console_admin_password" option must be specified.
 RefArchSetup provides a default [pe.conf](fixtures/pe.conf) file. Specify the path to the pe.conf file: `--pe-conf=/path/to/pe.conf`
 
