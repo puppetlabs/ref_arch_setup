@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Bolt requires Ruby ~> 2.3
-  spec.required_ruby_version = '>= 2.3.0'
+  spec.required_ruby_version = ">= 2.3.0"
 
   # Run time dependencies
   spec.add_runtime_dependency "bolt", "~> 0.22.0"
