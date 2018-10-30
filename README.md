@@ -106,7 +106,7 @@ Run the `ref_arch_setup install` sub-command with the ` -h` option to display th
 ## Install
 Install PE on the desired primary master using the install command. For example:
 ```
-    ref_arch_setup install --primary-master=localhost --pe-version=latest --pe-conf=/path/to/pe.conf
+    $ ref_arch_setup install --primary-master=localhost --pe-version=latest --pe-conf=/path/to/pe.conf
 ```
 
 ### --primary-master
