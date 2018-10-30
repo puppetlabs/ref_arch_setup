@@ -1,3 +1,0 @@
-# Modules from the Puppet Forge
-mod "puppetlabs-facts", "0.2.0"
-mod "puppetlabs-ruby_task_helper", "0.1.0"

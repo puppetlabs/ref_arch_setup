@@ -54,14 +54,9 @@ GemOf::LintTasks.new
 RasYardStickTasks.new
 
 namespace :bolt do
-  desc "Install modules from the forge via Puppetfile"
-  task :install_forge_modules do
-    RefArchSetup::BoltHelper.install_forge_modules
-  end
-
   desc "Run the facts::retrieve plan locally"
   task :facts do
-    RefArchSetup::BoltHelper.run_forge_plan_with_bolt("facts::retrieve", nil, "localhost")
+    RefArchSetup::BoltHelper.run_bolt_pkg_plan_with_bolt("facts::info", nil, "localhost")
   end
 end
 

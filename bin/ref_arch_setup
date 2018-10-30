@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/opt/puppetlabs/bolt/bin/ruby
 STDOUT.sync
 
 require "rubygems" unless defined?(Gem)

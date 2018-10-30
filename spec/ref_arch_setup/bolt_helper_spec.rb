@@ -264,7 +264,7 @@ describe RefArchSetup::BoltHelper do
   describe "run_task_with_bolt" do
     before do
       @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-      "#{RefArchSetup::RAS_MODULE_PATH} --nodes #{nodes} #{bolt_default_string}"
+      "#{RefArchSetup::RAS_MODULE_PATH} --format json --nodes #{nodes} #{bolt_default_string}"
       @error_message = "ERROR: bolt task failed!"
     end
 
@@ -275,7 +275,7 @@ describe RefArchSetup::BoltHelper do
       it "uses the specified value" do
         # this updates @expected_command to specify the modulepath for this test only
         @expected_command = "bolt task run #{task} VAR1=1 VAR2=2 --modulepath "\
-          "#{modulepath} --nodes #{nodes} #{bolt_default_string}"
+          "#{modulepath} --format json --nodes #{nodes} #{bolt_default_string}"
 
         expect(RefArchSetup::BoltHelper).to receive(:params_to_string)
           .with(params).and_return(params_str)
@@ -420,39 +420,24 @@ describe RefArchSetup::BoltHelper do
     end
   end
 
-  describe "run_forge_task_with_bolt" do
+  describe "run_bolt_pkg_task_with_bolt" do
     context "when bolt works and returns output" do
-      it "ensures the forge modules are installed" do
-        expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
-        expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-        RefArchSetup::BoltHelper.run_forge_task_with_bolt(task, params, nodes)
-      end
-
       it "returns the output" do
-        modulepath = RefArchSetup::FORGE_MODULE_PATH
-        expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
         expect(RefArchSetup::BoltHelper).to receive(:run_task_with_bolt)
-          .with(task, params, nodes, modulepath).and_return(true)
-        expect(RefArchSetup::BoltHelper.run_forge_task_with_bolt(task, params, nodes)).to eq(true)
+          .with(task, params, nodes, nil).and_return(true)
+        expect(RefArchSetup::BoltHelper.run_bolt_pkg_task_with_bolt(task, params, nodes))
+          .to eq(true)
       end
     end
   end
 
-  describe "run_forge_plan_with_bolt" do
+  describe "run_bolt_pkg_plan_with_bolt" do
     context "when bolt works and returns output" do
-      it "ensures the forge modules are installed" do
-        expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
-        expect(RefArchSetup::BoltHelper).to receive(:run_plan_with_bolt)
-        RefArchSetup::BoltHelper.run_forge_plan_with_bolt(plan, params, nodes)
-      end
-
       it "returns the output" do
         expected_output = "All Good"
-        modulepath = RefArchSetup::FORGE_MODULE_PATH
-        expect(RefArchSetup::BoltHelper).to receive(:install_forge_modules)
         expect(RefArchSetup::BoltHelper).to receive(:run_plan_with_bolt)
-          .with(plan, params, nodes, modulepath).and_return(expected_output)
-        expect(RefArchSetup::BoltHelper.run_forge_plan_with_bolt(plan, params, nodes))
+          .with(plan, params, nodes, nil).and_return(expected_output)
+        expect(RefArchSetup::BoltHelper.run_bolt_pkg_plan_with_bolt(plan, params, nodes))
           .to eq(expected_output)
       end
     end
@@ -517,35 +502,6 @@ describe RefArchSetup::BoltHelper do
           .with(@expected_command_with_ssh, @error_message).and_return(expected_output)
 
         RefArchSetup::BoltHelper.upload_file(source, destination, nodes)
-      end
-    end
-  end
-
-  describe "install_forge_modules" do
-    before do
-      @expected_command = "cd #{RefArchSetup::RAS_PATH} && bolt puppetfile install --modulepath "\
-      "#{RefArchSetup::FORGE_MODULE_PATH}"
-      @error_message = "ERROR: bolt puppetfile install failed!"
-    end
-
-    context "when bolt works and returns output" do
-      it "returns the expected output" do
-        expected_output = "All Good"
-
-        expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command, @error_message).and_return(expected_output)
-
-        expect(RefArchSetup::BoltHelper.install_forge_modules).to eq(expected_output)
-      end
-    end
-
-    context "when bolt fails" do
-      it "does not trap the error" do
-        expect(RefArchSetup::BoltHelper).to receive(:run_command)
-          .with(@expected_command, @error_message).and_raise(RuntimeError, @error_message)
-
-        expect { RefArchSetup::BoltHelper.install_forge_modules }
-          .to raise_error(RuntimeError, @error_message)
       end
     end
   end
