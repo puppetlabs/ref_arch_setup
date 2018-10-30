@@ -17,7 +17,11 @@ module RefArchSetup
     MIN_PROD_VERSION = "2018.1.0".freeze
 
     # the supported platforms for PE installation using RAS
-    PE_PLATFORMS = ["el-6-x86_64", "el-7-x86_64", "sles-12-x86_64", "ubuntu-16.04-amd64"].freeze
+    PE_PLATFORMS = %w[el-6-x86_64
+                      el-7-x86_64
+                      sles-12-x86_64
+                      ubuntu-16.04-amd64
+                      ubuntu-18.04-amd64].freeze
 
     # Initializes the instance variables to the defaults
     # or values specified by environment variables
