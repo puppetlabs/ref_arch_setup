@@ -40,12 +40,12 @@ The easiest way to install RefArchSetup is via [RubyGems](https://rubygems.org/g
 
 ## Build the gem locally
 To build the gem locally:
-* Clone the RefArchSetup and install the dependencies by following the steps in the [Getting Started](CONTRIBUTING.md) section in [CONTRIBUTING.md](CONTRIBUTING.md)
-* From your local copy of the repo, build the gem using the provided rake task:
+* Clone the RefArchSetup repository and install the dependencies by following the steps in the [Getting Started](CONTRIBUTING.md) section in [CONTRIBUTING.md](CONTRIBUTING.md).
+* From your local copy of the repository, build the gem using the provided rake task:
 ```
     $ ~/ref_arch_setup> bundle exec rake gem:build
 ```
-* The gem will be built to the pkg directory. Install the gem by either specifying the path to the RAS gem provided in the output from the previous step:
+* The gem will be built to the pkg directory; install the gem by either specifying the path to the RAS gem provided in the output from the previous step:
 ```
     $ ~/ref_arch_setup> gem install pkg/ref_arch_setup-0.0.x
 ```
@@ -113,17 +113,17 @@ Install PE on the desired primary master using the install command. For example:
 RefArchSetup can perform the PE installation with a local or remote primary master.
 
 #### Specifying a local primary master
-To perform the PE installation on the same host where RefArchSetup is run, specify `--primary-master=localhost`
+To perform the PE installation on the same host where RefArchSetup is run, specify `--primary-master=localhost`.
 
 #### Specifying a remote primary master
-To perform the PE installation on a remote host, specify `--primary-master=my.remote.master`
+To perform the PE installation on a remote host, specify `--primary-master=my.remote.master`.
 If a remote host is specified it must be accessible to Bolt; see the [Bolt Options](#bolt-options) section for more information.
 
 ### --pe-tarball
 Specifying a PE tarball is optional, but if the option is specified it will override the `--pe-version` option.
 
 #### Specifying a tarball URL
-To install PE using a tarball URL, specify `--pe-tarball=https://my.host.tarball.tar.gz`
+To install PE using a tarball URL, specify `--pe-tarball=https://my.host.tarball.tar.gz`.
 
 #### Specifying a tarball path
 To install PE using a tarball on a local or remote filesystem, specify `--pe-tarball=/path/to/tarball.tar.gz`.
