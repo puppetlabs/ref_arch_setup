@@ -19,7 +19,6 @@ WORKDIR /ref_arch_setup
 
 # Copy requirements to install
 COPY Gemfile /ref_arch_setup
-COPY Gemfile.lock /ref_arch_setup
 COPY ref_arch_setup.gemspec /ref_arch_setup
 
 COPY lib/ref_arch_setup/version.rb /ref_arch_setup/lib/ref_arch_setup/version.rb
