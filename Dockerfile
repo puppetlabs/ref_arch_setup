@@ -32,7 +32,7 @@ COPY . /ref_arch_setup
 RUN bundle exec rake gem:build
 RUN cd pkg && gem install ref_arch_setup && cd ..
 
-### Install ###
+### Production ###
 FROM base as prod
 
 COPY fixtures/pe.conf /ref_arch_setup/pe.conf
@@ -40,3 +40,7 @@ COPY --from=build /ref_arch_setup/pkg /ref_arch_setup/pkg
 
 RUN cd pkg && gem install ref_arch_setup --no-rdoc --no-ri && cd ..
 RUN rm -rf /ref_arch_setup/pkg
+
+### Acceptance ###
+FROM prod as acceptance
+COPY fixtures/*.tar /ref_arch_setup

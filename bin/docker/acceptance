@@ -1,0 +1,7 @@
+#! /bin/sh
+
+export RAS_TARGET=acceptance
+
+cd "$(dirname "$0")/.." || exit 1
+
+docker-compose run  --rm -e RAS_TARGET ras "$@"
