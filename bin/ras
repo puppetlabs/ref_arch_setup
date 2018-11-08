@@ -1,5 +1,0 @@
-#! /bin/sh
-
-cd "$(dirname "$0")/.." || exit 1
-
-docker-compose run  --rm ras ref_arch_setup "$@"
