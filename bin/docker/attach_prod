@@ -1,7 +1,4 @@
 #! /bin/sh
 
 export RAS_TARGET=prod
-
-cd "$(dirname "$0")/.." || exit 1
-
-docker-compose run  --rm ras "/bin/bash"
+docker-compose run  --rm controller "/bin/bash"

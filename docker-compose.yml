@@ -1,11 +1,10 @@
 version: '3.6'
 
 services:
-  ras:
+  controller:
     build:
       context: .
       target: ${RAS_TARGET}
-    image: slv/${RAS_TARGET}
+    image: ras/${RAS_TARGET}
     volumes:
       - '~/.ssh:/root/.ssh'
-
