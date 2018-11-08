@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export RAS_TARGET=base
+docker-compose run --rm --name master -e RAS_TARGET master "/bin/bash"
