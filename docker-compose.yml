@@ -8,3 +8,11 @@ services:
     image: ras/${RAS_TARGET}
     volumes:
       - '~/.ssh:/root/.ssh'
+
+  master:
+    build:
+      context: .
+      target: base
+    image: ras/base
+    volumes:
+      - '~/.ssh:/root/.ssh'
