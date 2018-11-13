@@ -60,7 +60,17 @@ namespace :test do
     ENV["BEAKER_PRE_SUITE"] = "acceptance/pre_suites/10_setup_ssh.rb,"\
                               "acceptance/pre_suites/20_install_rbenv.rb,"\
                               "acceptance/pre_suites/25_install_gems.rb,"\
-                              "acceptance/pre_suites/90_setup_ras_demo.rb"
+                              "acceptance/pre_suites/90_setup_ras_demo.rb,"\
+                              "acceptance/pre_suites/99_output_host_info.rb"
+
+    Rake::Task["test:acceptance_pre_suite"].execute
+  end
+
+  desc "Run the docker demo setup from the acceptance pre-suite"
+  task :acceptance_setup_ras_docker_demo do
+    ENV["BEAKER_PRE_SUITE"] = "acceptance/pre_suites/10_setup_ssh.rb,"\
+                              "acceptance/pre_suites/91_setup_docker.rb,"\
+                              "acceptance/pre_suites/99_output_host_info.rb"
 
     Rake::Task["test:acceptance_pre_suite"].execute
   end

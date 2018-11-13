@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export RAS_TARGET=acceptance
+docker-compose run --rm --name controller -e RAS_TARGET controller "/bin/bash"

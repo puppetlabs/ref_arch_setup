@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export RAS_TARGET=build
+docker-compose run --rm --name build -e RAS_TARGET ras "/bin/bash"

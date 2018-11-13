@@ -1,0 +1,32 @@
+version: '3.6'
+
+services:
+
+  # single container for any build stage
+  ras:
+    build:
+      context: .
+      target: ${RAS_TARGET}
+    image: ras/${RAS_TARGET}
+    volumes:
+      - "${SSH_SOURCE}:/root/.ssh"
+
+  # controller container for acceptance testing
+  controller:
+    build:
+      context: .
+      target: ${CONTROLLER_TARGET}
+    image: ras/${CONTROLLER_TARGET}
+    volumes:
+      - "${SSH_SOURCE}:/root/.ssh"
+
+  # master container for acceptance testing
+  master:
+    build:
+      context: .
+      target: ${MASTER_TARGET}
+    ports:
+          - "2022:22"
+    image: ras/${MASTER_TARGET}
+    volumes:
+      - "${SSH_SOURCE}:/root/.ssh"

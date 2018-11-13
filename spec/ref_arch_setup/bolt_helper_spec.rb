@@ -9,7 +9,7 @@ describe RefArchSetup::BoltHelper do
   let(:params)              { { "VAR1" => "1", "VAR2" => "2" } }
   let(:params_str)          { "VAR1=1 VAR2=2" }
   let(:bolt_default_opts)   { { "run-as" => "root" } }
-  let(:bolt_default_string) { "--run-as root" }
+  let(:bolt_default_string) { "--run-as root --no-host-key-check" }
   let(:bolt_user_opts)      { { "user" => "my_user", "password" => "my_password" } }
   let(:bolt_user_string)    { "--user my_user --password my_password" }
   let(:bolt_pkey_opts)      { { "private-key" => "private_key_path" } }

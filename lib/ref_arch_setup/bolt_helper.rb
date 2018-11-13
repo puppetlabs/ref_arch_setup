@@ -6,7 +6,7 @@ module RefArchSetup
     BOLT_RUN_AS_USER = "root".freeze
 
     # the default options to specify when running bolt commands
-    BOLT_DEFAULT_OPTIONS = { "run-as" => BOLT_RUN_AS_USER }.freeze
+    BOLT_DEFAULT_OPTIONS = { "run-as" => BOLT_RUN_AS_USER, "no-host-key-check" => "" }.freeze
 
     @bolt_options = BOLT_DEFAULT_OPTIONS
 
@@ -61,7 +61,12 @@ module RefArchSetup
     def self.bolt_options_string
       bolt_options_string = ""
       @bolt_options.each do |key, value|
-        bolt_options_string << " --#{key} #{value}"
+        # options like no-host-key-check don't have a value
+        bolt_options_string << if value.empty?
+                                 " --#{key}"
+                               else
+                                 " --#{key} #{value}"
+                               end
       end
       bolt_options_string
     end

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export SSH_SOURCE=./fixtures/.ssh
+docker-compose run --rm --name controller -e SSH_SOURCE controller "/bin/bash"

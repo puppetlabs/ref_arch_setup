@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export SSH_SOURCE=./fixtures/.ssh
+docker-compose run --rm --publish=2022:22 --name master -e SSH_SOURCE master

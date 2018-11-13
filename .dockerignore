@@ -1,0 +1,7 @@
+.*
+coverage
+doc
+junit
+log
+pkg
+vendor

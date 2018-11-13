@@ -1,0 +1,4 @@
+#! /bin/sh
+
+export RAS_TARGET="$@"
+docker-compose build --no-cache ras
