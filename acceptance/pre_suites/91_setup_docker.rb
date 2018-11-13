@@ -23,14 +23,22 @@ test_name "install docker on the controller" do
     puts command
     on controller, command
   end
+end
 
+test_name "install docker-compose on the controller" do
   step "install docker-compose" do
-    url = "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)"
-    command = "curl -L #{url}  -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose"
+    docker_compose = "docker-compose-$(uname -s)-$(uname -m)"
+    url = "https://github.com/docker/compose/releases/download/1.23.1/#{docker_compose}"
+    command = "curl -L #{url}  -o /usr/local/bin/docker-compose"
     puts command
     on controller, command
   end
 
+  step "update docker-compose permissions" do
+    command = "chmod +x /usr/local/bin/docker-compose"
+    puts command
+    on controller, command
+  end
 end
 
 test_name "output host info" do

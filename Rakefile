@@ -65,6 +65,14 @@ namespace :test do
     Rake::Task["test:acceptance_pre_suite"].execute
   end
 
+  desc "Run the docker demo setup from the acceptance pre-suite"
+  task :acceptance_setup_ras_docker_demo do
+    ENV["BEAKER_PRE_SUITE"] = "acceptance/pre_suites/10_setup_ssh.rb,"\
+                              "acceptance/pre_suites/91_setup_docker.rb"
+
+    Rake::Task["test:acceptance_pre_suite"].execute
+  end
+
   desc "Run init subcommand"
   rototiller_task :acceptance_init do |task|
     beaker_init(task)
@@ -83,6 +91,16 @@ namespace :test do
   desc "Run destroy subcommand"
   rototiller_task :acceptance_destroy do |task|
     beaker_destroy(task)
+  end
+
+  desc "Run docker acceptance test suite using Beaker subcommands"
+  task :acceptance_docker do
+    beaker_initialize
+    Rake::Task["gem:build"].execute
+    Rake::Task["test:acceptance_init"].execute
+    Rake::Task["test:acceptance_provision"].execute
+    Rake::Task["test:acceptance_exec"].execute
+    Rake::Task["test:acceptance_destroy"].execute unless preserve_hosts?
   end
 end
 # rubocop:enable Metrics/BlockLength
