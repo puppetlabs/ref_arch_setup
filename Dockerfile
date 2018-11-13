@@ -1,19 +1,33 @@
-### Environment ###
+####### Environment #######
 FROM ruby:alpine as base
 
-ENV BUILD_PACKAGES build-base bash
+ENV PACKAGES build-base bash openssh openrc
 
 # Update, install required packages, remove apk cache
 RUN apk update && \
     apk upgrade && \
-    apk add $BUILD_PACKAGES && \
+    apk add $PACKAGES && \
     rm -rf /var/cache/apk/*
 
 # Create ref_arch_setup dir and set as the workdir
 RUN mkdir /ref_arch_setup
 WORKDIR /ref_arch_setup
 
-### Build ###
+
+####### SSH #######
+FROM base as sshd
+
+# Update sshd config
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN mkdir -p /var/run/sshd
+
+COPY bin/docker/ssh_entrypoint.sh /usr/local/bin/
+
+EXPOSE 22
+ENTRYPOINT ["ssh_entrypoint.sh"]
+
+
+####### Build #######
 FROM base as build
 
 # Copy requirements for install
@@ -32,7 +46,8 @@ COPY . /ref_arch_setup
 RUN bundle exec rake gem:build
 RUN cd pkg && gem install ref_arch_setup && cd ..
 
-### Production ###
+
+####### Production #######
 FROM base as prod
 
 COPY fixtures/pe.conf /ref_arch_setup/pe.conf
@@ -41,6 +56,12 @@ COPY --from=build /ref_arch_setup/pkg /ref_arch_setup/pkg
 RUN cd pkg && gem install ref_arch_setup --no-rdoc --no-ri && cd ..
 RUN rm -rf /ref_arch_setup/pkg
 
-### Acceptance ###
-FROM prod as acceptance
+
+####### Acceptance #######
+
+### controller ###
+FROM prod as controller
 COPY fixtures/*.tar /ref_arch_setup
+
+### master ###
+FROM sshd as master
