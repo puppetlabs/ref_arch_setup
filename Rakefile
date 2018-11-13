@@ -92,16 +92,6 @@ namespace :test do
   rototiller_task :acceptance_destroy do |task|
     beaker_destroy(task)
   end
-
-  desc "Run docker acceptance test suite using Beaker subcommands"
-  task :acceptance_docker do
-    beaker_initialize
-    Rake::Task["gem:build"].execute
-    Rake::Task["test:acceptance_init"].execute
-    Rake::Task["test:acceptance_provision"].execute
-    Rake::Task["test:acceptance_exec"].execute
-    Rake::Task["test:acceptance_destroy"].execute unless preserve_hosts?
-  end
 end
 # rubocop:enable Metrics/BlockLength
 
