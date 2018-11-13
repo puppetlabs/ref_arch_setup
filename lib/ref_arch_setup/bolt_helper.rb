@@ -63,6 +63,8 @@ module RefArchSetup
       @bolt_options.each do |key, value|
         bolt_options_string << " --#{key} #{value}"
       end
+
+      bolt_options_string << " --no-host-key-check"
       bolt_options_string
     end
 
