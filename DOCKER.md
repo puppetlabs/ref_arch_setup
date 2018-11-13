@@ -2,7 +2,8 @@
 This experimental update allows running RAS in a Docker container. 
 It uses docker-compose to set up an acceptance testing environment with 'controller' and 'master' containers.
 
-## Dockerfile
+## Configuration
+### Dockerfile
 The current configuration uses a Dockerfile with multi-stage builds:
 
 * FROM ruby:alpine as base
@@ -14,16 +15,16 @@ There are also stages for the docker acceptance tests:
 * FROM prod as controller
 * FROM sshd as master
 
-## docker-compose.yml
-The docker-compose.yml specifies a general 'ras' service as well as 'controller' and 'master' services for acceptance testing.
+### docker-compose.yml
+The docker-compose.yml file includes a general 'ras' service as well as 'controller' and 'master' services for acceptance testing.
 
-## .env
+### .env
 The .env file specifies default values for the parameters used in docker-compose.yml
 
-## bin/docker
+### bin/docker
 The scripts in bin/docker use the services specified in docker-compose.yml with the targets specified in the Dockerfile.
 
-### attach
+#### attach
 These scripts run and attach to the specified container, building the image if necessary.
 * attach
 * attach_build
@@ -37,7 +38,7 @@ The `attach` script attaches to the specified target:
 
 The other scripts attach to their respective default targets.
 
-### build
+#### build
 Build the specified target using cached images or rebuild it from scratch
 * build	
 * rebuild
@@ -45,18 +46,41 @@ Build the specified target using cached images or rebuild it from scratch
 ./bin/docker/rebuild prod
 ```
 
-### ssh
+#### ssh
 * setup_ssh - Create the id_rsa, id_rsa.pub, and authorized_keys files (unless they already exist)
 * ssh_entrypoint.sh - The entrypoint for the 'master' container in the acceptance test environment
 	
-### run
+#### run
 * ref_arch_setup - Run the 'ref_arch_setup' command in the ras container with the prod target
 ```
 ./bin/docker/ref_arch_setup install -h
 ```
+## Usage
+The current configuration supports several usage models. 
 
+### Run RAS in a single container
+The docker-compose.yml file includes a general 'ras' service which can be used with any of the build targets.
+
+#### Run single commands
+To run single commands use `./bin/docker/ref_arch_setup <command> <options>`. 
+This script will pass the command and options to ref_arch_setup in the container.
+
+#### Attach to the container
+To attach to the container use `./bin/docker/attach prod`.
+
+### Run RAS with 'controller' and 'master' containers
+The docker-compose.yml file also includes 'controller' and 'master' services for acceptance testing.
+See the [Acceptance test environment](#acceptance-test-environment) section for more information.
+
+### Run RAS in a container with a remote master
+The 'ras' and 'controller' services can both be used with a remote master as long as ssh is configured.
+The primary difference between these services is the default ssh folder mounted in the container.
+The 'ras' service uses '~/.ssh' by default since it mainly intended to be used with a remote master.
+The 'controller' service uses './fixtures/.ssh' since it is mainly intended to be used with the 'master' container for acceptance testing.
+See [Using the vmpooler master](#using-the-vmpooler-master) for more information.
 
 ## Acceptance test environment 
+The current configuration provides the ability to run RAS in a 'controller' container with a 'master' container serving as the primary master.
 
 ### Set up Docker on vmpooler
 * To ensure a clean environment, run the rake task to provision a vmpooler controller and master with Docker installed on the controller:
@@ -68,11 +92,11 @@ ras.user:~/RubymineProjects/ref_arch_setup> be rake test:acceptance_setup_ras_do
 * SSH to the vmpooler controller
 
 
-### Set up the RAS puppercon environment
-* Clone the repo with the puppercon branch and cd into ref_arch_setup:
+### Set up the RAS Docker environment
+* Clone the repo and cd into ref_arch_setup:
 
 ```
-[root@<vmpooler_controller> ~]# git clone -b puppercon --recurse-submodules https://github.com/puppetlabs/ref_arch_setup.git && cd ref_arch_setup
+[root@<vmpooler_controller> ~]# git clone --recurse-submodules https://github.com/puppetlabs/ref_arch_setup.git && cd ref_arch_setup
 ```
 
 * Create ssh keys
