@@ -19,7 +19,8 @@
     "acceptance/pre_suites/20_install_rbenv.rb",
     "acceptance/pre_suites/25_install_gems.rb",
     "acceptance/pre_suites/30_setup_ras.rb",
-    "acceptance/pre_suites/40_download_pe_tarball.rb"
+    "acceptance/pre_suites/40_download_pe_tarball.rb",
+    "acceptance/pre_suites/99_output_host_info.rb"
   ],
   :tests => [
     "acceptance/tests/110_install_test_remote_master_tarball_url.rb",
