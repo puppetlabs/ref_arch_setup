@@ -1,4 +1,4 @@
 #! /bin/sh
 
 export RAS_TARGET="$@"
-docker-compose run --rm -e RAS_TARGET controller /bin/bash
+docker-compose run --rm -e RAS_TARGET "$@" /bin/bash

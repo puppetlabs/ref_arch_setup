@@ -1,4 +1,4 @@
 #! /bin/sh
 
-export RAS_TARGET=base
-docker-compose run --rm --name master -e RAS_TARGET master "/bin/bash"
+export SSH_SOURCE=./fixtures/.ssh
+docker-compose run --rm --publish=2022:22 --name master -e SSH_SOURCE master
