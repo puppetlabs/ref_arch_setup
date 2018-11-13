@@ -1,3 +1,3 @@
 #! /bin/sh
 
-docker-compose run --rm --name ref_arch_setup prod ref_arch_setup "$@"
+docker-compose run --rm --name ref_arch_setup ras ref_arch_setup "$@"
