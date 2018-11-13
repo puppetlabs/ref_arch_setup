@@ -58,7 +58,7 @@ Build the specified target using cached images or rebuild it from scratch
 
 ## Acceptance test environment 
 
-### Set up Docker on vmpooler(optional)
+### Set up Docker on vmpooler
 * To ensure a clean environment, run the rake task to provision a vmpooler controller and master with Docker installed on the controller:
 
 ```
@@ -76,21 +76,41 @@ ras.user:~/RubymineProjects/ref_arch_setup> be rake test:acceptance_setup_ras_do
 ```
 
 * Create ssh keys
-The setup_ssh script will create the id_rsa, id_rsa.pub, and authorized_keys files (unless they already exist)
+
+The 'controller' and 'master' containers start with the ./fixtures/.ssh directory mounted. 
+The setup_ssh script will create the id_rsa, id_rsa.pub, and authorized_keys files to allow ssh between the containers (unless they already exist).
 
 ```
 [root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/setup_ssh
 ```
 
-### Controller container
+### Test RAS
+* Run the ref_arch_setup command in the ras container
+```
+[root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/ref_arch_setup install -h
+    Usage: ref_arch_setup install [options]
+
+    Runs the install subcommands in the following order:
+      generate-pe-conf (unless --pe-conf is provided)
+      bootstrap
+      pe-infra-agent-install (noop for "Standard" ref arch)
+      configure
+        ...
+        
+```
+
+### Start the controller container
 * Build and attach to the 'controller'
 ```
 [root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/attach_controller
 ```
 
 * When the build completes you should have a bash prompt for the controller container
+```
+bash-4.4# bolt command run 'echo HELLO RAS!!!' --nodes=master --user=root --no-host-key-check
+```
 
-### Master container
+### Start the master container
 
 * Launch a new terminal and SSH to the vmpooler controller
 
@@ -105,6 +125,10 @@ The setup_ssh script will create the id_rsa, id_rsa.pub, and authorized_keys fil
 ```
 
 * When the build completes you should see sshd listening on port 22 on the master container
+```
+Server listening on 0.0.0.0 port 22.
+Server listening on :: port 22.
+```
 
 ### Back in the controller container
 
@@ -113,23 +137,9 @@ The setup_ssh script will create the id_rsa, id_rsa.pub, and authorized_keys fil
 bash-4.4# bolt command run 'echo HELLO RAS!!!' --nodes=master --user=root --no-host-key-check
 ```
 
-
 * Run ref_arch_setup with the docker master
 ```
 bash-4.4# ref_arch_setup install --pe-conf=pe.conf --pe-tarball=puppet-enterprise-2019.0-rc1-7-gd82666f-el-7-x86_64.tar --primary-master=master --user=root
-```
-
-### Controller container with vmpooler master
-The controller container can also use the vmpooler master.
-
-* Add the public key to the authorized_keys file
-```
-[root@<vmpooler_controller> ref_arch_setup]# ssh-copy-id -i ./fixtures/.ssh/id_rsa.pub root@<vmpooler_master>
-```
-
-* Run ref_arch_setup with the vmpooler master
-```
-bash-4.4# ref_arch_setup install --pe-conf=pe.conf --pe-tarball=puppet-enterprise-2019.0-rc1-7-gd82666f-el-7-x86_64.tar --primary-master=onillx330ku80pv.delivery.puppetlabs.net --user=root
 ```
 
 ### Teardown
@@ -143,5 +153,16 @@ bash-4.4# exit
 [root@<vmpooler_controller> ref_arch_setup]# docker stop master
 ```
 
+## Using the vmpooler master
+The 'acceptance_setup_ras_docker_demo' rake task sets up ssh keys for the vmpooler controller and master.
+The 'bin/docker/ref_arch_setup' script starts the container with ~/.ssh mounted, so bolt should work via ssh.
 
-			
+* Test ref_arch_setup using the fake tarball
+```
+[root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/ref_arch_setup install --pe-conf=pe.conf --pe-tarball=puppet-enterprise-2019.0-rc1-7-gd82666f-el-7-x86_64.tar --primary-master=<vmpooler_master> --user=root
+```
+
+* Run ref_arch_setup to install the latest version of PE
+```
+[root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/ref_arch_setup install --pe-conf=pe.conf --pe-version=latest --primary-master=onillx330ku80pv.delivery.puppetlabs.net --user=root
+```
