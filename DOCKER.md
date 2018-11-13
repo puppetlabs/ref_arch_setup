@@ -164,5 +164,5 @@ The 'bin/docker/ref_arch_setup' script starts the container with ~/.ssh mounted,
 
 * Run ref_arch_setup to install the latest version of PE
 ```
-[root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/ref_arch_setup install --pe-conf=pe.conf --pe-version=latest --primary-master=onillx330ku80pv.delivery.puppetlabs.net --user=root
+[root@<vmpooler_controller> ref_arch_setup]# ./bin/docker/ref_arch_setup install --pe-conf=pe.conf --pe-version=latest --primary-master=<vmpooler_master> --user=root
 ```
