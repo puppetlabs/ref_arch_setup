@@ -29,4 +29,5 @@ Gem::Specification.new do |spec|
   # Development dependencies
   spec.add_development_dependency "beaker", "~>4.0"
   spec.add_development_dependency "beaker-vmpooler"
+  spec.add_development_dependency "beaker-docker"
 end
