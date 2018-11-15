@@ -1,0 +1,40 @@
+FROM centos:centos7 as base
+
+##################################################################
+
+FROM base as ssh
+
+RUN yum -y update; yum clean all
+RUN yum -y install openssh-server passwd
+
+RUN mkdir /var/run/sshd
+RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
+
+ENTRYPOINT ["/usr/sbin/sshd", "-D"]
+
+##################################################################
+
+FROM ssh as rbenv
+
+ENV RBENV_ROOT /root/.rbenv
+ENV PATH /root/.rbenv/shims:/root/.rbenv/bin:$PATH
+
+ENV RUBY_VERSION 2.3.1
+ENV CONFIGURE_OPTS --disable-install-doc
+
+ENV DEV_PACKAGES git-core zlib zlib-devel gcc-c++ patch readline readline-devel \
+                    libyaml-devel libffi-devel openssl-devel make bzip2 autoconf \
+                    automake libtool bison curl sqlite-devel tar which
+
+RUN yum -y install $DEV_PACKAGES; yum clean all
+
+RUN git clone --depth 1 git://github.com/sstephenson/rbenv.git ${RBENV_ROOT} \
+&&  git clone --depth 1 https://github.com/sstephenson/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build \
+&&  git clone --depth 1 git://github.com/jf/rbenv-gemset.git ${RBENV_ROOT}/plugins/rbenv-gemset \
+&& ${RBENV_ROOT}/plugins/ruby-build/install.sh
+
+RUN echo 'eval "$(/root/.rbenv/bin/rbenv init -)"' >> /etc/profile.d/rbenv.sh
+
+RUN rbenv install $RUBY_VERSION && rbenv global $RUBY_VERSION
+
+RUN gem install bundler && gem install gem-path
