@@ -100,7 +100,6 @@ namespace :test do
     beaker_initialize
     Rake::Task["gem:build"].execute
     Rake::Task["test:acceptance_docker_init"].execute
-    Rake::Task["test:acceptance_provision"].execute
     Rake::Task["test:acceptance_exec"].execute
     Rake::Task["test:acceptance_destroy"].execute unless preserve_hosts?
   end
