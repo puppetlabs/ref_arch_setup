@@ -6,7 +6,7 @@ test_name "set up ssh between controller and target-master" do
   step "put keys on the target-master" do
     results = on controller, "cat /root/.ssh/id_rsa.pub"
     key = results.stdout.strip
-    command = "echo \"#{key}\" >> /root/.ssh/authorized_keys"
+    command = "mkdir -p /root/.ssh && echo \"#{key}\" >> /root/.ssh/authorized_keys"
     on hosts_without_role(hosts, "controller"), command
   end
 
