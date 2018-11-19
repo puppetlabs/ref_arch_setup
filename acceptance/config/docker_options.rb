@@ -15,11 +15,16 @@
   :'master-start-curl-retries' => 30,
   :type                        => "pe",
   :pre_suite                   => [
+    "acceptance/pre_suites/10_setup_ssh.rb",
     "acceptance/pre_suites/30_setup_ras.rb",
+    "acceptance/pre_suites/41_copy_mock_pe_tarball.rb",
     "acceptance/pre_suites/99_output_host_info.rb"
   ],
   :tests => [
-    # "acceptance/tests/docker/00_docker_test.rb",
+    # "acceptance/tests/1110_mock_install_test_remote_master_tarball_url.rb",
+    "acceptance/tests/1120_mock_install_test_remote_master_tarball_path_controller.rb",
+    "acceptance/tests/1130_mock_install_test_remote_master_tarball_path_master.rb",
+    # "acceptance/tests/1210_mock_install_test_local_master_tarball_url.rb",
     "acceptance/tests/1220_mock_install_test_local_master_tarball_path.rb"
   ],
   "is_puppetserver"            => true,
