@@ -6,7 +6,7 @@ test_name "install RAS on controller" do
   install_ras_gem(controller)
 
   step "link RAS exe into path" do
-    command = "ln -s /opt/puppetlabs/bolt/bin/ref_arch_setup /usr/local/bin/ref_arch_setup"
+    command = "ln -s #{BOLT_BIN_DIR}/ref_arch_setup /usr/local/bin/ref_arch_setup"
 
     on controller, command
   end

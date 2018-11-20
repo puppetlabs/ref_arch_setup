@@ -6,7 +6,10 @@ test_name "install bolt pkg" do
   end
   install_bolt_pkg(controller)
 
-  # when we get the package from an http, we need to do the below, but from a file we do not...
+  # This is temporarily commented out.  When installing from a URL this needs to be run
+  # But when installing from a local file it doesn't
+  # Installing from the local specialized copy of bolt is just temporary until we decide how to
+  # release ras now that we can't use bolt as a gem
   # step "install bolt repo" do
   #   command = "yum install -y puppet-bolt-1.*"
   #   puts command

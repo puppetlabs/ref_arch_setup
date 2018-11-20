@@ -31,6 +31,7 @@ module BeakerHelper
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
   RAS_BOLT_PKG = "puppet-bolt-1.1.0.14.g7e00b65-1.el7.x86_64".freeze
   RAS_BOLT_PKG_FILE = "#{RAS_BOLT_PKG}.rpm".freeze
+  BOLT_BIN_DIR = "/opt/puppetlabs/bolt/bin".freeze
 
   # the beaker hosts file used in the docker acceptance tests
   BEAKER_DOCKER_HOSTS = "docker_hosts.cfg".freeze
@@ -338,7 +339,7 @@ module BeakerHelper
   #   gem_path = get_ras_gem_path(host)
   #
   def get_ras_gem_path(host)
-    command = "/opt/puppetlabs/bolt/bin/gem path ref_arch_setup"
+    command = "#{BOLT_BIN_DIR}/gem path ref_arch_setup"
     gem_path = on(host, command).stdout.rstrip
     puts "RAS gem path: #{gem_path}"
     gem_path
@@ -353,7 +354,6 @@ module BeakerHelper
   # @example
   #   ras_teardown(host)
   #
-<<<<<<< HEAD
   def ras_teardown(host)
     puts "Tearing down the following host:"
     puts hosts
@@ -427,12 +427,32 @@ module BeakerHelper
     on host, command
   end
 
+  # Removed the bolt pkg from the host
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  # @example
+  #   remove_bolt_pkg(host)
+  #
   def remove_bolt_pkg(host)
     command = "rpm -e --quiet #{RAS_BOLT_PKG}"
     puts command
     on host, command
   end
 
+  # Install the bolt pkg on the host
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed, so we must uninstall and reinstall
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  # @example
+  #   install_bolt_pkg(host)
+  #
   def install_bolt_pkg(host)
     step "install bolt repo" do
       command = "rpm -Uvh #{RAS_BOLT_PKG_FILE}"
@@ -441,11 +461,21 @@ module BeakerHelper
     end
   end
 
+  # Install ras on the host using the bolt gem
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed, so we must uninstall and reinstall
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  # @example
+  #   install_ras_gem(host)
+  #
   def install_ras_gem(host)
     step "install RAS on controller" do
       version = RefArchSetup::Version::STRING
       gem = "ref_arch_setup-#{version}.gem"
-      command = "/opt/puppetlabs/bolt/bin/gem install #{BEAKER_RAS_PATH}/#{gem}"
+      command = "#{BOLT_BIN_DIR}/gem install #{BEAKER_RAS_PATH}/#{gem}"
       puts command
       on host, command
     end
