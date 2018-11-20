@@ -11,7 +11,7 @@ test_name "perform install on remote master with tarball path on controller" do
   end
 
   step "run puppet agent" do
-    run_mock_puppet_agent(target_master)
+    on target_master, "puppet agent -t"
   end
 
   teardown do

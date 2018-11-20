@@ -350,20 +350,6 @@ module BeakerHelper
     end
   end
 
-  # Runs the mock puppet agent on the specified host
-  #
-  # @param host The unix style host
-  #
-  # @example
-  #   output = run_mock_puppet_agent(host)
-  #
-  def run_mock_puppet_agent(host)
-    fake_puppet_path = "/tmp/ref_arch_setup/puppet-enterprise-*"
-    command = "#{fake_puppet_path}/puppet agent -t"
-
-    output = on(host, command).stdout.rstrip
-    return output
-  end
 end
 
 Beaker::TestCase.send(:include, BeakerHelper)
