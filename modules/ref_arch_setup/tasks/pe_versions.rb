@@ -1,26 +1,25 @@
 #!/usr/bin/env ruby
 require "net/http"
 require "json"
-require_relative '../../ruby_task_helper/lib/task_helper.rb'
+require_relative "../../ruby_task_helper/lib/task_helper.rb"
 
-class MyTask < TaskHelper
-
+# PE Versions Task using Ruby Task Helper
+class VersionsTask < TaskHelper
   PE_VERSIONS_URL = "https://puppet.com/misc/version-history".freeze
 
   # the minimum prod version supported by RAS
   MIN_PROD_VERSION = "2018.1.0".freeze
 
-  def task(**kwargs)
+  def task(**_kwargs)
     versions = fetch_supported_prod_versions
 
     puts "RAS supports the following PE versions:"
     puts versions
     puts
 
-    result = {versions: versions}
+    result = { versions: versions }
 
     return result
-
   end
 
   def init
@@ -69,8 +68,12 @@ class MyTask < TaskHelper
     return supported
   end
 
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable Metrics/PerceivedComplexity
   def validate_response(res, valid_response_codes = ["200"],
-      invalid_response_bodies = ["", nil])
+                        invalid_response_bodies = ["", nil])
     is_valid_response = false
 
     if res.nil?
@@ -78,7 +81,7 @@ class MyTask < TaskHelper
       puts "nil"
       puts
     elsif !valid_response_codes.include?(res.code) ||
-        invalid_response_bodies.include?(res.body)
+          invalid_response_bodies.include?(res.body)
       code = res.code.nil? ? "nil" : res.code
       body = res.body.nil? ? "nil" : res.body
 
@@ -94,13 +97,10 @@ class MyTask < TaskHelper
 
     return is_valid_response
   end
-
-
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/CyclomaticComplexity
+  # rubocop:enable Metrics/PerceivedComplexity
 end
 
-MyTask.run if __FILE__ == $0
-
-
-
-
-
+VersionsTask.run if $PROGRAM_NAME == __FILE__
