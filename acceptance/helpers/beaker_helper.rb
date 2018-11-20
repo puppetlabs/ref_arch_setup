@@ -349,7 +349,6 @@ module BeakerHelper
       host unless host["roles"].include?(role_to_exclude.to_s)
     end
   end
-
 end
 
 Beaker::TestCase.send(:include, BeakerHelper)
