@@ -350,22 +350,6 @@ module BeakerHelper
     end
   end
 
-  # Runs the command on the specified host
-  #
-  # @param host The unix style host
-  # @param command The command to run
-  #
-  # @example
-  #   output = run_command(host, command)
-  #
-  def run_beaker_command(host, command)
-    puts "command: #{command}"
-    output = on(host, command).stdout.rstrip
-    puts "output:"
-    puts output
-    return output
-  end
-
   # Runs the mock puppet agent on the specified host
   #
   # @param host The unix style host
@@ -377,7 +361,7 @@ module BeakerHelper
     fake_puppet_path = "/tmp/ref_arch_setup/puppet-enterprise-*"
     command = "#{fake_puppet_path}/puppet agent -t"
 
-    output = run_beaker_command(host, command)
+    output = on(host, command).stdout.rstrip
     return output
   end
 end
