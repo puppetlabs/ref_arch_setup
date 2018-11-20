@@ -2,7 +2,7 @@ test_name "perform install on remote master with tarball path on controller" do
   step "perform install" do
     filename = "puppet-enterprise-2019.0-rc1-7-gd82666f-el-7-x86_64.tar"
     primary_master = "--primary-master=#{target_master}"
-    pe_tarball = "--pe-tarball=#{BEAKER_RAS_PATH}/fixtures/#{filename}"
+    pe_tarball = "--pe-tarball=#{BEAKER_RAS_PATH}/fixtures/tarball/#{filename}"
     pe_conf = "--pe-conf=#{BEAKER_RAS_PE_CONF}"
     command = "ref_arch_setup install #{primary_master} #{pe_tarball} #{pe_conf}"
 
