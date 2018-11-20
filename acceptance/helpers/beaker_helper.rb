@@ -13,6 +13,8 @@ module BeakerHelper
   BEAKER_RAS_PE_CONF = "#{BEAKER_RAS_FIXTURES_PATH}/pe.conf".freeze
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
 
+  BEAKER_DOCKER_HOSTS = "docker_hosts.cfg".freeze
+
   # Initializes the PE instance variables
   #
   # @author Bill Claytor
@@ -29,6 +31,8 @@ module BeakerHelper
                     else
                       BEAKER_HOSTS
                     end
+
+    @beaker_docker_hosts = ENV["BEAKER_DOCKER_HOSTS"] || BEAKER_DOCKER_HOSTS
   end
 
   # Creates a Beaker host file for the acceptance tests
@@ -90,6 +94,37 @@ module BeakerHelper
         option.name = "-o"
         option.add_argument do |arg|
           arg.name = "#{__dir__}/../config/options.rb"
+        end
+      end
+    end
+
+    return @beaker_cmd
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  # Creates the beaker init command for the docker tests
+  #
+  # @author Bill Claytor
+  #
+  # @param [task] task The current rake task
+  #
+  # @return [command] The Beaker command to execute
+  #
+  # rubocop:disable Metrics/MethodLength
+  def beaker_docker_init(task)
+    @beaker_cmd = task.add_command do |command|
+      command.name = "bundle exec beaker init"
+      command.add_option do |option|
+        option.name = "-h"
+        option.add_argument do |arg|
+          arg.name = @beaker_docker_hosts
+        end
+      end
+
+      command.add_option do |option|
+        option.name = "-o"
+        option.add_argument do |arg|
+          arg.name = "acceptance/config/docker_options.rb"
         end
       end
     end
@@ -250,23 +285,57 @@ module BeakerHelper
   #   ras_teardown(hosts)
   #
   def ras_teardown(hosts)
-    # TODO: make this a task
-    uninstall = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
-    remove_temp = "rm -rf #{RAS_TMP_WORK_DIR}"
-
     puts "Tearing down the following hosts:"
     puts hosts
     puts
 
-    puts "Uninstalling puppet:"
-    puts uninstall
+    ras_teardown_uninstall_puppet(hosts)
+    ras_teardown_remove_temp(hosts)
+  end
+
+  # Removes the RAS working dir on the specified hosts
+  #
+  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @example
+  #   ras_docker_teardown(hosts)
+  #
+  def ras_docker_teardown(hosts)
+    puts "Tearing down the following hosts:"
+    puts hosts
     puts
-    on hosts, uninstall
+
+    ras_teardown_remove_temp(hosts)
+  end
+
+  # Uninstalls puppet on the specified hosts
+  #
+  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @example
+  #   ras_teardown_uninstall_puppet(hosts)
+  #
+  def ras_teardown_uninstall_puppet(hosts)
+    # TODO: make this a task
+    command = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
+
+    puts "Uninstalling puppet:"
+    puts command
+    puts
+    on hosts, command
+  end
+
+  # Removes the RAS working dir on the specified hosts
+  #
+  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @example
+  #   ras_teardown_remove_temp(hosts)
+  #
+  def ras_teardown_remove_temp(hosts)
+    command = "rm -rf #{RAS_TMP_WORK_DIR}"
 
     puts "Removing temp work directory:"
-    puts remove_temp
+    puts command
     puts
-    on hosts, remove_temp
+    on hosts, command
   end
 
   # Returns all hosts except those with the specified role
