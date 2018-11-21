@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
 
   # Run time dependencies
   spec.add_runtime_dependency "bolt", "~> 0.22.0"
-  spec.add_runtime_dependency "oga", "~> 2.15"
 
   # Development dependencies
   spec.add_development_dependency "beaker", "~>4.0"
