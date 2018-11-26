@@ -1,5 +1,4 @@
 # rubocop:disable Metrics/ClassLength
-require "oga"
 require "net/http"
 require "json"
 
@@ -106,8 +105,9 @@ module RefArchSetup
     #   latest_version = latest_prod_version
     #
     def self.latest_prod_version
-      result = parse_prod_versions_url("//table/tbody/tr[1]/td[1]")
-      latest_version = result.text
+      versions = fetch_prod_versions
+      latest_version = versions[0]
+
       return latest_version
     end
 
@@ -127,8 +127,8 @@ module RefArchSetup
     def self.ensure_valid_prod_version(version)
       puts "Verifying specified PE version: #{version}"
 
-      result = parse_prod_versions_url("//table/tbody/tr/td[contains(., '#{version}')]")
-      found = result.text == version ? true : false
+      versions = fetch_prod_versions
+      found = versions.include?(version) ? true : false
 
       puts "Specified version #{version} was found" if found
       raise "Specified version not found: #{version}" unless found
@@ -163,50 +163,70 @@ module RefArchSetup
     end
 
     # Fetches the list of production PE versions from the 'Puppet Enterprise Version History'
-    # *note: this is no longer used but has been left as an example
+    #
     # @author Bill Claytor
     #
-    # @return [Oga::XML::NodeSet] The versions list
+    # @return [Array] The versions list
     #
     # @example:
-    #   versions = fetch_prod_versions
+    #   versions_list = fetch_prod_versions
     #
+    # rubocop:disable Metrics/MethodLength
     def self.fetch_prod_versions
-      versions = parse_prod_versions_url
-      puts "Versions:"
-
-      versions.each do |version|
-        version_text = version.text
-        puts version_text
-      end
-      puts
-
-      return versions
-    end
-
-    # Parses the 'Puppet Enterprise Version History'
-    # using the specified xpath and returns the result
-    #
-    # @author Bill Claytor
-    #
-    # @param [string] xpath The xpath to use when parsing the version history
-    #
-    # @return [Oga::XML::NodeSet] The resulting Oga NodeSet
-    #
-    # @example:
-    #   versions = parse_prod_versions_url
-    #   latest_version = parse_prod_versions_url("//table/tbody/tr[1]/td[1]")
-    #   result = parse_prod_versions_url("//table/tbody/tr/td[contains(., '#{version}')]")
-    #
-    def self.parse_prod_versions_url(xpath = "//table/tbody/tr/td[1]")
+      # TODO: use pe_versions task from SLV-275?
+      versions_list = []
       puts "Checking Puppet Enterprise Version History: #{@pe_versions_url}"
 
       uri = URI.parse(@pe_versions_url)
       response = Net::HTTP.get_response(uri)
       validate_response(response)
 
-      document = Oga.parse_html(response.body)
-      result = document.xpath(xpath)
+      puts "Versions:"
+      response.body.each_line do |line|
+        next unless line.include?("<td>")
+        contents = cell_contents(line)
+        if matches_version_format?(contents)
+          versions_list << contents
+          puts contents
+        end
+      end
+      puts
+
+      return versions_list
+    end
+    # rubocop:enable Metrics/MethodLength
+
+    # Extracts the cell contents from the specified line
+    #
+    # @author Bill Claytor
+    #
+    # @param [string] line A line containing an HTML table cell ("<td>" ... "</td>")
+    #
+    # @return [string] The contents of the cell
+    #
+    # @example:
+    #   cell_contents = cell_contents(line)
+    #
+    def self.cell_contents(line)
+      contents = line[/#{Regexp.escape("<td>")}(.*?)#{Regexp.escape("</td>")}/m, 1]
+      return contents
+    end
+
+    # Determines whether the specified cell contents matches the PE version format
+    # This is used in fetch_prod_versions to identify table cells that contain a PE version
+    #
+    # @author Bill Claytor
+    #
+    # @param [string] value The specified value
+    #
+    # @return [true, false] Whether the specified value matches the PE version format
+    #
+    # @example:
+    #   result = matches_version_format?(cell_contents)
+    #
+    def self.matches_version_format?(cell_contents)
+      # TODO: validate version format
+      result = cell_contents[/\p{L}/].nil?
       return result
     end
 

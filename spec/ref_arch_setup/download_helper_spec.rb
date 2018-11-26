@@ -10,7 +10,14 @@ describe RefArchSetup::DownloadHelper do
   TEST_PE_VERSIONS_URL = "http://testing.net/pe-versions".freeze
   TEST_BASE_PROD_URL = "http://testing.net/pe-tarballs".freeze
   TEST_LATEST_VERSION = "2077.1.4".freeze
-  TEST_OLDER_VERSION = "2076.3.10".freeze
+  TEST_NEXT_VERSION = "2076.3.10".freeze
+  TEST_MIN_SUPPORTED_VERSION = "2076.1.0".freeze
+  TEST_UNSUPPORTED_VERSION = "2075.1.0".freeze
+  TEST_PROD_VERSIONS = [TEST_LATEST_VERSION,
+                        TEST_NEXT_VERSION,
+                        TEST_MIN_SUPPORTED_VERSION,
+                        TEST_UNSUPPORTED_VERSION].freeze
+
   TEST_EL6_PLATFORM = "el-66-x86_64".freeze
   TEST_EL7_PLATFORM = "el-77-x86_64".freeze
   TEST_SLES_PLATFORM = "sles-111-x86_64".freeze
@@ -20,7 +27,43 @@ describe RefArchSetup::DownloadHelper do
                        TEST_EL7_PLATFORM,
                        TEST_SLES_PLATFORM,
                        TEST_UBUNTU_PLATFORM].freeze
-  TEST_MIN_PROD_VERSION = "2076.1.0".freeze
+
+  TEST_VERSIONS_RESPONSE_BODY = <<-HEREDOC.freeze
+    <h2 class="headline headline-with-border">
+        Version history
+    </h2>
+
+    <div class="body">
+        <table border="1" cellpadding="2" cellspacing="1" class="brand">
+            <thead>
+            <tr>
+                <th scope="col" width="50%">Puppet Enterprise version</th>
+                <th scope="col" width="50%">Launch date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>#{TEST_LATEST_VERSION}</td>
+                <td>Nov 6, 2077</td>
+            </tr>
+            <tr>
+                <td>#{TEST_NEXT_VERSION}</td>
+                <td>Nov 6, 2076</td>
+            </tr>
+            <tr>
+                <td>#{TEST_MIN_SUPPORTED_VERSION}</td>
+                <td>Oct 9, 2076</td>
+            </tr>
+            <tr>
+                <td>#{TEST_UNSUPPORTED_VERSION}</td>
+                <td>Oct 9, 2075</td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    </div>
+  HEREDOC
 
   TEST_VALID_RESPONSE_BODY = "OK".freeze
   TEST_INVALID_RESPONSE_BODY = "".freeze
@@ -127,7 +170,7 @@ describe RefArchSetup::DownloadHelper do
     subject.instance_variable_set(:@pe_versions_url, TEST_PE_VERSIONS_URL)
     subject.instance_variable_set(:@base_prod_url, TEST_BASE_PROD_URL)
     subject.instance_variable_set(:@pe_platforms, TEST_PE_PLATFORMS)
-    subject.instance_variable_set(:@min_prod_version, TEST_MIN_PROD_VERSION)
+    subject.instance_variable_set(:@min_prod_version, TEST_MIN_SUPPORTED_VERSION)
   end
 
   describe "#init" do
@@ -207,7 +250,7 @@ describe RefArchSetup::DownloadHelper do
     end
 
     context "when a version is specified" do
-      version = TEST_OLDER_VERSION
+      version = TEST_NEXT_VERSION
       host = "localhost"
       platform = "default"
       pe_platform = TEST_EL7_PLATFORM
@@ -243,7 +286,7 @@ describe RefArchSetup::DownloadHelper do
     end
 
     context "when a version and host are specified" do
-      version = TEST_OLDER_VERSION
+      version = TEST_NEXT_VERSION
       host = "my_host"
       platform = "default"
       pe_platform = TEST_EL7_PLATFORM
@@ -279,7 +322,7 @@ describe RefArchSetup::DownloadHelper do
     end
 
     context "when all arguments are specified" do
-      version = TEST_OLDER_VERSION
+      version = TEST_NEXT_VERSION
       host = "my_host"
       platform = TEST_PE_PLATFORMS[3]
       pe_platform = platform
@@ -352,8 +395,7 @@ describe RefArchSetup::DownloadHelper do
   describe "#latest_prod_version" do
     context "when called" do
       it "returns the first version from the prod versions list" do
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
-        expect(test_versions_result).to receive(:text).and_return(TEST_LATEST_VERSION)
+        expect(subject).to receive(:fetch_prod_versions).and_return(TEST_PROD_VERSIONS)
         expect(subject.latest_prod_version).to eq(TEST_LATEST_VERSION)
       end
     end
@@ -367,17 +409,15 @@ describe RefArchSetup::DownloadHelper do
       it "outputs helpful messages" do
         result = "Specified version #{version} was found"
 
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
+        expect(subject).to receive(:fetch_prod_versions).and_return(TEST_PROD_VERSIONS)
         expect(subject).to receive(:puts).with(message)
         expect(subject).to receive(:puts).with(result)
 
-        expect(test_versions_result).to receive(:text).and_return(version)
         subject.ensure_valid_prod_version(version)
       end
 
       it "returns true" do
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
-        expect(test_versions_result).to receive(:text).and_return(version)
+        expect(subject).to receive(:fetch_prod_versions).and_return(TEST_PROD_VERSIONS)
         allow(subject).to receive(:puts)
         expect(subject.ensure_valid_prod_version(version)).to eq(true)
       end
@@ -390,19 +430,16 @@ describe RefArchSetup::DownloadHelper do
       it "outputs only the expected messages (and raises an error)" do
         result = "Specified version #{version} was not found"
 
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
+        expect(subject).to receive(:fetch_prod_versions).and_return(TEST_PROD_VERSIONS)
         expect(subject).to receive(:puts).with(message)
         expect(subject).not_to receive(:puts).with(result)
-
-        expect(test_versions_result).to receive(:text).and_return("")
         expect { subject.ensure_valid_prod_version(version) }.to raise_error(RuntimeError)
       end
 
       it "raises the expected error" do
         error = "Specified version not found: #{version}"
         allow(subject).to receive(:puts)
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
-        expect(test_versions_result).to receive(:text).and_return("")
+        expect(subject).to receive(:fetch_prod_versions).and_return(TEST_PROD_VERSIONS)
         expect { subject.ensure_valid_prod_version(version) }.to raise_error(RuntimeError, error)
       end
     end
@@ -426,7 +463,7 @@ describe RefArchSetup::DownloadHelper do
 
     context "when the version is not supported" do
       version = "2017.1.4"
-      message = "The minimum supported version is #{TEST_MIN_PROD_VERSION}"
+      message = "The minimum supported version is #{TEST_MIN_SUPPORTED_VERSION}"
       error = "Specified version #{version} is not supported by RAS"
 
       it "outputs an explanation (and raises an error)" do
@@ -444,110 +481,64 @@ describe RefArchSetup::DownloadHelper do
   end
 
   describe "#fetch_prod_versions" do
-    context "when called" do
-      let(:test_versions_result_1) { Class.new }
-      let(:test_versions_result_2) { Class.new }
-
-      it "outputs the list of versions" do
-        test_versions_results = [test_versions_result_1, test_versions_result_2]
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_results)
-        expect(subject).to receive(:puts).with("Versions:")
-
-        expect(test_versions_result_1).to receive(:text).and_return("test_versions_result_1")
-        expect(subject).to receive(:puts).with("test_versions_result_1")
-        expect(test_versions_result_2).to receive(:text).and_return("test_versions_result_2")
-        expect(subject).to receive(:puts).with("test_versions_result_2")
-
-        expect(subject).to receive(:puts).with(no_args)
-
-        subject.fetch_prod_versions
-      end
-      it "returns the default result from parse_prod_versions_url" do
-        allow(subject).to receive(:puts)
-        expect(subject).to receive(:parse_prod_versions_url).and_return(test_versions_result)
-        expect(test_versions_result).to receive(:each)
-        expect(subject.fetch_prod_versions).to eq(test_versions_result)
-      end
-    end
-  end
-
-  describe "#parse_prod_versions_url" do
     let(:test_net_http) { Class.new }
     let(:test_uri) { Class.new }
-    let(:test_oga) { Class.new }
-
     let(:test_http_response) { Class.new }
-    let(:test_body) { Class.new }
-    let(:test_document) { Class.new }
-    let(:test_result) { Class.new }
 
     message = "Checking Puppet Enterprise Version History: #{TEST_PE_VERSIONS_URL}"
 
     before do
       stub_const("Net::HTTP", test_net_http)
       stub_const("URI", test_uri)
-      stub_const("Oga", test_oga)
     end
 
     context "when the response is valid" do
-      context "when an xpath is specified" do
-        it "uses the specified xpath and returns the result" do
-          xpath = "//table/tbody/tr[1]/td[1]"
+      it "outputs the expected messages and list of versions" do
+        expect(subject).to receive(:puts).with(message)
 
-          expect(subject).to receive(:puts).with(message)
+        expect(test_uri).to receive(:parse)
+          .with(TEST_PE_VERSIONS_URL).and_return(test_pe_versions_uri)
 
-          expect(test_uri).to receive(:parse)
-            .with(TEST_PE_VERSIONS_URL).and_return(test_pe_versions_uri)
+        expect(test_net_http).to receive(:get_response)
+          .with(test_pe_versions_uri).and_return(test_http_response)
 
-          expect(test_net_http).to receive(:get_response)
-            .with(test_pe_versions_uri).and_return(test_http_response)
+        expect(subject).to receive(:validate_response)
+          .with(test_http_response).and_return(true)
 
-          expect(subject).to receive(:validate_response)
-            .with(test_http_response).and_return(true)
+        expect(test_http_response).to receive(:body).and_return(TEST_VERSIONS_RESPONSE_BODY)
 
-          expect(test_http_response).to receive(:body).and_return(test_body)
+        expect(subject).to receive(:puts).with("Versions:")
+        expect(subject).to receive(:puts).with(TEST_PROD_VERSIONS[0])
+        expect(subject).to receive(:puts).with(TEST_PROD_VERSIONS[1])
+        expect(subject).to receive(:puts).with(TEST_PROD_VERSIONS[2])
+        expect(subject).to receive(:puts).with(TEST_PROD_VERSIONS[3])
+        expect(subject).to receive(:puts).with(no_args)
 
-          expect(test_oga).to receive(:parse_html)
-            .with(test_body).and_return(test_document)
-
-          expect(test_document).to receive(:xpath)
-            .with(xpath).and_return(test_result)
-
-          expect(subject.parse_prod_versions_url(xpath)).to eq(test_result)
-        end
+        subject.fetch_prod_versions
       end
 
-      context "when an xpath is not specified" do
-        it "uses the default xpath and returns the versions" do
-          xpath = "//table/tbody/tr/td[1]"
+      it "returns the result" do
+        allow(subject).to receive(:puts)
 
-          expect(subject).to receive(:puts).with(message)
+        expect(test_uri).to receive(:parse)
+          .with(TEST_PE_VERSIONS_URL).and_return(test_pe_versions_uri)
 
-          expect(test_uri).to receive(:parse)
-            .with(TEST_PE_VERSIONS_URL).and_return(test_pe_versions_uri)
+        expect(test_net_http).to receive(:get_response)
+          .with(test_pe_versions_uri).and_return(test_http_response)
 
-          expect(test_net_http).to receive(:get_response)
-            .with(test_pe_versions_uri).and_return(test_http_response)
+        expect(subject).to receive(:validate_response)
+          .with(test_http_response).and_return(true)
 
-          expect(subject).to receive(:validate_response)
-            .with(test_http_response).and_return(true)
+        expect(test_http_response).to receive(:body).and_return(TEST_VERSIONS_RESPONSE_BODY)
 
-          expect(test_http_response).to receive(:body).and_return(test_body)
-
-          expect(test_oga).to receive(:parse_html)
-            .with(test_body).and_return(test_document)
-
-          expect(test_document).to receive(:xpath)
-            .with(xpath).and_return(test_result)
-
-          expect(subject.parse_prod_versions_url).to eq(test_result)
-        end
+        expect(subject.fetch_prod_versions).to eq(TEST_PROD_VERSIONS)
       end
     end
 
     context "when the response is not valid" do
       it "raises an error" do
         expect(subject).to receive(:puts).with(message)
+        expect(subject).not_to receive(:puts).with("Versions:")
 
         expect(test_uri).to receive(:parse)
           .with(TEST_PE_VERSIONS_URL).and_return(test_pe_versions_uri)
@@ -559,9 +550,60 @@ describe RefArchSetup::DownloadHelper do
           .with(test_http_response).and_raise(RuntimeError)
 
         expect(test_http_response).not_to receive(:body)
-        expect(test_oga).not_to receive(:parse_html)
 
-        expect { subject.parse_prod_versions_url }.to raise_error(RuntimeError)
+        expect { subject.fetch_prod_versions }.to raise_error(RuntimeError)
+      end
+    end
+  end
+
+  describe "#cell_contents" do
+    context "when the line contains opening and closing td tags" do
+      it "returns the contents" do
+        line = "<td>contents</td>"
+        expected_result = "contents"
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains only an opening td tag" do
+      it "returns nil" do
+        line = "<td>contents"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains only a closing td tag" do
+      it "returns nil" do
+        line = "contents</td>"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains no td tag" do
+      it "returns nil" do
+        line = "contents"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+  end
+
+  describe "#matches_version_format?" do
+    context "when the string matches the version format" do
+      it "returns true" do
+        string = TEST_LATEST_VERSION
+        expected_result = true
+        expect(subject.matches_version_format?(string)).to eq(expected_result)
+      end
+    end
+
+    context "when the string does not match the version format" do
+      it "returns false" do
+        string = "2019.x.y"
+        expected_result = false
+        expect(subject.matches_version_format?(string)).to eq(expected_result)
       end
     end
   end
