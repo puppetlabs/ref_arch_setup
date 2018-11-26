@@ -556,6 +556,58 @@ describe RefArchSetup::DownloadHelper do
     end
   end
 
+  describe "#cell_contents" do
+    context "when the line contains opening and closing td tags" do
+      it "returns the contents" do
+        line = "<td>contents</td>"
+        expected_result = "contents"
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains only an opening td tag" do
+      it "returns nil" do
+        line = "<td>contents"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains only a closing td tag" do
+      it "returns nil" do
+        line = "contents</td>"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+
+    context "when the line contains no td tag" do
+      it "returns nil" do
+        line = "contents"
+        expected_result = nil
+        expect(subject.cell_contents(line)).to eq(expected_result)
+      end
+    end
+  end
+
+  describe "#matches_version_format?" do
+    context "when the string matches the version format" do
+      it "returns true" do
+        string = TEST_LATEST_VERSION
+        expected_result = true
+        expect(subject.matches_version_format?(string)).to eq(expected_result)
+      end
+    end
+
+    context "when the string does not match the version format" do
+      it "returns false" do
+        string = "2019.x.y"
+        expected_result = false
+        expect(subject.matches_version_format?(string)).to eq(expected_result)
+      end
+    end
+  end
+
   describe "#validate_response" do
     let(:test_http_response) { Class.new }
 
