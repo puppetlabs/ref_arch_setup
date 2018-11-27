@@ -86,7 +86,7 @@ RAS includes a variety of rake tasks to measure and verify documentation coverag
 Run `rake -T` to see the full list of available tasks. 
 
 #### PR checks
-The `pr:check` task combines the RAS build pipeline checks that must pass before a PR can be merged.
+The `pr:check` task combines the RAS build pipeline checks that must pass before a PR can be merged:
 ````
 rake pr:check                               # Run the docs, lint, and test tasks for pull requests
 ````
@@ -104,12 +104,12 @@ Run this task before submitting changes to avoid build failures.
 It is a good practice to run this task often while developing to ensure your changes are consistent with the RAS standards.
 
 ##### YARD docs
-The `docs:undoc` task will output coverage details which can be helpful to quickly troubleshoot issues. 
-However, the issues it raises will not cause build failures.
+The `docs:undoc` task will output coverage details which can be helpful to quickly identify issues. 
+However, the issues it raises will not trigger build pipeline failures.
 
-The subsequent Yardstick tasks are used to measure and verify enforce documentation coverage:
+The subsequent Yardstick tasks are used to measure and verify documentation coverage:
 * `docs:measure_ras` - creates the Yardstick report in `yardstick/ras_report.txt`
-* `docs:verify_ras` - verifies that the coverage meets the threshold specified in `.yardstick.yml`
+* `docs:verify_ras` - verifies that the coverage meets the threshold specified in `.yardstick.yml`; will fail if the threshold is not met
 
 ##### RuboCop
 The `lint:rubocop` task runs RuboCop using the configuration specified in `.rubocop.yml`. 
