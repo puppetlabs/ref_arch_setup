@@ -1,5 +1,5 @@
 ---
-threshold: 90
+threshold: 95
 require_exact_threshold: false
 path: ['acceptance/helpers/*.rb','lib/**/*.rb','modules/ref_arch_setup/tasks/*.rb','spec/**/*.rb']
 rules:
