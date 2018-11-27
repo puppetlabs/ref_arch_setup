@@ -1,3 +1,4 @@
+require "yard"
 require "fileutils"
 require "rototiller"
 require "./gem_of/lib/gem_of/rake_tasks"
@@ -5,6 +6,38 @@ require "./acceptance/helpers/beaker_helper"
 require "./lib/ref_arch_setup.rb"
 
 include BeakerHelper
+
+# Yardstick tasks using the config in .yardstick.yml
+# Note: this is currently required to include folders other than lib
+# TODO: remove this if gem_of is updated to use yardstick.yml
+class RasYardStickTasks
+  include Rake::DSL if defined? Rake::DSL
+  # add ras yardstick tasks to namespace :docs
+  #
+  # @example YardStackTasks.new
+  # rubocop:disable Metrics/MethodLength
+  def initialize
+    namespace :docs do
+      config = YAML.load_file(".yardstick.yml")
+
+      desc "Measure YARD coverage. see yardstick/report.txt for output"
+      require "yardstick/rake/measurement"
+      Yardstick::Rake::Measurement.new(:measure_ras, config) do |measurement|
+        measurement.output = "yardstick/report.txt"
+      end
+
+      task measure: [:measure_message] # another way to force a dependent task
+      desc "" # empty description so this doesn't show up in rake -T
+      task :measure_message do
+        puts "creating a report in yardstick/report.txt"
+      end
+
+      desc "Verify YARD coverage"
+      require "yardstick/rake/verify"
+      Yardstick::Rake::Verify.new(:verify_ras, config)
+    end
+  end
+end
 
 YARD_DIR = "doc".freeze
 DOCS_DIR = "docs".freeze
@@ -18,6 +51,8 @@ GemOf::YardStickTasks.new
 GemOf::DocsTasks.new
 GemOf::LintTasks.new
 
+RasYardStickTasks.new
+
 namespace :bolt do
   desc "Install modules from the forge via Puppetfile"
   task :install_forge_modules do
@@ -27,6 +62,17 @@ namespace :bolt do
   desc "Run the facts::retrieve plan locally"
   task :facts do
     RefArchSetup::BoltHelper.run_forge_plan_with_bolt("facts::retrieve", nil, "localhost")
+  end
+end
+
+namespace :pr do
+  desc "Run the docs, lint, and test tasks for pull requests"
+  task :check do
+    ENV["SPEC_PATTERN"] = "spec/ref_arch_setup/*_spec.rb"
+    Rake::Task["docs:verify_ras"].execute
+    Rake::Task["lint:rubocop"].execute
+    Rake::Task["test:spec"].execute
+    # Rake::Task["test:acceptance_docker"].execute
   end
 end
 
