@@ -258,7 +258,7 @@ module BeakerHelper
   #
   # @param [Host] host The unix style host where PE will be installed
   #
-  # @return [String] the tarball URL
+  # @return [String] The tarball URL
   #
   # @example
   #   url = get_pe_tarball_url(host)
@@ -298,7 +298,7 @@ module BeakerHelper
   #
   # @param [Host] host The unix style host where PE will be installed
   #
-  # @return [String] the tarball filename
+  # @return [String] The tarball filename
   #
   # @example
   #   filename = get_pe_tarball_filename(host)
@@ -318,7 +318,7 @@ module BeakerHelper
   #
   # @param [Host] host A unix style host
   #
-  # @return [String] the ref_arch_setup gem path
+  # @return [String] The ref_arch_setup gem path
   #
   # @example
   #   gem_path = get_ras_gem_path(host)
@@ -334,7 +334,7 @@ module BeakerHelper
   #
   # @param [Array] hosts The unix style hosts where teardown should be run
   #
-  # @return [String] the tarball URL
+  # @return [String] The tarball URL
   #
   # @example
   #   ras_teardown(hosts)
