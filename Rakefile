@@ -26,9 +26,9 @@ class RasYardStickTasks
         measurement.output = "yardstick/report.txt"
       end
 
-      task measure: [:measure_message] # another way to force a dependent task
+      task measure_ras: [:measure_ras_message] # another way to force a dependent task
       desc "" # empty description so this doesn't show up in rake -T
-      task :measure_message do
+      task :measure_ras_message do
         puts "creating a report in yardstick/report.txt"
       end
 
