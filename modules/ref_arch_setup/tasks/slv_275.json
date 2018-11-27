@@ -1,6 +1,0 @@
-{
-  "description": "Testing task_helper",
-  "files": ["ruby_task_helper/lib/task_helper.rb"],
-  "input_method": "stdin"
-
-}

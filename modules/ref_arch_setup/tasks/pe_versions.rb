@@ -3,13 +3,25 @@ require "net/http"
 require "json"
 require_relative "../../ruby_task_helper/lib/task_helper.rb"
 
-# PE Versions Task using Ruby Task Helper
+# PE Versions example task using Ruby Task Helper
 class VersionsTask < TaskHelper
+  # the 'Puppet Enterprise Version History' url
   PE_VERSIONS_URL = "https://puppet.com/misc/version-history".freeze
 
   # the minimum prod version supported by RAS
   MIN_PROD_VERSION = "2018.1.0".freeze
 
+  # The task helper task
+  #
+  # @author Bill Claytor
+  #
+  # @param [Hash] _kwargs A hash of params for the task
+  #
+  # @return [Array] The versions list
+  #
+  # @example
+  #   result = task(_kwargs)
+  #
   def task(**_kwargs)
     versions = fetch_supported_prod_versions
 
@@ -22,11 +34,30 @@ class VersionsTask < TaskHelper
     return result
   end
 
+  # Initializes the pe_versions options
+  #
+  # @author Bill Claytor
+  #
+  # @return [void]
+  #
+  # @example
+  #   init
+  #
   def init
     @pe_versions_url = ENV["PE_VERSIONS_URL"] ? ENV["PE_VERSIONS_URL"] : PE_VERSIONS_URL
     @min_prod_version = ENV["MIN_PROD_VERSION"] ? ENV["MIN_PROD_VERSION"] : MIN_PROD_VERSION
   end
 
+  # Fetches the list of PE versions from the 'Puppet Enterprise Version History'
+  # supported by RAS
+  #
+  # @author Bill Claytor
+  #
+  # @return [Array] The versions list
+  #
+  # @example
+  #   versions_list = fetch_prod_versions
+  #
   def fetch_supported_prod_versions
     init
     versions_list = []
@@ -46,16 +77,49 @@ class VersionsTask < TaskHelper
     return versions_list
   end
 
-  def valid_version?(value)
-    valid = value[/\p{L}/].nil?
+  # Determines whether the specified cell contents contains a valid PE version
+  #
+  # @author Bill Claytor
+  #
+  # @param [string] cell_contents The specified cell contents
+  #
+  # @return [true, false] Whether the specified value matches the PE version format
+  #
+  # @example
+  #   result = valid_version?(cell_contents)
+  #
+  def valid_version?(cell_contents)
+    valid = cell_contents[/\p{L}/].nil?
     return valid
   end
 
+  # Extracts the cell contents from the specified line
+  #
+  # @author Bill Claytor
+  #
+  # @param [string] line A line containing an HTML table cell ("<td>" ... "</td>")
+  #
+  # @return [string] The contents of the cell
+  #
+  # @example
+  #   cell_contents = cell_contents(line)
+  #
   def cell_contents(line)
     contents = line[/#{Regexp.escape("<td>")}(.*?)#{Regexp.escape("</td>")}/m, 1]
     return contents
   end
 
+  # Determines whether the specified value is a PE version supported by RAS
+  #
+  # @author Bill Claytor
+  #
+  # @param [string] value The specified value
+  #
+  # @return [true, false] Whether the specified value matches the PE version format
+  #
+  # @example
+  #   result = valid_version?(value)
+  #
   def supported_version?(value)
     supported = false
 
@@ -68,6 +132,22 @@ class VersionsTask < TaskHelper
     return supported
   end
 
+  # Determines whether the response is valid
+  #
+  # @author Bill Claytor
+  #
+  # @param [Net::HTTPResponse] res The HTTP response to evaluate
+  # @param [Array] valid_response_codes The list of valid response codes
+  # @param [Array] invalid_response_bodies The list of invalid response bodies
+  #
+  # @raise [RuntimeError] If the response is not valid
+  #
+  # @return [true,false] Based on whether the response is valid
+  #
+  # @example
+  #   valid = validate_response(res)
+  #   valid = validate_response(res, ["200", "123"], ["", nil])
+  #
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/MethodLength
   # rubocop:disable Metrics/CyclomaticComplexity
