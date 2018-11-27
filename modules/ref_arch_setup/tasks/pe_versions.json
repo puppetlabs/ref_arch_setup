@@ -1,0 +1,6 @@
+{
+  "description": "Generates a list of versions at ./pe_versions.json",
+  "files": ["ruby_task_helper/lib/task_helper.rb"],
+  "input_method": "stdin"
+
+}
