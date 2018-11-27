@@ -14,6 +14,10 @@ module RefArchSetup
     # @option options [String] something not yet defined
     #
     # @return [void]
+    #
+    # @example
+    #   initialize(options, bolt_options)
+    #
     def initialize(options, bolt_options)
       @options = options
       @bolt_options = bolt_options
@@ -66,6 +70,11 @@ module RefArchSetup
     # @param [string] subcommand the name of the subcommand to run
     #
     # @return [boolean] success of install
+    #
+    # @example
+    #   success = run(command)
+    #   success = run(command, subcommand)
+    #
     def run(command, subcommand = nil)
       check_for_missing_value
       BoltHelper.bolt_options = @bolt_options
@@ -84,6 +93,10 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of install
+    #
+    # @example
+    #   success = install
+    #
     def install
       puts "Running install command"
       success = true
@@ -100,6 +113,10 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of generating the pe.conf file
+    #
+    # @example
+    #   success = install_generate_pe_conf
+    #
     def install_generate_pe_conf
       puts "Running generate-pe-conf subcommand of install command"
       # check_option("console_password", "install") # password hardcoded in base file for now
@@ -111,6 +128,10 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of install
+    #
+    # @example
+    #   success = install_bootstrap
+    #
     def install_bootstrap
       puts "Running bootstrap subcommand of install command"
       # none of these will be required in the future...  but are for now
@@ -126,6 +147,10 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of agent install
+    #
+    # @example
+    #   success = install_pe_infra_agent_install
+    #
     def install_pe_infra_agent_install
       puts "Running pe-infra-agent-install subcommand of install command"
       return true
@@ -136,6 +161,10 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @return [boolean] success of all the things
+    #
+    # @example
+    #   success = install_configure
+    #
     def install_configure
       puts "Running configure subcommand of install command"
       return true
