@@ -90,9 +90,11 @@ namespace :docs do
     puts
     puts "Yardstick Coverage Report"
 
-    File.open("./yardstick/ras_report.txt").readlines.each do |line|
-      puts line
-    end
+    # File.open("./yardstick/ras_report.txt").readlines.each do |line|
+    #   puts line
+    # end
+
+    sh %(cat ./yardstick/ras_report.txt)
 
     puts
   end
