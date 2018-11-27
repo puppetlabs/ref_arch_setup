@@ -93,7 +93,6 @@ rake pr:check                               # Run the docs, lint, and test tasks
 
 It includes the following tasks:
 ````
-rake docs:undoc                             # Tell me about YARD undocumented objects
 rake docs:measure_ras                       # Measure docs in ["acceptance/helpers/*.rb", "lib/**/*.rb"...
 rake docs:verify_ras                        # Verify that yardstick coverage is at least 95%
 rake lint:rubocop                           # Run RuboCop
@@ -104,10 +103,8 @@ Run this task before submitting changes to avoid build failures.
 It is a good practice to run this task often while developing to ensure your changes are consistent with the RAS standards.
 
 ##### YARD docs
-The `docs:undoc` task will output coverage details which can be helpful to quickly identify issues. 
-However, the issues it raises will not trigger build pipeline failures.
 
-The subsequent Yardstick tasks are used to measure and verify documentation coverage:
+The Yardstick tasks are used to measure and verify documentation coverage:
 * `docs:measure_ras` - creates the Yardstick report in `yardstick/ras_report.txt`
 * `docs:verify_ras` - verifies that the coverage meets the threshold specified in `.yardstick.yml`; will fail if the threshold is not met
 

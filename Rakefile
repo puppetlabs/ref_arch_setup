@@ -68,13 +68,30 @@ end
 namespace :pr do
   desc "Run the docs, lint, and test tasks for pull requests"
   task :check do
+    puts "Running RAS PR checks"
+
     ENV["SPEC_PATTERN"] = "spec/ref_arch_setup/*_spec.rb"
-    Rake::Task["docs:undoc"].execute
     Rake::Task["docs:measure_ras"].execute
+    Rake::Task["docs:ras_report"].execute
     Rake::Task["docs:verify_ras"].execute
     Rake::Task["lint:rubocop"].execute
     Rake::Task["test:spec"].execute
     # Rake::Task["test:acceptance_docker"].execute
+  end
+end
+
+namespace :docs do
+  desc "Display the yardstick/ras_report.txt file"
+  task :ras_report do
+    puts "Reading report from yardstick/ras_report.txt"
+    puts
+    puts "Yardstick Coverage Report"
+
+    File.open("./yardstick/ras_report.txt").readlines.each do |line|
+      puts line
+    end
+
+    puts
   end
 end
 
