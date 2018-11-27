@@ -3,16 +3,34 @@ require "beaker"
 # Helper methods for use in running Beaker acceptance tests
 # rubocop:disable Metrics/ModuleLength
 module BeakerHelper
+  # the beaker hosts file
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
+
+  # the beaker layout
   LAYOUT = ENV["BEAKER_LAYOUT"] || "centos7-64controller.-64target_master.".freeze
+
+  # the forge host
   FORGE_HOST = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com".freeze
+
+  # the pe tarball extension
   PE_TARBALL_EXTENSION = ENV["BEAKER_PE_TARBALL_EXTENSION"] || ".tar".freeze
+
+  # the ref_arch_setup path on the beaker host
   BEAKER_RAS_PATH = "$HOME/ref_arch_setup".freeze
+
+  # the ref_arch_setup/fixtures path on the beaker host
   BEAKER_RAS_FIXTURES_PATH = "#{BEAKER_RAS_PATH}/fixtures".freeze
+
+  # the ref_arch_setup/modules path on the beaker host
   BEAKER_RAS_MODULES_PATH = "#{BEAKER_RAS_PATH}/modules".freeze
+
+  # the pe.conf path on the beaker host
   BEAKER_RAS_PE_CONF = "#{BEAKER_RAS_FIXTURES_PATH}/pe.conf".freeze
+
+  # the RAS temporary working directory
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
 
+  # the beaker hosts file used in the docker acceptance tests
   BEAKER_DOCKER_HOSTS = "docker_hosts.cfg".freeze
 
   # Initializes the PE instance variables
@@ -20,6 +38,10 @@ module BeakerHelper
   # @author Bill Claytor
   #
   # @return [void]
+  #
+  # @example
+  #   beaker_initialize
+  #
   def beaker_initialize
     pe_family = ENV["BEAKER_PE_FAMILY"] || "2019.0"
     pe_url = "http://enterprise.delivery.puppetlabs.net/#{pe_family}/ci-ready/LATEST"
@@ -41,6 +63,9 @@ module BeakerHelper
   #
   # @return [exit_code] The result of the host file creation
   #
+  # @example
+  #   beaker_create_host_file
+  #
   def beaker_create_host_file
     # forge_host = ENV["BEAKER_FORGE_HOST"] || "forge-aio01-petest.puppetlabs.com"
     # hosts = "centos7-64controller.-64target_master."
@@ -61,6 +86,9 @@ module BeakerHelper
   # @author Bill Claytor
   #
   # @return [true,false] Based on whether the hosts should be preserved
+  #
+  # @example
+  #   result = preserve_hosts?
   def preserve_hosts?
     preserve = ENV["BEAKER_PRESERVE_HOSTS"]
     preserve == "always" ||
@@ -75,6 +103,9 @@ module BeakerHelper
   # @param [task] task The current rake task
   #
   # @return [command] The Beaker command to execute
+  #
+  # @example
+  #   command = beaker_init(task)
   #
   # rubocop:disable Metrics/MethodLength
   def beaker_init(task)
@@ -110,7 +141,11 @@ module BeakerHelper
   #
   # @return [command] The Beaker command to execute
   #
+  # @example
+  #  command = beaker_docker_init(task)
+  #
   # rubocop:disable Metrics/MethodLength
+  #
   def beaker_docker_init(task)
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker init"
@@ -141,6 +176,9 @@ module BeakerHelper
   #
   # @return [command] The Beaker command to execute
   #
+  # @example
+  #   command = beaker_provision(task)
+  #
   def beaker_provision(task)
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker provision"
@@ -157,7 +195,11 @@ module BeakerHelper
   #
   # @return [command] The Beaker command to execute
   #
+  # @example
+  #   command = beaker_exec(task)
+  #
   # rubocop:disable Metrics/MethodLength
+  #
   def beaker_exec(task)
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker exec"
@@ -195,6 +237,9 @@ module BeakerHelper
   #
   # @return [command] The Beaker command to execute
   #
+  # @example
+  #   command = beaker_destroy(task)
+  #
   def beaker_destroy(task)
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker destroy"
@@ -212,7 +257,9 @@ module BeakerHelper
   #   this version is simplified by removing the call to prepare_ras_host
   #
   # @param [Host] host The unix style host where PE will be installed
+  #
   # @return [String] the tarball URL
+  #
   # @example
   #   url = get_pe_tarball_url(host)
   #
@@ -250,7 +297,9 @@ module BeakerHelper
   # The host must include a pe_ver and platform
   #
   # @param [Host] host The unix style host where PE will be installed
+  #
   # @return [String] the tarball filename
+  #
   # @example
   #   filename = get_pe_tarball_filename(host)
   #
@@ -268,6 +317,9 @@ module BeakerHelper
   # Gets the path to the installed RAS gem on the specified host
   #
   # @param [Host] host A unix style host
+  #
+  # @return [String] the ref_arch_setup gem path
+  #
   # @example
   #   gem_path = get_ras_gem_path(host)
   #
@@ -281,6 +333,9 @@ module BeakerHelper
   # Uninstalls puppet and removes the RAS working dir on the specified hosts
   #
   # @param [Array] hosts The unix style hosts where teardown should be run
+  #
+  # @return [String] the tarball URL
+  #
   # @example
   #   ras_teardown(hosts)
   #
@@ -296,6 +351,9 @@ module BeakerHelper
   # Removes the RAS working dir on the specified hosts
   #
   # @param [Array] hosts The unix style hosts where teardown should be run
+  #
+  # @return [void]
+  #
   # @example
   #   ras_docker_teardown(hosts)
   #
@@ -310,6 +368,9 @@ module BeakerHelper
   # Uninstalls puppet on the specified hosts
   #
   # @param [Array] hosts The unix style hosts where teardown should be run
+  #
+  # @return [void]
+  #
   # @example
   #   ras_teardown_uninstall_puppet(hosts)
   #
@@ -326,6 +387,9 @@ module BeakerHelper
   # Removes the RAS working dir on the specified hosts
   #
   # @param [Array] hosts The unix style hosts where teardown should be run
+  #
+  # @return [void]
+  #
   # @example
   #   ras_teardown_remove_temp(hosts)
   #
@@ -341,6 +405,9 @@ module BeakerHelper
   # Returns all hosts except those with the specified role
   #
   # @param [Array] hosts The unix style hosts
+  #
+  # @return [Array] The hosts without the specified role
+  #
   # @example
   #   hosts_except_controller = hosts_without_role(hosts, "controller")
   #
