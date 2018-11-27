@@ -1,5 +1,7 @@
 ---
-threshold: 100
+threshold: 85
+require_exact_threshold: false
+path: ['acceptance/helpers/*.rb','lib/**/*.rb','modules/ref_arch_setup/tasks/*.rb','spec/**/*.rb']
 rules:
   ApiTag::Presence:
     enabled: false
@@ -9,6 +11,7 @@ rules:
     enabled: false
   ApiTag::PrivateMethod:
     enabled: false
-  ExampleTag:
+  Summary::Length:
     enabled: false
-    exclude: []
+  Summary::SingleLine:
+    enabled: false
