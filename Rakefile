@@ -83,6 +83,9 @@ end
 namespace :docs do
   desc "Display the yardstick/ras_report.txt file"
   task :ras_report do
+    ras_report = "./yardstick/ras_report.txt"
+    raise "Unable to locate report: #{ras_report}" unless File.exist?(ras_report)
+
     puts "Reading report from yardstick/ras_report.txt"
     puts
     puts "Yardstick Coverage Report"
