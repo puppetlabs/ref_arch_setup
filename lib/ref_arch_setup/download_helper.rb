@@ -219,7 +219,7 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] value The specified value
+    # @param [string] cell_contents The specified cell contents
     #
     # @return [true, false] Whether the specified value matches the PE version format
     #
