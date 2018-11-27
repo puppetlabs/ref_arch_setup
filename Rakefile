@@ -23,13 +23,13 @@ class RasYardStickTasks
       desc "Measure YARD coverage. see yardstick/report.txt for output"
       require "yardstick/rake/measurement"
       Yardstick::Rake::Measurement.new(:measure_ras, config) do |measurement|
-        measurement.output = "yardstick/report.txt"
+        measurement.output = "yardstick/ras_report.txt"
       end
 
       task measure_ras: [:measure_ras_message] # another way to force a dependent task
       desc "" # empty description so this doesn't show up in rake -T
       task :measure_ras_message do
-        puts "creating a report in yardstick/report.txt"
+        puts "creating a report in yardstick/ras_report.txt"
       end
 
       desc "Verify YARD coverage"
@@ -69,6 +69,8 @@ namespace :pr do
   desc "Run the docs, lint, and test tasks for pull requests"
   task :check do
     ENV["SPEC_PATTERN"] = "spec/ref_arch_setup/*_spec.rb"
+    Rake::Task["docs:undoc"].execute
+    Rake::Task["docs:measure_ras"].execute
     Rake::Task["docs:verify_ras"].execute
     Rake::Task["lint:rubocop"].execute
     Rake::Task["test:spec"].execute
