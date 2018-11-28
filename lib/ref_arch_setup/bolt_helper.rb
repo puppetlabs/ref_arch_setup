@@ -13,6 +13,15 @@ module RefArchSetup
     # custom exception class for bolt command errors
     class BoltCommandError < StandardError
       attr_reader :output
+
+      #
+      # @author Bill Claytor
+      #
+      # @return [void]
+      #
+      # @example
+      #   initialize(message, output)
+      #
       def initialize(message, output)
         @output = output
         super(message)

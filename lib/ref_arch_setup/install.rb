@@ -468,7 +468,7 @@ module RefArchSetup
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host
-    # Doesn't fail if the dir is already there.
+    # Doesn't fail if the dir is already there
     #
     # @author Randell Pelak
     #

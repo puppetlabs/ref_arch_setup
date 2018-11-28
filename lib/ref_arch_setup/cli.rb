@@ -11,7 +11,7 @@ module RefArchSetup
     # @author Randell Pelak
     #
     # @param [Hash] options The options from the command line
-    # @option options [String] something not yet defined
+    # @options options [String] something not yet defined
     #
     # @return [void]
     #

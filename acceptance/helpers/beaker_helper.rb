@@ -434,6 +434,9 @@ module BeakerHelper
   # TODO remove after PE-25441 is merged and released
   #
   # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
   # @example
   #   remove_bolt_pkg(host)
   #
@@ -450,6 +453,9 @@ module BeakerHelper
   # TODO remove after PE-25441 is merged and released
   #
   # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
   # @example
   #   install_bolt_pkg(host)
   #
@@ -468,6 +474,9 @@ module BeakerHelper
   # TODO remove after PE-25441 is merged and released
   #
   # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
   # @example
   #   install_ras_gem(host)
   #
