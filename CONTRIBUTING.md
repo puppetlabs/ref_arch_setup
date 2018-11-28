@@ -58,7 +58,8 @@ A successful rebase ensures that your PR will cleanly merge.
 
 ### Testing
 
-* Submitted PR's will be tested in a series of spec and acceptance level tests - the results of these tests will be evaluated by an SLV team member, as test results are currently not accessible by the public. Testing failures that require code changes will be communicated in the PR discussion.
+* Submitted PR's will be tested in a series of spec and acceptance level tests - the results of these tests will be evaluated by an SLV team member, as test results are currently not accessible by the public. 
+Testing failures that require code changes will be communicated in the PR discussion.
 * Make sure you have added [RSpec](http://rspec.info/) tests that exercise your new code.
 
 ### Documentation
@@ -80,8 +81,43 @@ For changes of a trivial nature, it is not always necessary to create a new tick
 
 ## Submitting Changes
 
+### Before Submitting Changes
+RAS includes a variety of rake tasks to measure and verify documentation coverage, enforce linting rules, and run spec tests.
+Run `rake -T` to see the full list of available tasks. 
+
+#### PR checks
+The `pr:check` task combines the RAS build pipeline checks that must pass before a PR can be merged:
+````
+rake pr:check                               # Run the docs, lint, and test tasks for pull requests
+````
+
+It includes the following tasks:
+````
+rake docs:measure_ras                       # Measure docs in ["acceptance/helpers/*.rb", "lib/**/*.rb"...
+rake docs:verify_ras                        # Verify that yardstick coverage is at least 95%
+rake lint:rubocop                           # Run RuboCop
+rake test:spec                              # Run unit tests
+````
+
+Run this task before submitting changes to avoid build failures. 
+It is a good practice to run this task often while developing to ensure your changes are consistent with the RAS standards.
+
+##### YARD docs
+
+The Yardstick tasks are used to measure and verify documentation coverage:
+* `docs:measure_ras` - creates the Yardstick report in `yardstick/ras_report.txt`
+* `docs:verify_ras` - verifies that the coverage meets the threshold specified in `.yardstick.yml`; will fail if the threshold is not met
+
+##### RuboCop
+The `lint:rubocop` task runs RuboCop using the configuration specified in `.rubocop.yml`. 
+
+##### RSpec
+The `test:spec` tasks runs the RSpec tests in `spec/ref_arch_setup`
+
+### Submitting Your Changes
 * Push your changes to a topic branch of the repository.
 * Submit a pull request to [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup)
+* Verify that the PR checks pass and that the changes can be merged
 * Update your [Jira](https://tickets.puppetlabs.com) ticket
   * Update the status to "Ready for Merge".
   * Include a link to the pull request in the ticket.

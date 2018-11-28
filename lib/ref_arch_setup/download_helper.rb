@@ -27,8 +27,10 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @example:
-    # init
+    # @return [void]
+    #
+    # @example
+    #   init
     #
     def self.init
       @pe_versions_url = ENV["PE_VERSIONS_URL"] ? ENV["PE_VERSIONS_URL"] : PE_VERSIONS_URL
@@ -50,10 +52,10 @@ module RefArchSetup
     #
     # @return [string] the prod tarball URL
     #
-    # @example:
-    # url = build_prod_tarball_url()
-    # url = build_prod_tarball_url("2018.1.4", "master.mydomain.net", "")
-    # url = build_prod_tarball_url("2018.1.4", "value_is_ignored", "sles-12-x86_64")
+    # @example
+    #   url = build_prod_tarball_url()
+    #   url = build_prod_tarball_url("2018.1.4", "master.mydomain.net", "")
+    #   url = build_prod_tarball_url("2018.1.4", "value_is_ignored", "sles-12-x86_64")
     #
     def self.build_prod_tarball_url(version = "latest", host = "localhost", platform = "default")
       init
@@ -74,7 +76,7 @@ module RefArchSetup
     #
     # @return [string] The corresponding PE version
     #
-    # @example:
+    # @example
     #   version = handle_prod_version("latest")
     #   version = handle_prod_version("2018.1.4")
     #
@@ -101,7 +103,7 @@ module RefArchSetup
     #
     # @return [string] The latest production version of PE
     #
-    # @example:
+    # @example
     #   latest_version = latest_prod_version
     #
     def self.latest_prod_version
@@ -121,7 +123,7 @@ module RefArchSetup
     #
     # @return [true, false] Whether the specified version was found
     #
-    # @example:
+    # @example
     #   result = ensure_valid_prod_version("2018.1.4")
     #
     def self.ensure_valid_prod_version(version)
@@ -146,7 +148,7 @@ module RefArchSetup
     #
     # @return [true, false] Whether the specified version is supported
     #
-    # @example:
+    # @example
     #   result = ensure_supported_prod_version("2018.1.4")
     #
     def self.ensure_supported_prod_version(version)
@@ -168,7 +170,7 @@ module RefArchSetup
     #
     # @return [Array] The versions list
     #
-    # @example:
+    # @example
     #   versions_list = fetch_prod_versions
     #
     # rubocop:disable Metrics/MethodLength
@@ -204,7 +206,7 @@ module RefArchSetup
     #
     # @return [string] The contents of the cell
     #
-    # @example:
+    # @example
     #   cell_contents = cell_contents(line)
     #
     def self.cell_contents(line)
@@ -217,11 +219,11 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
-    # @param [string] value The specified value
+    # @param [string] cell_contents The specified cell contents
     #
     # @return [true, false] Whether the specified value matches the PE version format
     #
-    # @example:
+    # @example
     #   result = matches_version_format?(cell_contents)
     #
     def self.matches_version_format?(cell_contents)
@@ -294,7 +296,7 @@ module RefArchSetup
     #
     # @return [string] The PE platform
     #
-    # @example:
+    # @example
     #   handle_platform("my_host", "default")
     #   handle_platform("value_is_ignored", "sles-12-x86_64")
     #
@@ -321,7 +323,7 @@ module RefArchSetup
     #
     # @return [string] The corresponding platform for the specified host
     #
-    # @example:
+    # @example
     #   platform = get_host_platform("localhost")
     #
     # rubocop:disable Metrics/MethodLength
@@ -376,7 +378,7 @@ module RefArchSetup
     #
     # @return [Array<Hash] The retrieved facts
     #
-    # @example:
+    # @example
     #   facts = retrieve_facts("localhost")
     #
     def self.retrieve_facts(hosts)
@@ -403,7 +405,7 @@ module RefArchSetup
     #
     # @return [true,false] Based on validity of the specified platform
     #
-    # @example:
+    # @example
     #   is_valid = valid_platform?("sles-12-x86_64")
     #
     # TODO: validate for a specified version?

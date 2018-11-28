@@ -20,6 +20,5 @@ slv/ref_arch_setup:
     - source ~/.rvm/scripts/rvm
     - rvm use 2.4.0
     - bundle install
-    - bundle exec rake test:spec
-    - bundle exec rake lint:rubocop
-    - bundle exec rake docs:undoc
+    - bundle exec rake pr:check
+

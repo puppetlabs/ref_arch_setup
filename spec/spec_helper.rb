@@ -17,3 +17,8 @@ end
 def do_something_helpful(value)
   puts "Do something with #{value}"
 end
+
+SimpleCov.at_exit do
+  SimpleCov.result.format!
+  SimpleCov.minimum_coverage 100
+end

@@ -1,0 +1,5 @@
+acceptance/helpers/*.rb
+bin/*
+lib/**/*.rb
+modules/ref_arch_setup/tasks/*.rb
+spec/**/*.rb

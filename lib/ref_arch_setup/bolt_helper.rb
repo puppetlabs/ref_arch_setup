@@ -23,6 +23,11 @@ module RefArchSetup
     #
     # @author Bill Claytor
     #
+    # @return [void]
+    #
+    # @example
+    #   init
+    #
     def self.init
       @bolt_options = BOLT_DEFAULT_OPTIONS
     end
@@ -35,6 +40,12 @@ module RefArchSetup
     # @param [hash] options_hash The user-specified bolt options hash
     # @param [boolean] overwrite The flag indicating whether the default options
     #   should be overwritten
+    #
+    # @return [void]
+    #
+    # @example
+    #   bolt_options(options_hash)
+    #   bolt_options(options_hash, true)
     #
     def self.bolt_options(options_hash, overwrite = false)
       @bolt_options = if overwrite
@@ -50,6 +61,11 @@ module RefArchSetup
     #
     # @param [hash] options_hash The user-specified bolt options hash
     #
+    # @return [void]
+    #
+    # @example
+    #   BoltHelper.bolt_options = @bolt_options
+    #
     def self.bolt_options=(options_hash)
       bolt_options(options_hash)
     end
@@ -57,7 +73,12 @@ module RefArchSetup
     # Gets the bolt options as a string
     #
     # @author Sam Woods
+    #
     # @return [string] the string value for bolt options
+    #
+    # @example
+    #   options = bolt_options_string
+    #
     def self.bolt_options_string
       bolt_options_string = ""
       @bolt_options.each do |key, value|
@@ -83,6 +104,10 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [true,false] Based on the output returned from the bolt command
+    #
+    # @example
+    #   success = make_dir(dir, nodes)
+    #
     def self.make_dir(dir, nodes)
       error_message = "ERROR: Failed to make dir #{dir} on all nodes"
       cmd = "mkdir -p #{dir}"
@@ -101,6 +126,11 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the command
+    #
+    # @example
+    #   output = run_command(command)
+    #   output = run_command(command, error_message)
+    #
     def self.run_command(command, error_message = "ERROR: command failed!")
       puts "Running: #{command}"
       output = `#{command}`
@@ -128,6 +158,11 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = run_cmd_with_bolt(cmd, nodes)
+    #   output = run_cmd_with_bolt(cmd, nodes, error_message)
+    #
     def self.run_cmd_with_bolt(cmd, nodes, error_message = "ERROR: bolt command failed!")
       command = "bolt command run '#{cmd}'"
       command << " --nodes #{nodes}"
@@ -149,6 +184,11 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = run_task_with_bolt(task, params, nodes)
+    #   output = run_task_with_bolt(task, params, nodes, modulepath)
+    #
     def self.run_task_with_bolt(task, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
@@ -172,6 +212,11 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = run_plan_with_bolt(plan, params, nodes)
+    #   output = run_plan_with_bolt(plan, params, nodes, modulepath)
+    #
     def self.run_plan_with_bolt(plan, params, nodes, modulepath = RAS_MODULE_PATH)
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
@@ -194,6 +239,10 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = run_forge_task_with_bolt(task, params, nodes)
+    #
     def self.run_forge_task_with_bolt(task, params, nodes)
       install_forge_modules
       output = run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
@@ -211,6 +260,10 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = run_forge_plan_with_bolt(plan, params, nodes)
+    #
     def self.run_forge_plan_with_bolt(plan, params, nodes)
       install_forge_modules
       output = run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
@@ -225,6 +278,10 @@ module RefArchSetup
     # @param params [Array] params to convert
     #
     # @return [String] stringified params
+    #
+    # @example
+    #   string = params_to_string(params)
+    #
     def self.params_to_string(params)
       str = params.map { |k, v| "#{k}=#{v}" }.join(" ")
       return str
@@ -241,6 +298,10 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [output] The output returned from the bolt command
+    #
+    # @example
+    #   output = upload_file(source, destination, nodes)
+    #
     def self.upload_file(source, destination, nodes)
       command = "bolt file upload #{source} #{destination}"
       command << " --nodes #{nodes}"
@@ -259,6 +320,10 @@ module RefArchSetup
     # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
     #
     # @return [string] The output returned from the bolt command
+    #
+    # @example
+    #   output = install_forge_modules
+    #
     def self.install_forge_modules
       command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
       output = run_command(command, "ERROR: bolt puppetfile install failed!")
