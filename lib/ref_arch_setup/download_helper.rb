@@ -332,10 +332,11 @@ module RefArchSetup
     def self.get_host_platform(host)
       facts = retrieve_facts(host)
 
-      status = facts[0]["status"]
+      status = facts["items"][0]["status"]
       raise "Facts indicate that status for host #{host} is failure" if status == "failure"
 
-      os = facts[0]["result"]["os"]
+      os = facts["items"][0]["result"]["os"]
+
       os_name = os["name"]
       os_family = os["family"]
       platform_type = nil
@@ -367,7 +368,7 @@ module RefArchSetup
     # rubocop:enable Metrics/AbcSize
     # rubocop:enable Metrics/CyclomaticComplexity
 
-    # Retrieves the facts for the specified host(s) using the facts::retrieve plan
+    # Retrieves the facts for the specified host(s) using the facts task
     #
     # @author Bill Claytor
     #
@@ -382,11 +383,10 @@ module RefArchSetup
     #   facts = retrieve_facts("localhost")
     #
     def self.retrieve_facts(hosts)
-      plan = "facts::retrieve"
+      task = "facts"
       puts "Retrieving facts for hosts: #{hosts}"
 
-      output = BoltHelper.run_forge_plan_with_bolt(plan, nil, hosts)
-
+      output = BoltHelper.run_bolt_pkg_task_with_bolt(task, nil, hosts)
       begin
         facts = JSON.parse(output)
       rescue

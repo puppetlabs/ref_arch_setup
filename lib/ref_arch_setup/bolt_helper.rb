@@ -13,6 +13,15 @@ module RefArchSetup
     # custom exception class for bolt command errors
     class BoltCommandError < StandardError
       attr_reader :output
+
+      #
+      # @author Bill Claytor
+      #
+      # @return [void]
+      #
+      # @example
+      #   initialize(message, output)
+      #
       def initialize(message, output)
         @output = output
         super(message)
@@ -193,7 +202,9 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt task run #{task} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes}"
+      command << " --modulepath #{modulepath}" unless modulepath.nil?
+      command << " --format json"
+      command << " --nodes #{nodes}"
       command << bolt_options_string
 
       output = run_command(command, "ERROR: bolt task failed!")
@@ -221,14 +232,15 @@ module RefArchSetup
       params_str = ""
       params_str = params_to_string(params) unless params.nil?
       command = "bolt plan run #{plan} #{params_str}"
-      command << " --modulepath #{modulepath} --nodes #{nodes}"
+      command << " --modulepath #{modulepath}" unless modulepath.nil?
+      command << " --nodes #{nodes}"
       command << bolt_options_string
 
       output = run_command(command, "ERROR: bolt plan failed!")
       return output
     end
 
-    # Run a task from the forge with bolt on given nodes
+    # Run a task from the bolt pkg with bolt on given nodes
     #
     # @author Bill Claytor
     #
@@ -241,15 +253,14 @@ module RefArchSetup
     # @return [string] The output returned from the bolt command
     #
     # @example
-    #   output = run_forge_task_with_bolt(task, params, nodes)
+    #   output = run_bolt_pkg_task_with_bolt(task, params, nodes)
     #
-    def self.run_forge_task_with_bolt(task, params, nodes)
-      install_forge_modules
-      output = run_task_with_bolt(task, params, nodes, FORGE_MODULE_PATH)
+    def self.run_bolt_pkg_task_with_bolt(task, params, nodes)
+      output = run_task_with_bolt(task, params, nodes, nil)
       return output
     end
 
-    # Run a plan from the forge with bolt on given nodes
+    # Run a plan from the bolt pkg with bolt on given nodes
     #
     # @author Bill Claytor
     #
@@ -262,11 +273,10 @@ module RefArchSetup
     # @return [string] The output returned from the bolt command
     #
     # @example
-    #   output = run_forge_plan_with_bolt(plan, params, nodes)
+    #   output = run_bolt_pkg_plan_with_bolt(plan, params, nodes)
     #
-    def self.run_forge_plan_with_bolt(plan, params, nodes)
-      install_forge_modules
-      output = run_plan_with_bolt(plan, params, nodes, FORGE_MODULE_PATH)
+    def self.run_bolt_pkg_plan_with_bolt(plan, params, nodes)
+      output = run_plan_with_bolt(plan, params, nodes, nil)
       return output
     end
 
@@ -309,24 +319,6 @@ module RefArchSetup
 
       error_message = "ERROR: failed to upload file #{source} to #{destination} on #{nodes}"
       output = run_command(command, error_message)
-      return output
-    end
-
-    # Install modules from the forge via Puppetfile
-    # The modules are defined in Boltdir/Puppetfile
-    #
-    # @author Bill Claytor
-    #
-    # @raise [BoltCommandError] If the bolt command is not successful or the output is nil
-    #
-    # @return [string] The output returned from the bolt command
-    #
-    # @example
-    #   output = install_forge_modules
-    #
-    def self.install_forge_modules
-      command = "cd #{RAS_PATH} && bolt puppetfile install --modulepath #{FORGE_MODULE_PATH}"
-      output = run_command(command, "ERROR: bolt puppetfile install failed!")
       return output
     end
   end

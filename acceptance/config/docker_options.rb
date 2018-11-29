@@ -16,6 +16,8 @@
   :type                        => "pe",
   :pre_suite                   => [
     "acceptance/pre_suites/10_setup_ssh.rb",
+    "acceptance/pre_suites/15_install_bolt_pkg.rb",
+    "acceptance/pre_suites/25_install_gems.rb",
     "acceptance/pre_suites/30_setup_ras.rb",
     "acceptance/pre_suites/41_copy_mock_pe_tarball.rb",
     "acceptance/pre_suites/99_output_host_info.rb"

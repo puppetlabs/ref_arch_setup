@@ -9,6 +9,4 @@ module RefArchSetup
   RAS_MODULE_PATH = "#{RAS_PATH}/modules".freeze
   # location of fixtures shipped with RAS (Ref Arch Setup)
   RAS_FIXTURES_PATH = "#{RAS_PATH}/fixtures".freeze
-  # location of modules downloaded from the Puppet Forge
-  FORGE_MODULE_PATH = "#{RAS_PATH}/Boltdir/modules".freeze
 end

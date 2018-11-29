@@ -70,95 +70,115 @@ describe RefArchSetup::DownloadHelper do
   TEST_VALID_RESPONSE_CODE = "200".freeze
   TEST_INVALID_RESPONSE_CODE = "777".freeze
 
-  TEST_CENTOS_OUTPUT = '[
-  {
-    "node": "my_host",
-    "status": "success",
-    "result": {
-      "os": {
-        "name": "CentOS",
-        "release": {
-          "full": "77.2",
-          "major": "77",
-          "minor": "2"
-        },
-        "family": "RedHat"
+  TEST_CENTOS_OUTPUT = '{
+  "items": [
+    {
+      "node": "my_host",
+      "status": "success",
+      "result": {
+        "os": {
+          "name": "CentOS",
+          "release": {
+            "full": "77.2",
+            "major": "77",
+            "minor": "2"
+          },
+          "family": "RedHat"
+        }
       }
     }
-  }
-]'.freeze
+  ],
+  "node_count": 1,
+  "elapsed_time": 5
+}'.freeze
 
-  TEST_SLES_OUTPUT = '[
-  {
-    "node": "my_host",
-    "status": "success",
-    "result": {
-      "os": {
-        "name": "SLES",
-        "release": {
-          "full": "111.1",
-          "major": "111",
-          "minor": "2"
-        },
-        "family": "SLES"
+  TEST_SLES_OUTPUT = '{
+  "items": [
+    {
+      "node": "my_host",
+      "status": "success",
+      "result": {
+        "os": {
+          "name": "SLES",
+          "release": {
+            "full": "111.1",
+            "major": "111",
+            "minor": "2"
+          },
+          "family": "SLES"
+        }
       }
     }
-  }
-]'.freeze
+  ],
+  "node_count": 1,
+  "elapsed_time": 5
+}'.freeze
 
-  TEST_UBUNTU_OUTPUT = '[
-  {
-    "node": "my_host",
-    "status": "success",
-    "result": {
-      "os": {
-        "name": "Ubuntu",
-        "release": {
-          "full": "99.04",
-          "major": "99",
-          "minor": "2"
-        },
-        "family": "Debian"
+  TEST_UBUNTU_OUTPUT = '{
+  "items": [
+    {
+      "node": "my_host",
+      "status": "success",
+      "result": {
+        "os": {
+          "name": "Ubuntu",
+          "release": {
+            "full": "99.04",
+            "major": "99",
+            "minor": "2"
+          },
+          "family": "Debian"
+        }
       }
     }
-  }
-]'.freeze
+  ],
+  "node_count": 1,
+  "elapsed_time": 5
+}'.freeze
 
-  TEST_UNKNOWN_DEBIAN_OUTPUT = '[
-  {
-    "node": "my_host",
-    "status": "success",
-    "result": {
-      "os": {
-        "name": "SparkyLinux",
-        "release": {
-          "full": "1.1",
-          "major": "777",
-          "minor": "2"
-        },
-        "family": "Debian"
+  TEST_UNKNOWN_DEBIAN_OUTPUT = '{
+  "items": [
+    {
+      "node": "my_host",
+      "status": "success",
+      "result": {
+        "os": {
+          "name": "SparkyLinux",
+          "release": {
+            "full": "1.1",
+            "major": "777",
+            "minor": "2"
+          },
+          "family": "Debian"
+        }
       }
     }
-  }
-]'.freeze
+  ],
+  "node_count": 1,
+  "elapsed_time": 5
+}'.freeze
 
-  TEST_UNKNOWN_OUTPUT = '[
-  {
-    "node": "my_host",
-    "status": "success",
-    "result": {
-      "os": {
-        "name": "Gentoo",
-        "release": {
-          "full": "1.1",
-          "major": "111",
-          "minor": "2"
-        },
-        "family": "Gentoo"
+  TEST_UNKNOWN_OUTPUT = '{
+  "items": [
+    {
+      "node": "my_host",
+      "status": "success",
+      "result": {
+        "os": {
+          "name": "Gentoo",
+          "release": {
+            "full": "1.1",
+            "major": "111",
+            "minor": "2"
+          },
+          "family": "Gentoo"
+        }
       }
     }
-  }
-]'.freeze
+  ],
+  "node_count": 1,
+  "elapsed_time": 5
+}'.freeze
 
   TEST_CENTOS_FACTS = JSON.parse(TEST_CENTOS_OUTPUT)
   TEST_SLES_FACTS = JSON.parse(TEST_SLES_OUTPUT)
@@ -966,18 +986,18 @@ describe RefArchSetup::DownloadHelper do
 
   # TODO: separate test cases
   describe "#retrieve_facts" do
-    plan = "facts::retrieve"
+    task = "facts"
     hosts = "my_host"
     message = "Retrieving facts for hosts: #{hosts}"
 
-    context "when bolt successfully runs the facts plan" do
+    context "when bolt successfully runs the facts task" do
       output = TEST_CENTOS_OUTPUT
       facts = TEST_CENTOS_FACTS
 
       it "returns the facts" do
         expect(subject).to receive(:puts).with(message)
-        expect(RefArchSetup::BoltHelper).to receive(:run_forge_plan_with_bolt)
-          .with(plan, nil, hosts).and_return(output)
+        expect(RefArchSetup::BoltHelper).to receive(:run_bolt_pkg_task_with_bolt)
+          .with(task, nil, hosts).and_return(output)
         expect(JSON).to receive(:parse)
           .with(output).and_return(facts)
 
@@ -985,15 +1005,15 @@ describe RefArchSetup::DownloadHelper do
       end
     end
 
-    context "when bolt is not able to successfully run the facts plan" do
+    context "when bolt is not able to successfully run the facts task" do
       context "when the output can't be parsed" do
         it "outputs a helpful message and re-raises the error" do
           invalid_output = "123"
           helpful_message = "Unable to parse bolt output"
           error_message = "JSON parse error"
           expect(subject).to receive(:puts).with(message)
-          expect(RefArchSetup::BoltHelper).to receive(:run_forge_plan_with_bolt)
-            .with(plan, nil, hosts).and_return(invalid_output)
+          expect(RefArchSetup::BoltHelper).to receive(:run_bolt_pkg_task_with_bolt)
+            .with(task, nil, hosts).and_return(invalid_output)
           expect(JSON).to receive(:parse)
             .with(invalid_output).and_raise(RuntimeError, error_message)
           expect(subject).to receive(:puts).with(helpful_message)

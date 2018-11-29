@@ -3,10 +3,10 @@ test_name "install RAS on controller" do
     scp_to(controller, "#{__dir__}/../../pkg", "ref_arch_setup")
   end
 
-  step "install RAS on controller" do
-    version = RefArchSetup::Version::STRING
-    gem = "ref_arch_setup-#{version}.gem"
-    command = "gem install #{BEAKER_RAS_PATH}/#{gem}"
+  install_ras_gem(controller)
+
+  step "link RAS exe into path" do
+    command = "ln -s #{BOLT_BIN_DIR}/ref_arch_setup /usr/local/bin/ref_arch_setup"
 
     on controller, command
   end

@@ -5,7 +5,9 @@ require "open-uri"
 module RefArchSetup
   # A space to use as a default location to put files on target_host
   TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
+  # Name of task for downloading the tarball
   DOWNLOAD_PE_TARBALL_TASK = "ref_arch_setup::download_pe_tarball".freeze
+  # Name of task for installing pe
   INSTALL_PE_TASK = "ref_arch_setup::install_pe".freeze
 
   # Installation helper
@@ -466,7 +468,7 @@ module RefArchSetup
     end
 
     # Creates a tmp work dir for ref_arch_setup on the target_host
-    # Doesn't fail if the dir is already there.
+    # Doesn't fail if the dir is already there
     #
     # @author Randell Pelak
     #

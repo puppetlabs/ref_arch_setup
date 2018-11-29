@@ -29,6 +29,9 @@ module BeakerHelper
 
   # the RAS temporary working directory
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
+  RAS_BOLT_PKG = "puppet-bolt-1.1.0.14.g7e00b65-1.el7.x86_64".freeze
+  RAS_BOLT_PKG_FILE = "#{RAS_BOLT_PKG}.rpm".freeze
+  BOLT_BIN_DIR = "/opt/puppetlabs/bolt/bin".freeze
 
   # the beaker hosts file used in the docker acceptance tests
   BEAKER_DOCKER_HOSTS = "docker_hosts.cfg".freeze
@@ -198,11 +201,21 @@ module BeakerHelper
   # @example
   #   command = beaker_exec(task)
   #
+  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/MethodLength
-  #
   def beaker_exec(task)
     @beaker_cmd = task.add_command do |command|
       command.name = "bundle exec beaker exec"
+
+      command.add_option do |option|
+        option.name = "--log-level"
+        option.message = "The log level under which you want beaker to run"
+        option.add_argument do |arg|
+          arg.name = "verbose"
+          arg.add_env(name: "BEAKER_LOG_LEVEL")
+        end
+      end
 
       if ENV.key?("BEAKER_PRE_SUITE")
         command.add_option do |option|
@@ -228,6 +241,8 @@ module BeakerHelper
     return @beaker_cmd
   end
   # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/BlockLength
 
   # Creates the beaker destroy command
   #
@@ -324,82 +339,155 @@ module BeakerHelper
   #   gem_path = get_ras_gem_path(host)
   #
   def get_ras_gem_path(host)
-    command = "gem path ref_arch_setup"
+    command = "#{BOLT_BIN_DIR}/gem path ref_arch_setup"
     gem_path = on(host, command).stdout.rstrip
     puts "RAS gem path: #{gem_path}"
     gem_path
   end
 
-  # Uninstalls puppet and removes the RAS working dir on the specified hosts
+  # Uninstalls puppet and removes the RAS working dir on the specified host
   #
-  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @param [Array] host The unix style host where teardown should be run
   #
   # @return [String] The tarball URL
   #
   # @example
-  #   ras_teardown(hosts)
+  #   ras_teardown(host)
   #
-  def ras_teardown(hosts)
-    puts "Tearing down the following hosts:"
+  def ras_teardown(host)
+    puts "Tearing down the following host:"
     puts hosts
     puts
 
-    ras_teardown_uninstall_puppet(hosts)
-    ras_teardown_remove_temp(hosts)
+    ras_teardown_uninstall_puppet(host)
+    ras_teardown_remove_temp(host)
+
+    return unless hosts_with_role(hosts, "controller").include?(host)
+    # currently uninstalling puppet will remove the bolt install
+    # but rpm will still think it is installed.
+    # So have to uninstall and reinstall.
+    # The installer team is fixing this PE-25441
+    # TODO remove after PE-25441 is merged and released
+    remove_bolt_pkg(host)
+    install_bolt_pkg(host)
+    install_ras_gem(host)
   end
 
-  # Removes the RAS working dir on the specified hosts
+  # Removes the RAS working dir on the specified host
   #
-  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @param [Array] host The unix style host where teardown should be run
   #
   # @return [void]
   #
   # @example
-  #   ras_docker_teardown(hosts)
+  #   ras_docker_teardown(host)
   #
-  def ras_docker_teardown(hosts)
-    puts "Tearing down the following hosts:"
-    puts hosts
+  def ras_docker_teardown(host)
+    puts "Tearing down the following host:"
+    puts host
     puts
 
-    ras_teardown_remove_temp(hosts)
+    ras_teardown_remove_temp(host)
   end
 
-  # Uninstalls puppet on the specified hosts
+  # Uninstalls puppet on the specified host
   #
-  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @param [Array] host The unix style host where teardown should be run
   #
   # @return [void]
   #
   # @example
-  #   ras_teardown_uninstall_puppet(hosts)
+  #   ras_teardown_uninstall_puppet(host)
   #
-  def ras_teardown_uninstall_puppet(hosts)
+  def ras_teardown_uninstall_puppet(host)
     # TODO: make this a task
     command = "cd /opt/puppetlabs/bin/ && ./puppet-enterprise-uninstaller -d -p -y"
 
     puts "Uninstalling puppet:"
     puts command
     puts
-    on hosts, command
+    on host, command
   end
 
-  # Removes the RAS working dir on the specified hosts
+  # Removes the RAS working dir on the specified host
   #
-  # @param [Array] hosts The unix style hosts where teardown should be run
+  # @param [Array] host The unix style hosts where teardown should be run
   #
   # @return [void]
   #
   # @example
-  #   ras_teardown_remove_temp(hosts)
+  #   ras_teardown_remove_temp(host)
   #
-  def ras_teardown_remove_temp(hosts)
+  def ras_teardown_remove_temp(host)
     command = "rm -rf #{RAS_TMP_WORK_DIR}"
 
     puts "Removing temp work directory:"
     puts command
     puts
-    on hosts, command
+    on host, command
+  end
+
+  # Removed the bolt pkg from the host
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
+  # @example
+  #   remove_bolt_pkg(host)
+  #
+  def remove_bolt_pkg(host)
+    command = "rpm -e --quiet #{RAS_BOLT_PKG}"
+    puts command
+    on host, command
+  end
+
+  # Install the bolt pkg on the host
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed, so we must uninstall and reinstall
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
+  # @example
+  #   install_bolt_pkg(host)
+  #
+  def install_bolt_pkg(host)
+    step "install bolt repo" do
+      command = "rpm -Uvh #{RAS_BOLT_PKG_FILE}"
+      puts command
+      on host, command
+    end
+  end
+
+  # Install ras on the host using the bolt gem
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed, so we must uninstall and reinstall
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
+  # @example
+  #   install_ras_gem(host)
+  #
+  def install_ras_gem(host)
+    step "install RAS on controller" do
+      version = RefArchSetup::Version::STRING
+      gem = "ref_arch_setup-#{version}.gem"
+      command = "#{BOLT_BIN_DIR}/gem install #{BEAKER_RAS_PATH}/#{gem}"
+      puts command
+      on host, command
+    end
   end
 
   # Returns all hosts except those with the specified role

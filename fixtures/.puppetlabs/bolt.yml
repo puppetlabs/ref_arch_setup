@@ -1,5 +1,0 @@
-format: human
-ssh:
-  host-key-check: false
-  private-key: ~/.ssh/id_rsa
-  
