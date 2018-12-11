@@ -3,6 +3,15 @@ require "beaker"
 # Helper methods for use in running Beaker acceptance tests
 # rubocop:disable Metrics/ModuleLength
 module BeakerHelper
+  # the bolt version to install for testing
+  RAS_BOLT_VERSION = "1.5.0".freeze
+
+  # the bolt package name
+  RAS_BOLT_PKG = "puppet-bolt-#{RAS_BOLT_VERSION}".freeze
+
+  # the bolt bin dir
+  BOLT_BIN_DIR = "/opt/puppetlabs/bolt/bin".freeze
+
   # the beaker hosts file
   BEAKER_HOSTS = "#{__dir__}/../../hosts.cfg".freeze
 
@@ -29,9 +38,6 @@ module BeakerHelper
 
   # the RAS temporary working directory
   RAS_TMP_WORK_DIR = "/tmp/ref_arch_setup".freeze
-  RAS_BOLT_PKG = "puppet-bolt-1.1.0.14.g7e00b65-1.el7.x86_64".freeze
-  RAS_BOLT_PKG_FILE = "#{RAS_BOLT_PKG}.rpm".freeze
-  BOLT_BIN_DIR = "/opt/puppetlabs/bolt/bin".freeze
 
   # the beaker hosts file used in the docker acceptance tests
   BEAKER_DOCKER_HOSTS = "docker_hosts.cfg".freeze
@@ -440,6 +446,25 @@ module BeakerHelper
   # @example
   #   remove_bolt_pkg(host)
   #
+  def install_bolt_repo(host)
+    command = "rpm -Uvh https://yum.puppet.com/puppet6/puppet6-release-el-7.noarch.rpm"
+    puts command
+    on host, command
+  end
+
+  # Removed the bolt pkg from the host
+  # This is needed because puppet uninstall removes the bolt code,
+  # but rpm thinks it is still installed
+  # The installer team is fixing this PE-25441
+  # TODO remove after PE-25441 is merged and released
+  #
+  # @param [Host] host A unix style host
+  #
+  # @return [void]
+  #
+  # @example
+  #   remove_bolt_pkg(host)
+  #
   def remove_bolt_pkg(host)
     command = "rpm -e --quiet #{RAS_BOLT_PKG}"
     puts command
@@ -460,11 +485,9 @@ module BeakerHelper
   #   install_bolt_pkg(host)
   #
   def install_bolt_pkg(host)
-    step "install bolt repo" do
-      command = "rpm -Uvh #{RAS_BOLT_PKG_FILE}"
-      puts command
-      on host, command
-    end
+    command = "yum install -y #{RAS_BOLT_PKG}"
+    puts command
+    on host, command
   end
 
   # Install ras on the host using the bolt gem
@@ -481,13 +504,11 @@ module BeakerHelper
   #   install_ras_gem(host)
   #
   def install_ras_gem(host)
-    step "install RAS on controller" do
-      version = RefArchSetup::Version::STRING
-      gem = "ref_arch_setup-#{version}.gem"
-      command = "#{BOLT_BIN_DIR}/gem install #{BEAKER_RAS_PATH}/#{gem}"
-      puts command
-      on host, command
-    end
+    version = RefArchSetup::Version::STRING
+    gem = "ref_arch_setup-#{version}.gem"
+    command = "#{BOLT_BIN_DIR}/gem install #{BEAKER_RAS_PATH}/#{gem}"
+    puts command
+    on host, command
   end
 
   # Returns all hosts except those with the specified role
