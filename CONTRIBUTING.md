@@ -1,6 +1,14 @@
 # How To Contribute To RefArchSetup
 
 ## Getting Started
+### Install Bolt
+* [Install Puppet Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html)
+* Install Bundler using the version of Ruby provided by Bolt
+```
+$ /opt/puppetlabs/bolt/bin/gem install bundler
+```
+
+### Clone RefArchSetup 
 * Make sure you have a [GitHub](https://github.com) account.
 * Clone the [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup) repository on GitHub. 
     * RefArchSetup uses [gem_of](https://github.com/puppetlabs/gem_of) for some development gem dependencies and rake tasks.
@@ -14,14 +22,16 @@
       git submodule update
       ```
       
+### Install Dependencies
 * Navigate to the ref_arch_setup directory:
-  ```
-  $ ~/> cd ref_arch_setup
-  ```
+```
+$ ~/> cd ref_arch_setup
+```
+
 * Install the required gems:
-  ```
-  $ ~/ref_arch_setup> bundle install 
-  ```
+```
+$ ~/ref_arch_setup> /opt/puppetlabs/bolt/bin/bundle install 
+```
 
 ## Filing Tickets With Jira
 
