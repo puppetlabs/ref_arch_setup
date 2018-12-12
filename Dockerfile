@@ -69,27 +69,6 @@ COPY fixtures/tarball/*.tar /ref_arch_setup
 
 ##################################################################
 
-####### SSH #######
-
-##################################################################
-
-FROM centos as centos-ssh
-
-RUN yum -y update; yum clean all
-RUN yum -y install openssh-server passwd
-
-RUN mkdir /var/run/sshd
-RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
-
-#ENTRYPOINT ["/usr/sbin/sshd", "-D"]
-
-COPY bin/docker/ssh_entrypoint.sh /usr/local/bin/
-
-EXPOSE 22
-ENTRYPOINT ["ssh_entrypoint.sh"]
-
-##################################################################
-
 FROM alpine as alpine-ssh
 
 # Update sshd config
