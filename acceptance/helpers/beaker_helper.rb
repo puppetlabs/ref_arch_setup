@@ -355,7 +355,7 @@ module BeakerHelper
   #
   # @param [Array] host The unix style host where teardown should be run
   #
-  # @return [String] The tarball URL
+  # @return [void]
   #
   # @example
   #   ras_teardown(host)
@@ -367,16 +367,6 @@ module BeakerHelper
 
     ras_teardown_uninstall_puppet(host)
     ras_teardown_remove_temp(host)
-
-    return unless hosts_with_role(hosts, "controller").include?(host)
-    # currently uninstalling puppet will remove the bolt install
-    # but rpm will still think it is installed.
-    # So have to uninstall and reinstall.
-    # The installer team is fixing this PE-25441
-    # TODO remove after PE-25441 is merged and released
-    remove_bolt_pkg(host)
-    install_bolt_pkg(host)
-    install_ras_gem(host)
   end
 
   # Removes the RAS working dir on the specified host
@@ -448,25 +438,6 @@ module BeakerHelper
   #
   def install_bolt_repo(host)
     command = "rpm -Uvh https://yum.puppet.com/puppet6/puppet6-release-el-7.noarch.rpm"
-    puts command
-    on host, command
-  end
-
-  # Removed the bolt pkg from the host
-  # This is needed because puppet uninstall removes the bolt code,
-  # but rpm thinks it is still installed
-  # The installer team is fixing this PE-25441
-  # TODO remove after PE-25441 is merged and released
-  #
-  # @param [Host] host A unix style host
-  #
-  # @return [void]
-  #
-  # @example
-  #   remove_bolt_pkg(host)
-  #
-  def remove_bolt_pkg(host)
-    command = "rpm -e --quiet #{RAS_BOLT_PKG}"
     puts command
     on host, command
   end
