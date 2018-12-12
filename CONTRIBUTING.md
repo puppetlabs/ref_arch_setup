@@ -1,12 +1,20 @@
 # How To Contribute To RefArchSetup
 
+## Prerequisites
+### Ruby
+Although the RefArchSetup gem is installed using the version of Ruby provided by Bolt, it is best to use your own Ruby environment when developing and building RAS.
+RefArchSetup requires a minimum Ruby version of 2.3.
+* Install Ruby via [rbenv](https://github.com/rbenv/rbenv) or your preferred method.
+
+### Bundler
+RefArchSetup uses [Bundler](https://bundler.io/) to install dependencies.
+* Install Bundler if it is not already present in your Ruby environment.
+
+### Puppet Bolt
+RefArchSetup uses [Puppet Bolt](https://puppet.com/products/puppet-bolt) to automate the PE installation.
+* [Install Puppet Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html).
+
 ## Getting Started
-### Install Bolt
-* [Install Puppet Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html)
-* Install Bundler using the version of Ruby provided by Bolt
-```
-$ /opt/puppetlabs/bolt/bin/gem install bundler
-```
 
 ### Clone RefArchSetup 
 * Make sure you have a [GitHub](https://github.com) account.
@@ -30,7 +38,12 @@ $ ~/> cd ref_arch_setup
 
 * Install the required gems:
 ```
-$ ~/ref_arch_setup> /opt/puppetlabs/bolt/bin/bundle install 
+$ ~/ref_arch_setup> bundle install 
+```
+
+* View the provided rake tasks:
+```
+$ ~/ref_arch_setup> bundle exec rake 
 ```
 
 ## Filing Tickets With Jira

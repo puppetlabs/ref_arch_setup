@@ -55,11 +55,11 @@ To build the gem locally:
 ```
 * The gem will be built to the pkg directory; install the gem by either specifying the path to the RAS gem provided in the output from the previous step:
 ```
-    $ ~/ref_arch_setup> gem install pkg/ref_arch_setup-0.0.x
+    $ ~/ref_arch_setup> /opt/puppetlabs/bolt/bin/gem install pkg/ref_arch_setup-0.0.x
 ```
 or navigate to the pkg directory first, in which case specifying the version is not required:
 ```
-    $ ~/ref_arch_setup> cd pkg && gem install ref_arch_setup
+    $ ~/ref_arch_setup> cd pkg && /opt/puppetlabs/bolt/bin/gem install ref_arch_setup && cd ..
 ```
 
 ## Link the RefArchSetup executable
