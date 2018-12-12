@@ -34,9 +34,8 @@ RefArchSetup currently supports the Standard Architecture.
 [Install Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html) using the instructions for your platform.
 
 ## Ruby
-* TODO: can | should | must use bolt version
 RefArchSetup should be installed using the version of Ruby provided by Bolt.
-This eliminates the need to install Ruby but does require specifying the Bolt path when installing RefArchSetup.
+This eliminates the need to install Ruby separately but does require specifying the Bolt path when installing RefArchSetup.
 
 RefArchSetup can be installed via [RubyGems](https://rubygems.org/gems/ref_arch_setup) or by building the gem locally. 
 
