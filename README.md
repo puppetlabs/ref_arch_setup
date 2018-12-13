@@ -5,8 +5,8 @@ RefArchSetup is a Ruby gem designed to help install the various Puppet Reference
 It currently supports the Standard Reference Architecture.
 
 # Prerequisites
-## Ruby
-RefArchSetup uses [Puppet Bolt](https://puppet.com/products/puppet-bolt) as a gem which requires a minimum Ruby version of 2.3.
+## Puppet Bolt
+RefArchSetup uses [Puppet Bolt](https://puppet.com/products/puppet-bolt) to automate the PE installation steps.
 
 ## Root Access
 RefArchSetup executes Bolt commands as the root user using the `--run-as root` option to ensure a successful PE installation. 
@@ -30,12 +30,19 @@ RefArchSetup supports PE versions greater than 2018.1.0.
 RefArchSetup currently supports the Standard Architecture.
 
 # Installation
+## Bolt
+[Install Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html) using the instructions for your platform.
+
+## Ruby
+RefArchSetup should be installed using the version of Ruby provided by Bolt.
+This eliminates the need to install Ruby separately but does require specifying the Bolt path when installing RefArchSetup.
+
 RefArchSetup can be installed via [RubyGems](https://rubygems.org/gems/ref_arch_setup) or by building the gem locally. 
 
 ## Install via RubyGems
 The easiest way to install RefArchSetup is via [RubyGems](https://rubygems.org/gems/ref_arch_setup):
 ```
-    $ gem install ref_arch_setup
+    $ /opt/puppetlabs/bolt/bin/gem install ref_arch_setup
 ```
 
 ## Build the gem locally
@@ -47,11 +54,17 @@ To build the gem locally:
 ```
 * The gem will be built to the pkg directory; install the gem by either specifying the path to the RAS gem provided in the output from the previous step:
 ```
-    $ ~/ref_arch_setup> gem install pkg/ref_arch_setup-0.0.x
+    $ ~/ref_arch_setup> /opt/puppetlabs/bolt/bin/gem install pkg/ref_arch_setup-0.0.x
 ```
 or navigate to the pkg directory first, in which case specifying the version is not required:
 ```
-    $ ~/ref_arch_setup> cd pkg && gem install ref_arch_setup
+    $ ~/ref_arch_setup> cd pkg && /opt/puppetlabs/bolt/bin/gem install ref_arch_setup && cd ..
+```
+
+## Link the RefArchSetup executable
+The Bolt path must be specified when running RefArchSetup. This can be avoided by running the following command:
+```
+    $ ln -s /opt/puppetlabs/bolt/bin/ref_arch_setup /usr/local/bin/ref_arch_setup
 ```
 
 # Usage

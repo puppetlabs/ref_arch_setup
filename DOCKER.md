@@ -4,16 +4,7 @@ It uses docker-compose to set up an acceptance testing environment with 'control
 
 ## Configuration
 ### Dockerfile
-The current configuration uses a Dockerfile with multi-stage builds:
-
-* FROM ruby:alpine as base
-* FROM base as sshd
-* FROM base as build
-* FROM base as prod
-
-There are also stages for the docker acceptance tests:
-* FROM prod as controller
-* FROM sshd as master
+The current configuration uses a Dockerfile with multi-stage builds to provide containers for building the RAS gem and performing manual acceptance testing.
 
 ### docker-compose.yml
 The docker-compose.yml file includes a general 'ras' service as well as 'controller' and 'master' services for acceptance testing.
@@ -130,9 +121,6 @@ The setup_ssh script will create the id_rsa, id_rsa.pub, and authorized_keys fil
 ```
 
 * When the build completes you should have a bash prompt for the controller container
-```
-bash-4.4# bolt command run 'echo HELLO RAS!!!' --nodes=master --user=root --no-host-key-check
-```
 
 ### Start the master container
 

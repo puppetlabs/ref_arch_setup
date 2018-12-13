@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   # Ensure the gem is build out of the versioned files
   spec.files            = Dir["CONTRIBUTING.md", "LICENSE.md", "MAINTAINERS",
                               "README.md", "lib/**/*", "bin/*", "docs/**/*",
-                              "fixtures/**/*", "modules/**/*", "Boltdir/**/*"]
+                              "fixtures/**/*", "modules/**/*"]
   spec.executables   = ["ref_arch_setup"]
   spec.require_paths = ["lib"]
 

@@ -1,6 +1,22 @@
 # How To Contribute To RefArchSetup
 
+## Prerequisites
+### Ruby
+Although the RefArchSetup gem is installed using the version of Ruby provided by Bolt, it is best to use your own Ruby environment when developing and building RAS.
+RefArchSetup requires a minimum Ruby version of 2.3.
+* Install Ruby via [rbenv](https://github.com/rbenv/rbenv) or your preferred method.
+
+### Bundler
+RefArchSetup uses [Bundler](https://bundler.io/) to install dependencies.
+* Install Bundler if it is not already present in your Ruby environment.
+
+### Puppet Bolt
+RefArchSetup uses [Puppet Bolt](https://puppet.com/products/puppet-bolt) to automate the PE installation.
+* [Install Puppet Bolt](https://puppet.com/docs/bolt/1.x/bolt_installing.html).
+
 ## Getting Started
+
+### Clone RefArchSetup 
 * Make sure you have a [GitHub](https://github.com) account.
 * Clone the [ref_arch_setup](https://github.com/puppetlabs/ref_arch_setup) repository on GitHub. 
     * RefArchSetup uses [gem_of](https://github.com/puppetlabs/gem_of) for some development gem dependencies and rake tasks.
@@ -14,14 +30,21 @@
       git submodule update
       ```
       
+### Install Dependencies
 * Navigate to the ref_arch_setup directory:
-  ```
-  $ ~/> cd ref_arch_setup
-  ```
+```
+$ ~/> cd ref_arch_setup
+```
+
 * Install the required gems:
-  ```
-  $ ~/ref_arch_setup> bundle install 
-  ```
+```
+$ ~/ref_arch_setup> bundle install 
+```
+
+* View the provided rake tasks:
+```
+$ ~/ref_arch_setup> bundle exec rake 
+```
 
 ## Filing Tickets With Jira
 
@@ -113,6 +136,34 @@ The `lint:rubocop` task runs RuboCop using the configuration specified in `.rubo
 
 ##### RSpec
 The `test:spec` tasks runs the RSpec tests in `spec/ref_arch_setup`
+
+#### Acceptance Tests
+RefArchSetup includes a suite of acceptance tests which cover a variety of installation scenarios.
+These tests use [Beaker](https://github.com/puppetlabs/beaker) to provision test nodes and execute test steps.
+Running these tests before submitting changes is encouraged to ensure the update functions as intended without impacting existing functionality.
+
+##### vmpooler
+The primary suite of tests uses [vmpooler](https://confluence.puppetlabs.com/display/SUP/How+To%3A+Use+vmpooler) to provision virtual machines for testing.
+Running tests via vmpooler requires access to the internal Puppet network. 
+Because the tests perform a full PE installation they require a significant amount of time to run.
+
+Run the acceptance tests with the following command:
+```
+$ ~/ref_arch_setup> bundle exec rake test:acceptance
+```
+
+##### Docker
+RefArchSetup also includes a lightweight set of acceptance tests that use a mock version of the PE tarball to exercise functionality without performing an actual PE installation.
+These tests run locally using [Docker](https://www.docker.com/) containers as the test nodes, making this a great option for those without access to the internal Puppet network.
+Although the initial test run can take a significant amount of time to download the images and build the containers, subsequent runs are much faster.
+This makes it a great option for quickly testing changes before running the full suite of tests via vmpooler.
+
+See [DOCKER.md](DOCKER.md) for more information on the use of Docker with RefArchSetup.
+
+Run the lightweight acceptance tests via Docker with the following command:
+```
+$ ~/ref_arch_setup> bundle exec rake test:acceptance_docker
+```
 
 ### Submitting Your Changes
 * Push your changes to a topic branch of the repository.
